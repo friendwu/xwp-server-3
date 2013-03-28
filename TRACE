@@ -1,0 +1,10 @@
+1. str_t 要做成zero_terminated. 相应的，每个buf最后一个字节都要设置为\0, 不能用来读取实际数据。
+2. pool 生命周期管理
+3. conf中的一些运行配置： request_pool_size client_header_size
+4. 处理好CRLF，LF
+
+5. array elts 转换应该是(xxxx **) 二级指针，不是一级
+6. default vhost, default location.
+7. array_init
+
+conf.c module.h module_default  default handler Makefile.

@@ -1,0 +1,58 @@
+<server>
+	<ip></ip>
+	<allow_list_dir>no</allow_list_dir>
+	<max_connection>300</max_connection>
+	<!-- 1024 * 16-->
+	<max_content_len>16384<max_content_len>
+	<port>8000<port>
+	<max_threads>300</max_threads>
+	<connection_timeout>30</connection_timeout>
+	<root></root>
+
+	<default_pages>
+		<page>index.html</page>
+		<page>index.htm</page>
+		<page>index.php</page>
+		<page>default.htm</page>
+	</default_pages>
+	
+	<load_module>
+		<path>./modules</path>
+		<module>mod_default.so</module>
+		<module>mod_uwsgi.so</module>
+	</load_module>
+
+	<vhost>
+		<name>pengwu.me</name>
+		<root></root>
+		<location>
+			<pattern>/static/.*</pattern>
+			<handler>
+				<name>default</name>
+			</handler>
+
+		</location>
+
+		<location>
+			<pattern>/.*</pattern>
+			<handler>
+				<name>default</name>
+				<param>
+					<name>uwsgi_pass</name>
+					<value>9000</value>
+				</param>
+
+				<param>
+					<name>uwsgi_param</name>
+					<value>UWSGI_CHDIR</value>
+					<value>/home/wpeng/uone/mycode/xwp2</value>
+				</param>
+				<param>
+					<name>uwsgi_param</name>
+					<value>UWSGI_SCRIPT</value>
+					<value>uwsgi_main</value>
+				</param>
+			</handler>
+		</location>
+	</vhost>
+</server>
