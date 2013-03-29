@@ -1,4 +1,4 @@
-1. str_t 要做成zero_terminated. 相应的，每个buf最后一个字节都要设置为\0, 不能用来读取实际数据。
+[x] 1. str_t 要做成zero_terminated. 相应的，每个buf最后一个字节都要设置为\0, 不能用来读取实际数据。
 2. pool 生命周期管理
 3. conf中的一些运行配置： request_pool_size client_header_size
 4. 处理好CRLF，LF
@@ -8,3 +8,10 @@
 7. array_init
 
 conf.c module.h module_default  default handler Makefile.
+
+str_t 要特别注意buf 要多分配一个字节， 边界判定条件也应该是end-1 > last, 最后一个字节用于存放\0
+
+要特别注意buf 的边界情况。
+
+系统整合， 头文件包含
+makefile

@@ -18,7 +18,7 @@ typedef struct http_status_s
 	const char* verbose;
 }http_status_t;
 
-http_status_t http_status_infos[] = {
+static http_status_t http_status_infos[] = {
 	 {100, "Continue", "Request received, please continue"},
 	 {101, "Switching Protocols",
 			 "Switching to new protocol; obey Upgrade header"},
@@ -117,7 +117,9 @@ int open_listen_fd(char* ip, int port)
 	listen_fd = socket(AF_INET, SOCK_STREAM, 0);
 	if(listen_fd < 0) return -1;
 
-	if(setsockopt(listen_fd, SOL_SOCKET, SO_REUSEADDR, (const void* )&opt, sizeof(int)) < 0)		return -1;
+	if(setsockopt(listen_fd, SOL_SOCKET, 
+					SO_REUSEADDR, (const void* )&opt, sizeof(int)) < 0)
+		return -1;
 	
 	bzero((char* )&addr, sizeof(struct sockaddr_in));
 
@@ -137,26 +139,25 @@ int open_listen_fd(char* ip, int port)
 	return listen_fd;
 }
 
-int get_token(str_t* str, char** buf, size_t buf_len, IS_DELIM_FUNC delim_func, const char* delim)
+int get_token(str_t* str, char** buf, IS_DELIM_FUNC delim_func, const char* delim)
 {
 	if(buf==NULL || *buf ==NULL) return NULL;
 
 	char* p = *buf;
 	char* p_start;
 
-	while(*p!='\0' && p-*buf<buf_len && IS_DELIM(delim_func, delim, *p)) p++;
+	while(*p!='\0' && IS_DELIM(delim_func, delim, *p)) p++;
 
-	if(*p == '\0' || p-*buf>=buf_len) return 0;
+	if(*p == '\0') return 0;
 	
 	p_start = p;
 	p++;
-
-	while(*p!='\0' && p-*buf<buf_len && !IS_DELIM(delim_func, delim, *p)) p++;
+	while(*p!='\0' && !IS_DELIM(delim_func, delim, *p)) p++;
 
 	str->data = p_start;
 	str->len = p - p_start;
-	//TODO set \0 at str->data[str->len]
-	*buf = p;
+	*p = '\0';
+	*buf = p + 1;
 
 	return 1;
 }
@@ -207,7 +208,7 @@ int nwrite(int fd, char* buf, size_t len)
 	return 1;
 }
 
-const char* get_file_content_type(const char* extension)
+const char* http_content_type(const char* extension)
 {
 	if(extension == NULL) return "text/html";
 	else if(strcmp(extension, "") == 0) return "application/octet-stream";
@@ -280,21 +281,30 @@ const str_t* http_header_str(array_t* headers, const char* name)
 {
 	assert(headers!=NULL && name!=NULL);
 
+	str_t hname = {name, strlen(name)};
+
 	int i = 0;
 	for(; i<headers->count; i++)
 	{
-		if(strncasecmp(name.data, h[i].name.data, name.len) == 0)
+		if(strncasecmp(hname.data, h[i].name.data, name.len) == 0)
 			return &h[i].value;
 	}
 
 	return NULL;
 }
 
-int http_header_equal(array_t* headers, const str_t* name, const str_t* value)
+int http_header_int(array_t* headers, const char* name)
+{
+	const str_t* value = http_header_str(headers, name);
+
+	return atoi(value.data);
+}
+
+int http_header_equal(array_t* headers, const char* name, const char* value)
 {
 	const str_t* header_value = http_header_str(h, name);
 
-	if(header_value != NULL && strncasecmp(header_value.data, value.data, header_value.len) == 0) 
+	if(header_value != NULL && strncasecmp(header_value.data, value, header_value.len) == 0) 
 		return 1;
 	else 
 		return 0;

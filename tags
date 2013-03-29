@@ -6,201 +6,138 @@
 !_TAG_PROGRAM_VERSION	5.8	//
 CONF_H	conf.h	2;"	d
 CONNECTION_H	connection.h	2;"	d
-DECLS_BEGIN	builder/typedef.h	54;"	d
-DECLS_BEGIN	builder/typedef.h	57;"	d
-DECLS_END	builder/typedef.h	55;"	d
-DECLS_END	builder/typedef.h	58;"	d
 DESTROY_MEM	typedef.h	7;"	d
-DataCompareFunc	builder/typedef.h	/^typedef int      (*DataCompareFunc)(void* ctx, void* data);$/;"	t
-DataDestroyFunc	builder/typedef.h	/^typedef void     (*DataDestroyFunc)(void* ctx, void* data);$/;"	t
-DataHashFunc	builder/typedef.h	/^typedef int       (*DataHashFunc)(void* data);$/;"	t
-DataVisitFunc	builder/typedef.h	/^typedef Ret      (*DataVisitFunc)(void* ctx, void* data);$/;"	t
-HTTPS_CERT_ERROR	typedef.h	119;"	d
-HTTPS_NO_CERT	typedef.h	120;"	d
-HTTP_HEADER_CONNECTION	typedef.h	146;"	d
-HTTP_HEADER_CONTENT_LEN	typedef.h	151;"	d
-HTTP_HEADER_CONTENT_TYPE	typedef.h	150;"	d
-HTTP_HEADER_DATE	typedef.h	147;"	d
-HTTP_HEADER_HOST	typedef.h	149;"	d
-HTTP_HEADER_SERVER	typedef.h	148;"	d
+HTTPS_CERT_ERROR	typedef.h	117;"	d
+HTTPS_NO_CERT	typedef.h	118;"	d
+HTTP_HEADER_CONNECTION	typedef.h	144;"	d
+HTTP_HEADER_CONTENT_LEN	typedef.h	149;"	d
+HTTP_HEADER_CONTENT_TYPE	typedef.h	148;"	d
+HTTP_HEADER_DATE	typedef.h	145;"	d
+HTTP_HEADER_HOST	typedef.h	147;"	d
+HTTP_HEADER_KEEPALIVE	typedef.h	150;"	d
+HTTP_HEADER_SERVER	typedef.h	146;"	d
 HTTP_MODULE_PROCESS_DONE	module.h	5;"	d
 HTTP_MODULE_PROCESS_FAIL	module.h	6;"	d
 HTTP_MODULE_PROCESS_UPSTREAM	module.h	7;"	d
 HTTP_PARSE_AGAIN	connection.c	19;"	d	file:
 HTTP_PARSE_DONE	connection.c	17;"	d	file:
 HTTP_PARSE_FAIL	connection.c	18;"	d	file:
-HTTP_STATUS_ACCEPTED	typedef.h	87;"	d
-HTTP_STATUS_BAD_GATEWAY	typedef.h	141;"	d
-HTTP_STATUS_BAD_REQUEST	typedef.h	98;"	d
-HTTP_STATUS_CLIENT_CLOSED_REQUEST	typedef.h	136;"	d
-HTTP_STATUS_CLOSE	typedef.h	113;"	d
-HTTP_STATUS_CONFLICT	typedef.h	104;"	d
-HTTP_STATUS_CREATED	typedef.h	86;"	d
-HTTP_STATUS_FORBIDDEN	typedef.h	100;"	d
-HTTP_STATUS_GATEWAY_TIME_OUT	typedef.h	143;"	d
-HTTP_STATUS_INSUFFICIENT_STORAGE	typedef.h	144;"	d
-HTTP_STATUS_INTERNAL_SERVER_ERROR	typedef.h	139;"	d
-HTTP_STATUS_LENGTH_REQUIRED	typedef.h	105;"	d
-HTTP_STATUS_MOVED_PERMANENTLY	typedef.h	92;"	d
-HTTP_STATUS_MOVED_TEMPORARILY	typedef.h	93;"	d
-HTTP_STATUS_NGINX_CODES	typedef.h	115;"	d
-HTTP_STATUS_NOT_ALLOWED	typedef.h	102;"	d
-HTTP_STATUS_NOT_FOUND	typedef.h	101;"	d
-HTTP_STATUS_NOT_IMPLEMENTED	typedef.h	140;"	d
-HTTP_STATUS_NOT_MODIFIED	typedef.h	95;"	d
-HTTP_STATUS_NO_CONTENT	typedef.h	88;"	d
-HTTP_STATUS_OK	typedef.h	85;"	d
-HTTP_STATUS_PARTIAL_CONTENT	typedef.h	89;"	d
-HTTP_STATUS_PRECONDITION_FAILED	typedef.h	106;"	d
-HTTP_STATUS_RANGE_NOT_SATISFIABLE	typedef.h	110;"	d
-HTTP_STATUS_REQUEST_ENTITY_TOO_LARGE	typedef.h	107;"	d
-HTTP_STATUS_REQUEST_HEADER_TOO_LARGE	typedef.h	117;"	d
-HTTP_STATUS_REQUEST_TIME_OUT	typedef.h	103;"	d
-HTTP_STATUS_REQUEST_URI_TOO_LARGE	typedef.h	108;"	d
-HTTP_STATUS_SEE_OTHER	typedef.h	94;"	d
-HTTP_STATUS_SERVICE_UNAVAILABLE	typedef.h	142;"	d
-HTTP_STATUS_SPECIAL_RESPONSE	typedef.h	91;"	d
-HTTP_STATUS_TEMPORARY_REDIRECT	typedef.h	96;"	d
-HTTP_STATUS_TO_HTTPS	typedef.h	126;"	d
-HTTP_STATUS_UNAUTHORIZED	typedef.h	99;"	d
-HTTP_STATUS_UNSUPPORTED_MEDIA_TYPE	typedef.h	109;"	d
+HTTP_STATUS_ACCEPTED	typedef.h	85;"	d
+HTTP_STATUS_BAD_GATEWAY	typedef.h	139;"	d
+HTTP_STATUS_BAD_REQUEST	typedef.h	96;"	d
+HTTP_STATUS_CLIENT_CLOSED_REQUEST	typedef.h	134;"	d
+HTTP_STATUS_CLOSE	typedef.h	111;"	d
+HTTP_STATUS_CONFLICT	typedef.h	102;"	d
+HTTP_STATUS_CREATED	typedef.h	84;"	d
+HTTP_STATUS_FORBIDDEN	typedef.h	98;"	d
+HTTP_STATUS_GATEWAY_TIME_OUT	typedef.h	141;"	d
+HTTP_STATUS_INSUFFICIENT_STORAGE	typedef.h	142;"	d
+HTTP_STATUS_INTERNAL_SERVER_ERROR	typedef.h	137;"	d
+HTTP_STATUS_LENGTH_REQUIRED	typedef.h	103;"	d
+HTTP_STATUS_MOVED_PERMANENTLY	typedef.h	90;"	d
+HTTP_STATUS_MOVED_TEMPORARILY	typedef.h	91;"	d
+HTTP_STATUS_NGINX_CODES	typedef.h	113;"	d
+HTTP_STATUS_NOT_ALLOWED	typedef.h	100;"	d
+HTTP_STATUS_NOT_FOUND	typedef.h	99;"	d
+HTTP_STATUS_NOT_IMPLEMENTED	typedef.h	138;"	d
+HTTP_STATUS_NOT_MODIFIED	typedef.h	93;"	d
+HTTP_STATUS_NO_CONTENT	typedef.h	86;"	d
+HTTP_STATUS_OK	typedef.h	83;"	d
+HTTP_STATUS_PARTIAL_CONTENT	typedef.h	87;"	d
+HTTP_STATUS_PRECONDITION_FAILED	typedef.h	104;"	d
+HTTP_STATUS_RANGE_NOT_SATISFIABLE	typedef.h	108;"	d
+HTTP_STATUS_REQUEST_ENTITY_TOO_LARGE	typedef.h	105;"	d
+HTTP_STATUS_REQUEST_HEADER_TOO_LARGE	typedef.h	115;"	d
+HTTP_STATUS_REQUEST_TIME_OUT	typedef.h	101;"	d
+HTTP_STATUS_REQUEST_URI_TOO_LARGE	typedef.h	106;"	d
+HTTP_STATUS_SEE_OTHER	typedef.h	92;"	d
+HTTP_STATUS_SERVICE_UNAVAILABLE	typedef.h	140;"	d
+HTTP_STATUS_SPECIAL_RESPONSE	typedef.h	89;"	d
+HTTP_STATUS_TEMPORARY_REDIRECT	typedef.h	94;"	d
+HTTP_STATUS_TO_HTTPS	typedef.h	124;"	d
+HTTP_STATUS_UNAUTHORIZED	typedef.h	97;"	d
+HTTP_STATUS_UNSUPPORTED_MEDIA_TYPE	typedef.h	107;"	d
 HTTP_UPSTREAM_DONE	upstream.h	3;"	d
 HTTP_UPSTREAM_FAIL	upstream.h	4;"	d
 IS_DELIM	utils.c	13;"	d	file:
 IS_DELIM_FUNC	utils.h	/^typedef int (*IS_DELIM_FUNC)(int c);$/;"	t
-MAX_ATTR_NR	builder/typedef.h	72;"	d
 MAX_ATTR_NR	typedef.h	12;"	d
 METHOD_GET	typedef.h	/^	METHOD_GET = 0,$/;"	e	enum:__anon1
 METHOD_HEAD	typedef.h	/^	METHOD_HEAD,$/;"	e	enum:__anon1
 METHOD_POST	typedef.h	/^	METHOD_POST,$/;"	e	enum:__anon1
 MODULE_CREATE_FUNC	module.h	/^typedef module_t* (*MODULE_CREATE_FUNC)(server_t* server, module_so_conf_t* conf, module_param_t* params, size_t param_nr);$/;"	t
 MODULE_H	module.h	2;"	d
-MODULE_TYPE_FILTER	conf.h	/^	MODULE_TYPE_FILTER,$/;"	e	enum:__anon4
+MODULE_TYPE_FILTER	conf.h	/^	MODULE_TYPE_FILTER,$/;"	e	enum:__anon3
 MODULE_TYPE_FILTER	conf.h	4;"	d
-MODULE_TYPE_HANDLER	conf.h	/^	MODULE_TYPE_HANDLER = 0,$/;"	e	enum:__anon4
+MODULE_TYPE_HANDLER	conf.h	/^	MODULE_TYPE_HANDLER = 0,$/;"	e	enum:__anon3
 MODULE_TYPE_HANDLER	conf.h	3;"	d
 ModuleDefaultPriv	modules/module_default.c	/^}ModuleDefaultPriv;$/;"	t	typeref:struct:_ModuleDefaultPriv	file:
 POOL_H	pool.h	2;"	d
-PrivInfo	builder/xml_builder_dump.c	/^}PrivInfo;$/;"	t	typeref:struct:_PrivInfo	file:
-PrivInfo	builder/xml_builder_tree.c	/^}PrivInfo;$/;"	t	typeref:struct:_PrivInfo	file:
 PrivInfo	xml_builder_tree.c	/^}PrivInfo;$/;"	t	typeref:struct:_PrivInfo	file:
-RET_FAIL	builder/typedef.h	/^	RET_FAIL$/;"	e	enum:_Ret
-RET_INVALID_PARAMS	builder/typedef.h	/^	RET_INVALID_PARAMS,$/;"	e	enum:_Ret
-RET_OK	builder/typedef.h	/^	RET_OK,$/;"	e	enum:_Ret
-RET_OOM	builder/typedef.h	/^	RET_OOM,$/;"	e	enum:_Ret
-RET_STOP	builder/typedef.h	/^	RET_STOP,$/;"	e	enum:_Ret
-Ret	builder/typedef.h	/^}Ret;$/;"	t	typeref:enum:_Ret
-SAFE_FREE	builder/typedef.h	68;"	d
 SAFE_FREE	typedef.h	10;"	d
 SERVER_H	server.h	2;"	d
 Server	server.h	/^typedef struct _Server Server;$/;"	t	typeref:struct:_Server
-Server	vhost.h	/^typedef struct _Server Server;$/;"	t	typeref:struct:_Server
-SortFunc	builder/typedef.h	/^typedef Ret (*SortFunc)(void** array, size_t nr, DataCompareFunc cmp);$/;"	t
-TYPEDEF_H	builder/typedef.h	37;"	d
+Server	trash/vhost.h	/^typedef struct _Server Server;$/;"	t	typeref:struct:_Server
 TYPEDEF_H	typedef.h	2;"	d
 UPSTREAM_H	upstream.h	2;"	d
 UTILS_H	utils.h	2;"	d
-VHOST_H	vhost.h	2;"	d
-Vhost	vhost.c	/^}Vhost;$/;"	t	typeref:struct:_Vhost	file:
-Vhost	vhost.h	/^typedef struct _Vhost Vhost;$/;"	t	typeref:struct:_Vhost
-VhostLoc	vhost.c	/^}VhostLoc;$/;"	t	typeref:struct:_VhostLoc	file:
-XML	builder/xml_parser_test.c	5;"	d	file:
-XML_BUILDER_DUMP_H	builder/xml_builder_dump.h	33;"	d
-XML_BUILDER_H	builder/xml_builder.h	35;"	d
+VHOST_H	trash/vhost.h	2;"	d
+Vhost	trash/vhost.c	/^}Vhost;$/;"	t	typeref:struct:_Vhost	file:
+Vhost	trash/vhost.h	/^typedef struct _Vhost Vhost;$/;"	t	typeref:struct:_Vhost
+VhostLoc	trash/vhost.c	/^}VhostLoc;$/;"	t	typeref:struct:_VhostLoc	file:
 XML_BUILDER_H	xml_builder.h	35;"	d
-XML_BUILDER_TREE_H	builder/xml_builder_tree.h	33;"	d
 XML_BUILDER_TREE_H	xml_builder_tree.h	33;"	d
-XML_NODE_COMMENT	builder/xml_tree.h	/^	XML_NODE_COMMENT$/;"	e	enum:_XmlNodeType
 XML_NODE_COMMENT	xml_tree.h	/^	XML_NODE_COMMENT$/;"	e	enum:_XmlNodeType
-XML_NODE_NONE	builder/xml_tree.h	/^	XML_NODE_NONE,$/;"	e	enum:_XmlNodeType
 XML_NODE_NONE	xml_tree.h	/^	XML_NODE_NONE,$/;"	e	enum:_XmlNodeType
-XML_NODE_NORMAL	builder/xml_tree.h	/^	XML_NODE_NORMAL,$/;"	e	enum:_XmlNodeType
 XML_NODE_NORMAL	xml_tree.h	/^	XML_NODE_NORMAL,$/;"	e	enum:_XmlNodeType
-XML_NODE_PI	builder/xml_tree.h	/^	XML_NODE_PI,$/;"	e	enum:_XmlNodeType
 XML_NODE_PI	xml_tree.h	/^	XML_NODE_PI,$/;"	e	enum:_XmlNodeType
-XML_NODE_TEXT	builder/xml_tree.h	/^	XML_NODE_TEXT,$/;"	e	enum:_XmlNodeType
 XML_NODE_TEXT	xml_tree.h	/^	XML_NODE_TEXT,$/;"	e	enum:_XmlNodeType
-XML_PARSER_H	builder/xml_parser.h	2;"	d
 XML_PARSER_H	xml_parser.h	2;"	d
-XML_TREE_H	builder/xml_tree.h	36;"	d
 XML_TREE_H	xml_tree.h	36;"	d
-XmlAttr	builder/xml_tree.h	/^}XmlAttr;$/;"	t	typeref:struct:_XmlAttr
 XmlAttr	xml_tree.h	/^}XmlAttr;$/;"	t	typeref:struct:_XmlAttr
-XmlBuilder	builder/xml_builder.h	/^typedef struct _XmlBuilder XmlBuilder;$/;"	t	typeref:struct:_XmlBuilder
 XmlBuilder	xml_builder.h	/^typedef struct _XmlBuilder XmlBuilder;$/;"	t	typeref:struct:_XmlBuilder
-XmlBuilderDestroyFunc	builder/xml_builder.h	/^typedef void (*XmlBuilderDestroyFunc)(XmlBuilder* thiz);$/;"	t
 XmlBuilderDestroyFunc	xml_builder.h	/^typedef void (*XmlBuilderDestroyFunc)(XmlBuilder* thiz);$/;"	t
-XmlBuilderOnCommentFunc	builder/xml_builder.h	/^typedef void (*XmlBuilderOnCommentFunc)(XmlBuilder* thiz, const char* text, size_t length);$/;"	t
 XmlBuilderOnCommentFunc	xml_builder.h	/^typedef void (*XmlBuilderOnCommentFunc)(XmlBuilder* thiz, const char* text, size_t length);$/;"	t
-XmlBuilderOnEndElementFunc	builder/xml_builder.h	/^typedef void (*XmlBuilderOnEndElementFunc)(XmlBuilder* thiz, const char* tag);$/;"	t
 XmlBuilderOnEndElementFunc	xml_builder.h	/^typedef void (*XmlBuilderOnEndElementFunc)(XmlBuilder* thiz, const char* tag);$/;"	t
-XmlBuilderOnErrorFunc	builder/xml_builder.h	/^typedef void (*XmlBuilderOnErrorFunc)(XmlBuilder* thiz, int line, int row, const char* message);$/;"	t
 XmlBuilderOnErrorFunc	xml_builder.h	/^typedef void (*XmlBuilderOnErrorFunc)(XmlBuilder* thiz, int line, int row, const char* message);$/;"	t
-XmlBuilderOnPiElementFunc	builder/xml_builder.h	/^typedef void (*XmlBuilderOnPiElementFunc)(XmlBuilder* thiz, const char* tag, const char** attrs);$/;"	t
 XmlBuilderOnPiElementFunc	xml_builder.h	/^typedef void (*XmlBuilderOnPiElementFunc)(XmlBuilder* thiz, const char* tag, const char** attrs);$/;"	t
-XmlBuilderOnStartElementFunc	builder/xml_builder.h	/^typedef void (*XmlBuilderOnStartElementFunc)(XmlBuilder* thiz, const char* tag, const char** attrs);$/;"	t
 XmlBuilderOnStartElementFunc	xml_builder.h	/^typedef void (*XmlBuilderOnStartElementFunc)(XmlBuilder* thiz, const char* tag, const char** attrs);$/;"	t
-XmlBuilderOnTextFunc	builder/xml_builder.h	/^typedef void (*XmlBuilderOnTextFunc)(XmlBuilder* thiz, const char* text, size_t length);$/;"	t
 XmlBuilderOnTextFunc	xml_builder.h	/^typedef void (*XmlBuilderOnTextFunc)(XmlBuilder* thiz, const char* text, size_t length);$/;"	t
-XmlNode	builder/xml_tree.h	/^}XmlNode;$/;"	t	typeref:struct:_XmlNode
 XmlNode	xml_tree.h	/^}XmlNode;$/;"	t	typeref:struct:_XmlNode
-XmlNodeNormal	builder/xml_tree.h	/^}XmlNodeNormal;$/;"	t	typeref:struct:_XmlNodeNormal
 XmlNodeNormal	xml_tree.h	/^}XmlNodeNormal;$/;"	t	typeref:struct:_XmlNodeNormal
-XmlNodePi	builder/xml_tree.h	/^}XmlNodePi;$/;"	t	typeref:struct:_XmlNodePi
 XmlNodePi	xml_tree.h	/^}XmlNodePi;$/;"	t	typeref:struct:_XmlNodePi
-XmlNodeType	builder/xml_tree.h	/^}XmlNodeType;$/;"	t	typeref:enum:_XmlNodeType
 XmlNodeType	xml_tree.h	/^}XmlNodeType;$/;"	t	typeref:enum:_XmlNodeType
-XmlNodeVisitFunc	builder/xml_tree.h	/^typedef Ret (*XmlNodeVisitFunc)(void* ctx, int level, XmlNode* node);$/;"	t
 XmlNodeVisitFunc	xml_tree.h	/^typedef Ret (*XmlNodeVisitFunc)(void* ctx, int level, XmlNode* node);$/;"	t
-XmlParser	builder/xml_parser.h	/^typedef struct _XmlParser XmlParser;$/;"	t	typeref:struct:_XmlParser
 XmlParser	xml_parser.h	/^typedef struct _XmlParser XmlParser;$/;"	t	typeref:struct:_XmlParser
 _ModuleDefaultPriv	modules/module_default.c	/^typedef struct _ModuleDefaultPriv$/;"	s	file:
-_PrivInfo	builder/xml_builder_dump.c	/^typedef struct _PrivInfo$/;"	s	file:
-_PrivInfo	builder/xml_builder_tree.c	/^typedef struct _PrivInfo$/;"	s	file:
 _PrivInfo	xml_builder_tree.c	/^typedef struct _PrivInfo$/;"	s	file:
-_Ret	builder/typedef.h	/^typedef enum _Ret$/;"	g
-_Vhost	vhost.c	/^typedef struct _Vhost$/;"	s	file:
-_VhostLoc	vhost.c	/^typedef struct _VhostLoc$/;"	s	file:
-_XmlAttr	builder/xml_tree.h	/^typedef struct _XmlAttr$/;"	s
+_Vhost	trash/vhost.c	/^typedef struct _Vhost$/;"	s	file:
+_VhostLoc	trash/vhost.c	/^typedef struct _VhostLoc$/;"	s	file:
 _XmlAttr	xml_tree.h	/^typedef struct _XmlAttr$/;"	s
-_XmlBuilder	builder/xml_builder.h	/^struct _XmlBuilder$/;"	s
 _XmlBuilder	xml_builder.h	/^struct _XmlBuilder$/;"	s
-_XmlNode	builder/xml_tree.h	/^typedef struct _XmlNode$/;"	s
 _XmlNode	xml_tree.h	/^typedef struct _XmlNode$/;"	s
-_XmlNodeNormal	builder/xml_tree.h	/^typedef struct _XmlNodeNormal$/;"	s
 _XmlNodeNormal	xml_tree.h	/^typedef struct _XmlNodeNormal$/;"	s
-_XmlNodePi	builder/xml_tree.h	/^typedef struct _XmlNodePi$/;"	s
 _XmlNodePi	xml_tree.h	/^typedef struct _XmlNodePi$/;"	s
-_XmlNodeType	builder/xml_tree.h	/^typedef enum _XmlNodeType$/;"	g
 _XmlNodeType	xml_tree.h	/^typedef enum _XmlNodeType$/;"	g
-_XmlParser	builder/xml_parser.c	/^struct _XmlParser$/;"	s	file:
 _XmlParser	xml_parser.c	/^struct _XmlParser$/;"	s	file:
 _module	module.h	/^typedef struct _module$/;"	s
 array_init	utils.c	/^int array_init(array_t* thiz, pool_t* pool, int nalloc)$/;"	f
 array_push	utils.c	/^int array_push(array_t* thiz, void* data)$/;"	f
 array_s	typedef.h	/^typedef struct array_s$/;"	s
 array_t	typedef.h	/^}array_t;$/;"	t	typeref:struct:array_s
-attrs	builder/xml_parser.c	/^	char* attrs[2*MAX_ATTR_NR+1];$/;"	m	struct:_XmlParser	file:
 attrs	xml_parser.c	/^	char* attrs[2*MAX_ATTR_NR+1];$/;"	m	struct:_XmlParser	file:
-attrs_nr	builder/xml_parser.c	/^	int   attrs_nr;$/;"	m	struct:_XmlParser	file:
 attrs_nr	xml_parser.c	/^	int   attrs_nr;$/;"	m	struct:_XmlParser	file:
 author	conf.h	/^	char* author;$/;"	m	struct:module_so_conf_s
 body_buf	typedef.h	/^	buf_t body_buf;$/;"	m	struct:http_request_s
 buf_create	utils.c	/^int buf_create(buf_t* thiz, pool_t* pool, int size)$/;"	f
 buf_s	typedef.h	/^typedef struct buf_s$/;"	s
 buf_t	typedef.h	/^}buf_t;$/;"	t	typeref:struct:buf_s
-buffer	builder/xml_parser.c	/^	char* buffer;$/;"	m	struct:_XmlParser	file:
 buffer	xml_parser.c	/^	char* buffer;$/;"	m	struct:_XmlParser	file:
-buffer_total	builder/xml_parser.c	/^	int buffer_total;$/;"	m	struct:_XmlParser	file:
 buffer_total	xml_parser.c	/^	int buffer_total;$/;"	m	struct:_XmlParser	file:
-buffer_used	builder/xml_parser.c	/^	int buffer_used;$/;"	m	struct:_XmlParser	file:
 buffer_used	xml_parser.c	/^	int buffer_used;$/;"	m	struct:_XmlParser	file:
-builder	builder/xml_parser.c	/^	XmlBuilder* builder;$/;"	m	struct:_XmlParser	file:
 builder	xml_parser.c	/^	XmlBuilder* builder;$/;"	m	struct:_XmlParser	file:
-children	builder/xml_tree.h	/^	struct _XmlNode* children;$/;"	m	struct:_XmlNode	typeref:struct:_XmlNode::_XmlNode
 children	xml_tree.h	/^	struct _XmlNode* children;$/;"	m	struct:_XmlNode	typeref:struct:_XmlNode::_XmlNode
 client_header_size	conf.h	/^	int client_header_size;$/;"	m	struct:conf_s
-comment	builder/xml_tree.h	/^		char* comment;$/;"	m	union:_XmlNode::__anon3
 comment	xml_tree.h	/^		char* comment;$/;"	m	union:_XmlNode::__anon2
 conf	connection.h	/^	conf_t* conf;$/;"	m	struct:connection_s
 conf	server.c	/^	conf_t* conf;$/;"	m	struct:server_s	file:
@@ -235,36 +172,28 @@ content_body	typedef.h	/^	buf_t content_body;$/;"	m	struct:http_response_s
 content_fd	typedef.h	/^	int content_fd;$/;"	m	struct:http_response_s
 content_length	typedef.h	/^	int content_length;$/;"	m	struct:http_request_s
 count	typedef.h	/^	int count;$/;"	m	struct:array_s
-current	builder/xml_builder_tree.c	/^	XmlNode* current;$/;"	m	struct:_PrivInfo	file:
 current	xml_builder_tree.c	/^	XmlNode* current;$/;"	m	struct:_PrivInfo	file:
-data	typedef.h	/^	char* data; \/\/zero terminated.$/;"	m	struct:str_s
+data	typedef.h	/^	char* data; \/\/should be zero terminated.$/;"	m	struct:str_s
 default_loc	conf.h	/^	vhost_loc_conf_t* default_loc;$/;"	m	struct:vhost_conf_s
 default_pages	conf.h	/^	array_t default_pages; \/\/char*$/;"	m	struct:conf_s
 default_pages	conf.h	/^	array_t default_pages;$/;"	m	struct:vhost_conf_s
 description	conf.h	/^	char* description;$/;"	m	struct:module_so_conf_s
-destroy	builder/xml_builder.h	/^	XmlBuilderDestroyFunc        destroy;$/;"	m	struct:_XmlBuilder
 destroy	module.h	/^	MODULE_DESTROY_FUNC destroy;$/;"	m	struct:_module
 destroy	xml_builder.h	/^	XmlBuilderDestroyFunc        destroy;$/;"	m	struct:_XmlBuilder
-dump_tree	builder/xml_builder_tree.c	/^void dump_tree(XmlNode* tree)$/;"	f
-dump_tree	builder/xml_parser_test.c	/^void dump_tree(XmlNode* tree)$/;"	f
 dump_tree	xml_builder_tree.c	/^void dump_tree(XmlNode* tree)$/;"	f
 elts	typedef.h	/^	void** elts;$/;"	m	struct:array_s
 end	typedef.h	/^	char* end;$/;"	m	struct:buf_s
 eol	connection.c	15;"	d	file:
 fd	connection.h	/^	int fd;$/;"	m	struct:connection_s
-find_next_eol	connection.c	/^static char* find_next_eol(char* line, size_t max)$/;"	f	file:
-first_attr	builder/xml_tree.h	/^	XmlAttr* first_attr;$/;"	m	struct:_XmlNodeNormal
-first_attr	builder/xml_tree.h	/^	XmlAttr* first_attr;$/;"	m	struct:_XmlNodePi
+find_next_eol	connection.c	/^static char* find_next_eol(char* line)$/;"	f	file:
 first_attr	xml_tree.h	/^	XmlAttr* first_attr;$/;"	m	struct:_XmlNodeNormal
 first_attr	xml_tree.h	/^	XmlAttr* first_attr;$/;"	m	struct:_XmlNodePi
-fp	builder/xml_builder_dump.c	/^	FILE* fp;$/;"	m	struct:_PrivInfo	file:
 fragment_id	typedef.h	/^	str_t fragment_id;$/;"	m	struct:url_s
 free_connections	server.c	/^	connection_t* free_connections;$/;"	m	struct:server_s	file:
-get_file_content_type	utils.c	/^const char* get_file_content_type(const char* extension)$/;"	f
-get_token	utils.c	/^int get_token(str_t* str, char** buf, size_t buf_len, IS_DELIM_FUNC delim_func, const char* delim)$/;"	f
-global_handle_req	globals.c	/^Ret global_handle_req(Server* thiz, HttpReq* req, HttpResp* resp)$/;"	f
+get_token	utils.c	/^int get_token(str_t* str, char** buf, IS_DELIM_FUNC delim_func, const char* delim)$/;"	f
+global_handle_req	trash/globals.c	/^Ret global_handle_req(Server* thiz, HttpReq* req, HttpResp* resp)$/;"	f
 guard_tids	server.c	/^	pthread_t guard_tids;$/;"	m	struct:server_s	file:
-handle_module	vhost.c	/^	Module* handle_module;$/;"	m	struct:_VhostLoc	file:
+handle_module	trash/vhost.c	/^	Module* handle_module;$/;"	m	struct:_VhostLoc	file:
 handler	conf.h	/^	module_t* handler;$/;"	m	struct:vhost_loc_conf_s
 handler_name	conf.h	/^	char* handler_name;$/;"	m	struct:vhost_loc_conf_s
 handler_params	conf.h	/^	array_t handler_params; \/\/ module_param_t*$/;"	m	struct:vhost_loc_conf_s
@@ -272,10 +201,11 @@ head	pool.c	/^	pool_node_s* head;	$/;"	m	struct:pool_s	file:
 header_buf	typedef.h	/^	buf_t header_buf;$/;"	m	struct:http_request_s
 headers	typedef.h	/^	array_t headers; \/\/http_header_t* $/;"	m	struct:http_request_s
 headers	typedef.h	/^	array_t headers; \/\/http_header_t* $/;"	m	struct:http_response_s
-host	typedef.h	/^	str_t host;$/;"	m	struct:http_request_s
 host	typedef.h	/^	str_t host;$/;"	m	struct:url_s
-host_name	vhost.c	/^	char* host_name;$/;"	m	struct:_Vhost	file:
-http_header_equal	utils.c	/^int http_header_equal(array_t* headers, const str_t* name, const str_t* value)$/;"	f
+host_name	trash/vhost.c	/^	char* host_name;$/;"	m	struct:_Vhost	file:
+http_content_type	utils.c	/^const char* http_content_type(const char* extension)$/;"	f
+http_header_equal	utils.c	/^int http_header_equal(array_t* headers, const char* name, const char* value)$/;"	f
+http_header_int	utils.c	/^int http_header_int(array_t* headers, const char* name)$/;"	f
 http_header_s	typedef.h	/^typedef struct http_header_s $/;"	s
 http_header_set	utils.c	/^int http_header_set(array_t* headers, const str_t* name, const str_t* value)$/;"	f
 http_header_str	utils.c	/^const str_t* http_header_str(array_t* headers, const char* name)$/;"	f
@@ -285,11 +215,11 @@ http_request_s	typedef.h	/^typedef struct http_request_s$/;"	s
 http_request_t	typedef.h	/^}http_request_t;$/;"	t	typeref:struct:http_request_s
 http_response_s	typedef.h	/^typedef struct http_response_s$/;"	s
 http_response_t	typedef.h	/^}http_response_t;$/;"	t	typeref:struct:http_response_s
-http_status_infos	utils.c	/^http_status_t http_status_infos[] = {$/;"	v
+http_status_infos	utils.c	/^static http_status_t http_status_infos[] = {$/;"	v	file:
 http_status_line	utils.c	/^const char* http_status_line(int status)$/;"	f
 http_status_s	utils.c	/^typedef struct http_status_s $/;"	s	file:
 http_status_t	utils.c	/^}http_status_t;$/;"	t	typeref:struct:http_status_s	file:
-init_req_ctx	vhost.c	/^static void init_req_ctx(Vhost* thiz, VhostLoc* loc)$/;"	f	file:
+init_req_ctx	trash/vhost.c	/^static void init_req_ctx(Vhost* thiz, VhostLoc* loc)$/;"	f	file:
 inited	connection.h	/^	int inited;$/;"	m	struct:connection_s
 ip	conf.h	/^	char* ip;$/;"	m	struct:conf_s
 is_character	connection.c	16;"	d	file:
@@ -300,13 +230,9 @@ len	typedef.h	/^	size_t len;$/;"	m	struct:str_s
 line	utils.c	/^	const char* line;$/;"	m	struct:http_status_s	file:
 listen_fd	server.c	/^	int listen_fd;$/;"	m	struct:server_s	file:
 listen_tid	server.c	/^	pthread_t* listen_tid;$/;"	m	struct:server_s	file:
-loc_nr	vhost.c	/^	size_t loc_nr;$/;"	m	struct:_Vhost	file:
+loc_nr	trash/vhost.c	/^	size_t loc_nr;$/;"	m	struct:_Vhost	file:
 locs	conf.h	/^	array_t locs; \/\/vhost_loc_conf_t*$/;"	m	struct:vhost_conf_s
-locs	vhost.c	/^	VhostLoc locs[MAX_VHOST_LOCATION];$/;"	m	struct:_Vhost	file:
-main	builder/xml_builder_dump.c	/^int main(int argc, char* argv[])$/;"	f
-main	builder/xml_builder_tree.c	/^int main(int argc, char* argv[])$/;"	f
-main	builder/xml_parser_test.c	/^int main(int argc, char* argv[])$/;"	f
-main	builder/xml_tree.c	/^int main(int argc, char* argv[])$/;"	f
+locs	trash/vhost.c	/^	VhostLoc locs[MAX_VHOST_LOCATION];$/;"	m	struct:_Vhost	file:
 main	main.c	/^int main(int argc, char** argv)$/;"	f
 main	xml_builder_tree.c	/^int main(int argc, char* argv[])$/;"	f
 main	xml_tree.c	/^int main(int argc, char* argv[])$/;"	f
@@ -329,13 +255,10 @@ module_so_conf_t	conf.h	/^}module_so_conf_t;$/;"	t	typeref:struct:module_so_conf
 module_sos	conf.h	/^	array_t module_sos;    \/\/module_so_conf_t*$/;"	m	struct:conf_s
 module_t	module.h	/^}module_t;$/;"	t	typeref:struct:_module
 module_type	conf.h	/^	module_type_e module_type; \/*0 handler, 1 filter.*\/$/;"	m	struct:module_so_conf_s
-module_type_e	conf.h	/^}module_type_e;$/;"	t	typeref:enum:__anon4
+module_type_e	conf.h	/^}module_type_e;$/;"	t	typeref:enum:__anon3
 mutex	connection.h	/^	pthread_mutex_t mutex;$/;"	m	struct:connection_s
 mutex	server.c	/^	pthread_mutex_t mutex;$/;"	m	struct:server_s	file:
 nalloc	typedef.h	/^	int nalloc;$/;"	m	struct:array_s
-name	builder/xml_tree.h	/^	char* name;	$/;"	m	struct:_XmlNodePi
-name	builder/xml_tree.h	/^	char* name;$/;"	m	struct:_XmlAttr
-name	builder/xml_tree.h	/^	char* name;$/;"	m	struct:_XmlNodeNormal
 name	conf.h	/^	char* name;$/;"	m	struct:module_param_s
 name	conf.h	/^	char* name;$/;"	m	struct:module_so_conf_s
 name	conf.h	/^	char* name;$/;"	m	struct:vhost_conf_s
@@ -343,34 +266,24 @@ name	typedef.h	/^	str_t name;$/;"	m	struct:http_header_s
 name	xml_tree.h	/^	char* name;	$/;"	m	struct:_XmlNodePi
 name	xml_tree.h	/^	char* name;$/;"	m	struct:_XmlAttr
 name	xml_tree.h	/^	char* name;$/;"	m	struct:_XmlNodeNormal
-next	builder/xml_tree.h	/^	struct _XmlAttr* next;$/;"	m	struct:_XmlAttr	typeref:struct:_XmlAttr::_XmlAttr
 next	connection.h	/^	connection_t* next;$/;"	m	struct:connection_s
 next	pool.c	/^	struct pool_node_s* next;$/;"	m	struct:pool_node_s	typeref:struct:pool_node_s::pool_node_s	file:
 next	xml_tree.h	/^	struct _XmlAttr* next;$/;"	m	struct:_XmlAttr	typeref:struct:_XmlAttr::_XmlAttr
-normal	builder/xml_tree.h	/^		XmlNodeNormal normal;$/;"	m	union:_XmlNode::__anon3
 normal	xml_tree.h	/^		XmlNodeNormal normal;$/;"	m	union:_XmlNode::__anon2
 nwrite	utils.c	/^int nwrite(int fd, char* buf, size_t len)$/;"	f
-on_comment	builder/xml_builder.h	/^	XmlBuilderOnCommentFunc      on_comment;$/;"	m	struct:_XmlBuilder
 on_comment	xml_builder.h	/^	XmlBuilderOnCommentFunc      on_comment;$/;"	m	struct:_XmlBuilder
-on_end_element	builder/xml_builder.h	/^	XmlBuilderOnEndElementFunc   on_end_element;$/;"	m	struct:_XmlBuilder
 on_end_element	xml_builder.h	/^	XmlBuilderOnEndElementFunc   on_end_element;$/;"	m	struct:_XmlBuilder
-on_error	builder/xml_builder.h	/^	XmlBuilderOnErrorFunc        on_error;$/;"	m	struct:_XmlBuilder
 on_error	xml_builder.h	/^	XmlBuilderOnErrorFunc        on_error;$/;"	m	struct:_XmlBuilder
-on_pi_element	builder/xml_builder.h	/^	XmlBuilderOnPiElementFunc    on_pi_element;$/;"	m	struct:_XmlBuilder
 on_pi_element	xml_builder.h	/^	XmlBuilderOnPiElementFunc    on_pi_element;$/;"	m	struct:_XmlBuilder
-on_start_element	builder/xml_builder.h	/^	XmlBuilderOnStartElementFunc on_start_element;$/;"	m	struct:_XmlBuilder
 on_start_element	xml_builder.h	/^	XmlBuilderOnStartElementFunc on_start_element;$/;"	m	struct:_XmlBuilder
-on_text	builder/xml_builder.h	/^	XmlBuilderOnTextFunc         on_text;$/;"	m	struct:_XmlBuilder
 on_text	xml_builder.h	/^	XmlBuilderOnTextFunc         on_text;$/;"	m	struct:_XmlBuilder
 open_listen_fd	utils.c	/^int open_listen_fd(char* ip, int port)$/;"	f
-parent	builder/xml_tree.h	/^	struct _XmlNode* parent;$/;"	m	struct:_XmlNode	typeref:struct:_XmlNode::_XmlNode
 parent	conf.h	/^	vhost_conf_t* parent;$/;"	m	struct:vhost_loc_conf_s
 parent	module.h	/^	module_so_conf_t* parent;$/;"	m	struct:_module
 parent	xml_tree.h	/^	struct _XmlNode* parent;$/;"	m	struct:_XmlNode	typeref:struct:_XmlNode::_XmlNode
 path	typedef.h	/^	str_t path;$/;"	m	struct:url_s
 pattern_regex	conf.h	/^	regex_t pattern_regex;$/;"	m	struct:vhost_loc_conf_s
 pattern_str	conf.h	/^	char* pattern_str;$/;"	m	struct:vhost_loc_conf_s
-pi	builder/xml_tree.h	/^		XmlNodePi pi;$/;"	m	union:_XmlNode::__anon3
 pi	xml_tree.h	/^		XmlNodePi pi;$/;"	m	union:_XmlNode::__anon2
 pool	conf.h	/^	pool_t* pool;$/;"	m	struct:conf_s
 pool	server.c	/^	pool_t* pool;$/;"	m	struct:server_s	file:
@@ -384,40 +297,35 @@ pool_node_s	pool.c	/^typdef struct pool_node_s$/;"	s	file:
 pool_node_t	pool.c	/^}pool_node_t;$/;"	v	typeref:struct:pool_node_s
 pool_reset	pool.c	/^int pool_reset(pool_t* thiz)$/;"	f
 pool_s	pool.c	/^typedef struct pool_s$/;"	s	file:
+pool_strdup	pool.c	/^char* pool_strdup(pool_t* thiz, char* str)$/;"	f
 pool_t	pool.c	/^}pool_t;$/;"	t	typeref:struct:pool_s	file:
 pool_t	pool.h	/^typedef struct pool_s pool_t;$/;"	t	typeref:struct:pool_s
 port	conf.h	/^	int port;$/;"	m	struct:conf_s
 port	typedef.h	/^	int port;$/;"	m	struct:url_s
 pos	typedef.h	/^	char* pos;$/;"	m	struct:buf_s
-priv	builder/xml_builder.h	/^	char priv[1];$/;"	m	struct:_XmlBuilder
 priv	module.h	/^	char priv[0];$/;"	m	struct:_module
 priv	modules/module_default.c	/^	char priv[1];$/;"	m	struct:_ModuleDefaultPriv	file:
-priv	upstream.h	/^	char priv[0];$/;"	m	struct:upstream_s
+priv	upstream.h	/^	char priv[1];$/;"	m	struct:upstream_s
 priv	xml_builder.h	/^	char priv[1];$/;"	m	struct:_XmlBuilder
 process	module.h	/^	MODULE_PROCESS_FUNC process;$/;"	m	struct:_module
 query_string	typedef.h	/^	st_t query_string;$/;"	m	struct:url_s
 r	connection.h	/^	http_request_t r;$/;"	m	struct:connection_s
-read_file	builder/xml_parser_test.c	/^char* read_file(const char* file_name)$/;"	f
 read_file	utils.c	/^char* read_file(const char* file_name)$/;"	f
-read_ptr	builder/xml_parser.c	/^	const char* read_ptr;$/;"	m	struct:_XmlParser	file:
 read_ptr	xml_parser.c	/^	const char* read_ptr;$/;"	m	struct:_XmlParser	file:
-reg	vhost.c	/^	regex_t reg;$/;"	m	struct:_VhostLoc	file:
-req_ctx	vhost.c	/^	HttpReqCtx req_ctx;$/;"	m	struct:_Vhost	file:
+reg	trash/vhost.c	/^	regex_t reg;$/;"	m	struct:_VhostLoc	file:
+req_ctx	trash/vhost.c	/^	HttpReqCtx req_ctx;$/;"	m	struct:_Vhost	file:
 request_pool_size	conf.h	/^	int request_pool_size;$/;"	m	struct:conf_s
 response	typedef.h	/^	http_response_t* response;$/;"	m	struct:http_request_s
-return_if_fail	builder/typedef.h	61;"	d
-return_val_if_fail	builder/typedef.h	64;"	d
-root	builder/xml_builder_tree.c	/^	XmlNode* root;$/;"	m	struct:_PrivInfo	file:
 root	conf.h	/^	char* root;$/;"	m	struct:conf_s
 root	conf.h	/^	char* root;$/;"	m	struct:vhost_conf_s
 root	conf.h	/^	char* root;$/;"	m	struct:vhost_loc_conf_s
-root	vhost.c	/^	char* root;	$/;"	m	struct:_Vhost	file:
-root	vhost.c	/^	char* root;$/;"	m	struct:_VhostLoc	file:
+root	trash/vhost.c	/^	char* root;	$/;"	m	struct:_Vhost	file:
+root	trash/vhost.c	/^	char* root;$/;"	m	struct:_VhostLoc	file:
 root	xml_builder_tree.c	/^	XmlNode* root;$/;"	m	struct:_PrivInfo	file:
 running	connection.h	/^	int running;$/;"	m	struct:connection_s
 running	server.c	/^	int running;$/;"	m	struct:server_s	file:
 schema	typedef.h	/^	str_t schema;$/;"	m	struct:url_s
-server	vhost.c	/^	Server* server;$/;"	m	struct:_Vhost	file:
+server	trash/vhost.c	/^	Server* server;$/;"	m	struct:_Vhost	file:
 server_create	server.c	/^server_t* server_create(const char* config_file)$/;"	f
 server_destroy	server.c	/^int server_destroy(server_t* thiz)$/;"	f
 server_guard_proc	server.c	/^static void* server_guard_proc(void* ctx)$/;"	f	file:
@@ -425,23 +333,17 @@ server_listen_proc	server.c	/^static void* server_listen_proc(void* ctx)$/;"	f	f
 server_s	server.c	/^typedef struct server_s$/;"	s	file:
 server_t	connection.h	/^typedef struct server_s server_t;$/;"	t	typeref:struct:server_s
 server_t	server.c	/^}server_t;$/;"	t	typeref:struct:server_s	file:
-sibling	builder/xml_tree.h	/^	struct _XmlNode* sibling;$/;"	m	struct:_XmlNode	typeref:struct:_XmlNode::_XmlNode
 sibling	xml_tree.h	/^	struct _XmlNode* sibling;$/;"	m	struct:_XmlNode	typeref:struct:_XmlNode::_XmlNode
-size	typedef.h	/^	int size;$/;"	m	struct:array_s
 start	typedef.h	/^	char* start;$/;"	m	struct:buf_s
 start_time	connection.h	/^	time_t start_time;$/;"	m	struct:connection_s
 status	typedef.h	/^	int status;$/;"	m	struct:http_response_s
 status	utils.c	/^	int status;$/;"	m	struct:http_status_s	file:
 str_s	typedef.h	/^typedef struct str_s$/;"	s
 str_t	typedef.h	/^}str_t;$/;"	t	typeref:struct:str_s
-strtrim	builder/xml_parser.c	/^static const char* strtrim(char* str)$/;"	f	file:
 strtrim	xml_parser.c	/^static const char* strtrim(char* str)$/;"	f	file:
-text	builder/xml_tree.h	/^		char* text;$/;"	m	union:_XmlNode::__anon3
 text	xml_tree.h	/^		char* text;$/;"	m	union:_XmlNode::__anon2
 timedout	connection.h	/^	int timedout;$/;"	m	struct:connection_s
-type	builder/xml_tree.h	/^	XmlNodeType type;$/;"	m	struct:_XmlNode
 type	xml_tree.h	/^	XmlNodeType type;$/;"	m	struct:_XmlNode
-u	builder/xml_tree.h	/^	}u;$/;"	m	struct:_XmlNode	typeref:union:_XmlNode::__anon3
 u	xml_tree.h	/^	}u;$/;"	m	struct:_XmlNode	typeref:union:_XmlNode::__anon2
 upstream	typedef.h	/^	upstream_t* upstream;$/;"	m	struct:http_request_s
 upstream_s	upstream.h	/^typedef struct upstream_s$/;"	s
@@ -450,7 +352,6 @@ url	typedef.h	/^	url_t url;$/;"	m	struct:http_request_s
 url_s	typedef.h	/^typedef struct url_s$/;"	s
 url_t	typedef.h	/^}url_t;$/;"	t	typeref:struct:url_s
 usragent	typedef.h	/^	str_t usragent;$/;"	m	struct:http_request_s
-value	builder/xml_tree.h	/^	char* value;$/;"	m	struct:_XmlAttr
 value	typedef.h	/^	str_t value;$/;"	m	struct:http_header_s
 value	xml_tree.h	/^	char* value;$/;"	m	struct:_XmlAttr
 values	conf.h	/^	array_t values;$/;"	m	struct:module_param_s
@@ -459,98 +360,51 @@ version	conf.h	/^	char* version;$/;"	m	struct:module_so_conf_s
 version	typedef.h	/^	http_version_e version;$/;"	m	struct:http_request_s
 vhost_conf_s	conf.h	/^typedef struct vhost_conf_s$/;"	s
 vhost_conf_t	conf.h	/^}vhost_conf_t;$/;"	t	typeref:struct:vhost_conf_s
-vhost_create	vhost.c	/^Vhost* vhost_create(Server* server, VhostConf* conf)$/;"	f
-vhost_destroy	vhost.c	/^Ret vhost_destroy(Vhost* thiz)$/;"	f
-vhost_handle_req	vhost.c	/^Ret vhost_handle_req(Vhost* thiz, HttpReq* req, HttpResp* resp)$/;"	f
+vhost_create	trash/vhost.c	/^Vhost* vhost_create(Server* server, VhostConf* conf)$/;"	f
+vhost_destroy	trash/vhost.c	/^Ret vhost_destroy(Vhost* thiz)$/;"	f
+vhost_handle_req	trash/vhost.c	/^Ret vhost_handle_req(Vhost* thiz, HttpReq* req, HttpResp* resp)$/;"	f
 vhost_loc_conf_s	conf.h	/^typedef struct vhost_loc_conf_s $/;"	s
 vhost_loc_conf_t	conf.h	/^}vhost_loc_conf_t;$/;"	t	typeref:struct:vhost_loc_conf_s
-vhost_match	vhost.c	/^Ret vhost_match(Vhost* thiz, HttpReq* req)$/;"	f
+vhost_match	trash/vhost.c	/^Ret vhost_match(Vhost* thiz, HttpReq* req)$/;"	f
 vhosts	conf.h	/^	array_t vhosts;        \/\/vhost_conf_t*$/;"	m	struct:conf_s
-xml_attr_destroy	builder/xml_tree.c	/^void xml_attr_destroy(XmlAttr* attr)$/;"	f
 xml_attr_destroy	xml_tree.c	/^void xml_attr_destroy(XmlAttr* attr)$/;"	f
-xml_builder_destroy	builder/xml_builder.h	/^static inline void xml_builder_destroy(XmlBuilder* thiz)$/;"	f
 xml_builder_destroy	xml_builder.h	/^static inline void xml_builder_destroy(XmlBuilder* thiz)$/;"	f
-xml_builder_dump_create	builder/xml_builder_dump.c	/^XmlBuilder* xml_builder_dump_create(FILE* fp)$/;"	f
-xml_builder_dump_destroy	builder/xml_builder_dump.c	/^static void xml_builder_dump_destroy(XmlBuilder* thiz)$/;"	f	file:
-xml_builder_dump_on_comment	builder/xml_builder_dump.c	/^static void xml_builder_dump_on_comment(XmlBuilder* thiz, const char* text, size_t length)$/;"	f	file:
-xml_builder_dump_on_end_element	builder/xml_builder_dump.c	/^static void xml_builder_dump_on_end_element(XmlBuilder* thiz, const char* tag)$/;"	f	file:
-xml_builder_dump_on_error	builder/xml_builder_dump.c	/^static void xml_builder_dump_on_error(XmlBuilder* thiz, int line, int row, const char* message)$/;"	f	file:
-xml_builder_dump_on_pi_element	builder/xml_builder_dump.c	/^static void xml_builder_dump_on_pi_element(XmlBuilder* thiz, const char* tag, const char** attrs)$/;"	f	file:
-xml_builder_dump_on_start_element	builder/xml_builder_dump.c	/^static void xml_builder_dump_on_start_element(XmlBuilder* thiz, const char* tag, const char** attrs)$/;"	f	file:
-xml_builder_dump_on_text	builder/xml_builder_dump.c	/^static void xml_builder_dump_on_text(XmlBuilder* thiz, const char* text, size_t length)$/;"	f	file:
-xml_builder_get_tree	builder/xml_builder_tree.c	/^XmlNode*    xml_builder_get_tree(XmlBuilder* thiz)$/;"	f
 xml_builder_get_tree	xml_builder_tree.c	/^XmlNode*    xml_builder_get_tree(XmlBuilder* thiz)$/;"	f
-xml_builder_on_comment	builder/xml_builder.h	/^static inline void xml_builder_on_comment(XmlBuilder* thiz, const char* text, size_t length)$/;"	f
 xml_builder_on_comment	xml_builder.h	/^static inline void xml_builder_on_comment(XmlBuilder* thiz, const char* text, size_t length)$/;"	f
-xml_builder_on_end_element	builder/xml_builder.h	/^static inline void xml_builder_on_end_element(XmlBuilder* thiz, const char* tag)$/;"	f
 xml_builder_on_end_element	xml_builder.h	/^static inline void xml_builder_on_end_element(XmlBuilder* thiz, const char* tag)$/;"	f
-xml_builder_on_error	builder/xml_builder.h	/^static inline void xml_builder_on_error(XmlBuilder* thiz, int line, int row, const char* message)$/;"	f
 xml_builder_on_error	xml_builder.h	/^static inline void xml_builder_on_error(XmlBuilder* thiz, int line, int row, const char* message)$/;"	f
-xml_builder_on_pi_element	builder/xml_builder.h	/^static inline void xml_builder_on_pi_element(XmlBuilder* thiz, const char* tag, const char** attrs)$/;"	f
 xml_builder_on_pi_element	xml_builder.h	/^static inline void xml_builder_on_pi_element(XmlBuilder* thiz, const char* tag, const char** attrs)$/;"	f
-xml_builder_on_start_element	builder/xml_builder.h	/^static inline void xml_builder_on_start_element(XmlBuilder* thiz, const char* tag, const char** attrs)$/;"	f
 xml_builder_on_start_element	xml_builder.h	/^static inline void xml_builder_on_start_element(XmlBuilder* thiz, const char* tag, const char** attrs)$/;"	f
-xml_builder_on_text	builder/xml_builder.h	/^static inline void xml_builder_on_text(XmlBuilder* thiz, const char* text, size_t length)$/;"	f
 xml_builder_on_text	xml_builder.h	/^static inline void xml_builder_on_text(XmlBuilder* thiz, const char* text, size_t length)$/;"	f
-xml_builder_tree_create	builder/xml_builder_tree.c	/^XmlBuilder* xml_builder_tree_create(void)$/;"	f
 xml_builder_tree_create	xml_builder_tree.c	/^XmlBuilder* xml_builder_tree_create(void)$/;"	f
-xml_builder_tree_destroy	builder/xml_builder_tree.c	/^static void xml_builder_tree_destroy(XmlBuilder* thiz)$/;"	f	file:
 xml_builder_tree_destroy	xml_builder_tree.c	/^static void xml_builder_tree_destroy(XmlBuilder* thiz)$/;"	f	file:
-xml_builder_tree_on_comment	builder/xml_builder_tree.c	/^static void xml_builder_tree_on_comment(XmlBuilder* thiz, const char* text, size_t length)$/;"	f	file:
 xml_builder_tree_on_comment	xml_builder_tree.c	/^static void xml_builder_tree_on_comment(XmlBuilder* thiz, const char* text, size_t length)$/;"	f	file:
-xml_builder_tree_on_end_element	builder/xml_builder_tree.c	/^static void xml_builder_tree_on_end_element(XmlBuilder* thiz, const char* tag)$/;"	f	file:
 xml_builder_tree_on_end_element	xml_builder_tree.c	/^static void xml_builder_tree_on_end_element(XmlBuilder* thiz, const char* tag)$/;"	f	file:
-xml_builder_tree_on_error	builder/xml_builder_tree.c	/^static void xml_builder_tree_on_error(XmlBuilder* thiz, int line, int row, const char* message)$/;"	f	file:
 xml_builder_tree_on_error	xml_builder_tree.c	/^static void xml_builder_tree_on_error(XmlBuilder* thiz, int line, int row, const char* message)$/;"	f	file:
-xml_builder_tree_on_pi_element	builder/xml_builder_tree.c	/^static void xml_builder_tree_on_pi_element(XmlBuilder* thiz, const char* tag, const char** attrs)$/;"	f	file:
 xml_builder_tree_on_pi_element	xml_builder_tree.c	/^static void xml_builder_tree_on_pi_element(XmlBuilder* thiz, const char* tag, const char** attrs)$/;"	f	file:
-xml_builder_tree_on_start_element	builder/xml_builder_tree.c	/^static void xml_builder_tree_on_start_element(XmlBuilder* thiz, const char* tag, const char** attrs)$/;"	f	file:
 xml_builder_tree_on_start_element	xml_builder_tree.c	/^static void xml_builder_tree_on_start_element(XmlBuilder* thiz, const char* tag, const char** attrs)$/;"	f	file:
-xml_builder_tree_on_text	builder/xml_builder_tree.c	/^static void xml_builder_tree_on_text(XmlBuilder* thiz, const char* text, size_t length)$/;"	f	file:
 xml_builder_tree_on_text	xml_builder_tree.c	/^static void xml_builder_tree_on_text(XmlBuilder* thiz, const char* text, size_t length)$/;"	f	file:
-xml_node_append_attr	builder/xml_tree.c	/^void xml_node_append_attr(XmlNode* node, const char* name, const char* value)$/;"	f
 xml_node_append_attr	xml_tree.c	/^void xml_node_append_attr(XmlNode* node, const char* name, const char* value)$/;"	f
-xml_node_append_child	builder/xml_tree.c	/^XmlNode* xml_node_append_child(XmlNode* node, XmlNode* child)$/;"	f
 xml_node_append_child	xml_tree.c	/^XmlNode* xml_node_append_child(XmlNode* node, XmlNode* child)$/;"	f
-xml_node_append_sibling	builder/xml_tree.c	/^XmlNode* xml_node_append_sibling(XmlNode* node, XmlNode* sibling)$/;"	f
 xml_node_append_sibling	xml_tree.c	/^XmlNode* xml_node_append_sibling(XmlNode* node, XmlNode* sibling)$/;"	f
-xml_node_create_comment	builder/xml_tree.c	/^XmlNode* xml_node_create_comment(const char* comment)$/;"	f
 xml_node_create_comment	xml_tree.c	/^XmlNode* xml_node_create_comment(const char* comment)$/;"	f
-xml_node_create_normal	builder/xml_tree.c	/^XmlNode* xml_node_create_normal(const char* name, const char** attrs)$/;"	f
 xml_node_create_normal	xml_tree.c	/^XmlNode* xml_node_create_normal(const char* name, const char** attrs)$/;"	f
-xml_node_create_pi	builder/xml_tree.c	/^XmlNode* xml_node_create_pi(const char* name, const char** attrs)$/;"	f
 xml_node_create_pi	xml_tree.c	/^XmlNode* xml_node_create_pi(const char* name, const char** attrs)$/;"	f
-xml_node_create_text	builder/xml_tree.c	/^XmlNode* xml_node_create_text(const char* text)$/;"	f
 xml_node_create_text	xml_tree.c	/^XmlNode* xml_node_create_text(const char* text)$/;"	f
-xml_node_destroy	builder/xml_tree.c	/^void xml_node_destroy(XmlNode* node)$/;"	f
 xml_node_destroy	xml_tree.c	/^void xml_node_destroy(XmlNode* node)$/;"	f
-xml_node_visit	builder/xml_tree.c	/^void xml_node_visit(XmlNode* node, XmlBuilder* builder)$/;"	f
 xml_node_visit	xml_tree.c	/^void xml_node_visit(XmlNode* node, XmlBuilder* builder)$/;"	f
-xml_parser_create	builder/xml_parser.c	/^XmlParser* xml_parser_create(void)$/;"	f
 xml_parser_create	xml_parser.c	/^XmlParser* xml_parser_create(void)$/;"	f
-xml_parser_destroy	builder/xml_parser.c	/^void xml_parser_destroy(XmlParser* thiz)$/;"	f
 xml_parser_destroy	xml_parser.c	/^void xml_parser_destroy(XmlParser* thiz)$/;"	f
-xml_parser_parse	builder/xml_parser.c	/^void xml_parser_parse(XmlParser* thiz, const char* xml)$/;"	f
 xml_parser_parse	xml_parser.c	/^void xml_parser_parse(XmlParser* thiz, const char* xml)$/;"	f
-xml_parser_parse_attrs	builder/xml_parser.c	/^static void xml_parser_parse_attrs(XmlParser* thiz, char end_char)$/;"	f	file:
 xml_parser_parse_attrs	xml_parser.c	/^static void xml_parser_parse_attrs(XmlParser* thiz, char end_char)$/;"	f	file:
-xml_parser_parse_comment	builder/xml_parser.c	/^static void xml_parser_parse_comment(XmlParser* thiz)$/;"	f	file:
 xml_parser_parse_comment	xml_parser.c	/^static void xml_parser_parse_comment(XmlParser* thiz)$/;"	f	file:
-xml_parser_parse_end_tag	builder/xml_parser.c	/^static void xml_parser_parse_end_tag(XmlParser* thiz)$/;"	f	file:
 xml_parser_parse_end_tag	xml_parser.c	/^static void xml_parser_parse_end_tag(XmlParser* thiz)$/;"	f	file:
-xml_parser_parse_entity	builder/xml_parser.c	/^static void xml_parser_parse_entity(XmlParser* thiz)$/;"	f	file:
 xml_parser_parse_entity	xml_parser.c	/^static void xml_parser_parse_entity(XmlParser* thiz)$/;"	f	file:
-xml_parser_parse_pi	builder/xml_parser.c	/^static void xml_parser_parse_pi(XmlParser* thiz)$/;"	f	file:
 xml_parser_parse_pi	xml_parser.c	/^static void xml_parser_parse_pi(XmlParser* thiz)$/;"	f	file:
-xml_parser_parse_start_tag	builder/xml_parser.c	/^static void xml_parser_parse_start_tag(XmlParser* thiz)$/;"	f	file:
 xml_parser_parse_start_tag	xml_parser.c	/^static void xml_parser_parse_start_tag(XmlParser* thiz)$/;"	f	file:
-xml_parser_parse_text	builder/xml_parser.c	/^static void xml_parser_parse_text(XmlParser* thiz)$/;"	f	file:
 xml_parser_parse_text	xml_parser.c	/^static void xml_parser_parse_text(XmlParser* thiz)$/;"	f	file:
-xml_parser_reset_buffer	builder/xml_parser.c	/^static void xml_parser_reset_buffer(XmlParser* thiz)$/;"	f	file:
 xml_parser_reset_buffer	xml_parser.c	/^static void xml_parser_reset_buffer(XmlParser* thiz)$/;"	f	file:
-xml_parser_set_builder	builder/xml_parser.c	/^void xml_parser_set_builder(XmlParser* thiz, XmlBuilder* builder)$/;"	f
 xml_parser_set_builder	xml_parser.c	/^void xml_parser_set_builder(XmlParser* thiz, XmlBuilder* builder)$/;"	f
-xml_parser_strdup	builder/xml_parser.c	/^static int xml_parser_strdup(XmlParser* thiz, const char* start, size_t length)$/;"	f	file:
 xml_parser_strdup	xml_parser.c	/^static int xml_parser_strdup(XmlParser* thiz, const char* start, size_t length)$/;"	f	file:
 xml_tree_read_dup_str	xml_tree.c	/^Ret xml_tree_read_dup_str(XmlNode* node, char** out)$/;"	f
 xml_tree_read_int	xml_tree.c	/^Ret xml_tree_read_int(XmlNode* node, int* out)$/;"	f

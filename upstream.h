@@ -5,7 +5,7 @@
 
 typedef struct upstream_s
 {
-	char priv[0];
+	char priv[1];
 }upstream_t;
 
 int upstream_process(upstream_t* thiz);

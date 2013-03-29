@@ -55,7 +55,7 @@ static Ret module_default_handle_req(Module* thiz, const HttpReqCtx* req_ctx,
 	char* extension = strrchr(req->path, '.');
 	if(extension != NULL) extension += 1;
 
-	http_header_set(resp->headers, HTTP_HEADER_CONENT_TYPE, get_file_content_type(extension));
+	http_header_set(resp->headers, HTTP_HEADER_CONENT_TYPE, http_content_type(extension));
 	resp->status = HTTP_STATUS_OK;
 	
 	return RET_OK;

@@ -14,7 +14,6 @@ typedef struct array_s
 {
 	pool_t* pool;
 	void** elts;
-	int size;
 	int count;
 	int nalloc;
 }array_t;
@@ -29,7 +28,7 @@ typedef struct buf_s
 
 typedef struct str_s
 {
-	char* data; //zero terminated.
+	char* data; //should be zero terminated.
 	size_t len;
 }str_t;
 
@@ -68,7 +67,6 @@ typedef struct http_request_s
 	int keep_alive;
 	str_t usragent;
 	int content_length;
-	str_t host;
 	upstream_t* upstream;
 
 	http_response_t* response;
@@ -149,6 +147,7 @@ typedef struct http_response_s
 #define HTTP_HEADER_HOST "Host"
 #define HTTP_HEADER_CONTENT_TYPE "Content-Type"
 #define HTTP_HEADER_CONTENT_LEN "Content-Len"
+#define HTTP_HEADER_KEEPALIVE "Keep-alive"
 
 #endif/*TYPEDEF_H*/
 

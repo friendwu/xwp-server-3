@@ -17,6 +17,7 @@ pool_t* pool_create(int size)
 }
 char* pool_alloc(pool_t* thiz, int size)
 {
+	return_val_if_fail(thiz!=NULL && size > 0, NULL);
 	char* p = malloc(size + sizeof(pool_node_t));	
 
 	if(p)
@@ -31,6 +32,7 @@ char* pool_alloc(pool_t* thiz, int size)
 
 char* pool_calloc(pool_t* thiz, int size)
 {
+	return_val_if_fail(thiz!=NULL && size>0, 0);
 	char* p = pool_alloc(thiz, size);
 
 	if(p)
@@ -43,11 +45,15 @@ char* pool_calloc(pool_t* thiz, int size)
 
 int pool_reset(pool_t* thiz)
 {
+	return_val_if_fail(thiz!=NULL, 0);
+
 	return 1;
 }
 
 int pool_destroy(pool_t* thiz)
 {
+	return_val_if_fail(thiz!=NULL, 0);
+
 	pool_node_t* n = thiz->head;
 
 	while(n != NULL)
@@ -60,4 +66,18 @@ int pool_destroy(pool_t* thiz)
 	}
 
 	return 1;
+}
+
+char* pool_strdup(pool_t* thiz, char* str)
+{
+	return_val_if_fail(str!=NULL && thiz!=NULL, NULL);
+
+	size_t slen = strlen(str);
+	char* p = pool_alloc(thiz, slen + 1);
+	if(p == NULL) return NULL;
+
+	memcpy(p, str, slen);
+	p[slen] = '\0';
+
+	return p;
 }

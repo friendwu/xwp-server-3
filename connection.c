@@ -18,11 +18,11 @@
 #define HTTP_PARSE_FAIL 0
 #define HTTP_PARSE_AGAIN -1
 
-static char* find_next_eol(char* line, size_t max)
+static char* find_next_eol(char* line)
 {
 	char* p = line;
 	
-	while(!eol(*p) && *p!='\0' && p-line<max) p++;
+	while(!eol(*p) && *p!='\0') p++;
 
 	if(*p == '\0' || p-line >= max)
 		return NULL;
@@ -248,24 +248,27 @@ static int connection_parse_request_line(connection_t* thiz)
 	while(isspace(*pos) && pos<last && *pos!='\0') pos++;
 	thiz->header_buf.pos = pos;
 
-	eol = find_next_eol(pos, last-pos);
+	eol = find_next_eol(pos);
 	if(eol == NULL)
 	{
 		return HTTP_PARSE_AGAIN;
 	}
 	
-	get_token(&method, &pos, eol-pos, isspace, NULL);
-	get_token(&url, &pos, eol-pos, isspace, NULL);
-	get_token(&version, &pos, eol-pos, isspace, NULL);
+	get_token(&method, &pos, isspace, NULL);
+	get_token(&url, &pos, isspace, NULL);
+	get_token(&version, &pos, isspace, NULL);
 	thiz->header_buf.pos = eol + 1;
 
 	if(method.data==NULL || path.data==NULL || version.data==NULL) return HTTP_PARSE_FAIL;
 
 	thiz->r.version_str = version;
 	version.data = strstr(version, "HTTP/");
+	if(version.data == NULL) return HTTP_PARSE_FAIL;
+	version.data += 5;
 	version.len = 3;
-	if(strncasecmp(version.data, "1.0", version.len) == 0) thiz->r.version = HTTP_VERSION_10;
-	else if(strncasecmp(version.data, "1.1", version.len) == 0) thiz->r.version = HTTP_VERSION_11;
+
+	if(strcmp(version.data, "1.0") == 0) thiz->r.version = HTTP_VERSION_10;
+	else if(strcmp(version.data, "1.1") == 0) thiz->r.version = HTTP_VERSION_11;
 	else return HTTP_PARSE_FAIL; //dont support 0.9
 
 	if(strncasecmp(method.data, "GET", method.len) == 0) thiz->r.method = HTTP_METHOD_GET;
@@ -289,7 +292,8 @@ static int connection_parse_header_line(connection_t* thiz)
 
 	while(pos<last)	
 	{
-		eol = find_next_eol(pos, last-pos);
+		eol = find_next_eol(pos);
+
 		//partial line.
 		if(eol == NULL) break; 
 
@@ -302,8 +306,9 @@ static int connection_parse_header_line(connection_t* thiz)
 		}
 
 		//full line
-		get_token(&name, &pos, eol-pos, NULL, ":");
-		get_token(&value, &pos, eol-pos, isspace, NULL);
+		//TODO should trim space.
+		get_token(&name, &pos, NULL, ":");
+		get_token(&value, &pos, isspace, NULL);
 		if(name.data == NULL) 
 		{
 			ret = HTTP_PARSE_FAIL;
@@ -328,8 +333,10 @@ static int connection_parse_header_line(connection_t* thiz)
 		{
 			return HTTP_PARSE_FAIL;
 		}
+
 		thiz->r.content_len = http_header_int(h, HTTP_HEADER_CONTENT_LEN);
 		if(thiz->r.content_len < 0) thiz->r.content_len = 0;
+
 		const str_t* keep_alive = http_header_str(h, HTTP_HEADER_KEEPALIVE);
 		if(keep_alive == NULL)
 		{
@@ -371,6 +378,8 @@ static int connection_gen_request(connection_t* thiz)
 	int ret = HTTP_STATUS_OK;
 	int parse_ret = HTTP_PARSE_AGAIN;
 
+	array_init(&(thiz->r.headers), thiz->r.pool, 24);
+
 	buf_create(&(thiz->r.header_buf), thiz->r.pool, thiz->conf->client_header_size);
 	if(thiz->r.header_buf.start == NULL) 
 	{
@@ -383,7 +392,8 @@ static int connection_gen_request(connection_t* thiz)
 	for(;;)
 	{
 		//meet buffer end but still parse incomplete.
-		if(buf->last == buf->end) 
+		//the last character of buffer should always be zero.
+		if(buf->last == buf->end-1) 
 		{
 			assert(parse_state <= HTTP_PARSE_HEADER_LINE);
 			if(!connection_alloc_large_header_buf(thiz))
@@ -393,7 +403,7 @@ static int connection_gen_request(connection_t* thiz)
 			}
 		}
 
-		count = recv(thiz->fd, buf->last, buf->end-buf->last);
+		count = recv(thiz->fd, buf->last, buf->end-1-buf->last);
 		if(count <= 0) 
 		{
 			ret = HTTP_STATUS_CLOSE;
@@ -418,10 +428,10 @@ static int connection_gen_request(connection_t* thiz)
 						ret = HTTP_STATUS_BAD_REQUEST;
 						break;
 					}
-					else if(thiz->r.content_len > buf->end-buf->pos)
+					else if(thiz->r.content_len > buf->end-1 - buf->pos)
 					{
 						size_t rest = buf->last - buf->pos;
-						buf_create(&(thiz->r.body_buf), thiz->r.pool, thiz->r.content_len);
+						buf_create(&(thiz->r.body_buf), thiz->r.pool, thiz->r.content_len + 1);
 						if(thiz->r.body_buf.start == NULL) 
 						{
 							ret = HTTP_STATUS_INTERNAL_SERVER_ERROR;
@@ -429,7 +439,8 @@ static int connection_gen_request(connection_t* thiz)
 						}
 						if(rest > 0)
 						{
-							buf_memcpy(&(thiz->r.body_buf), buf->pos, buf->last-buf->pos);
+							memcpy(thiz->r.body_buf.last, buf->pos, buf->last - buf->pos);
+							thiz->r.body_buf.last += buf->last - buf->pos;
 						}
 						buf = &(thiz->r.body_buf);
 					}
@@ -569,6 +580,7 @@ static int connection_process_request(connection_t* thiz)
 		if(regexec(&(locs[k]->pattern_regex), thiz->r.url.path.data, 0, NULL, 0) == 0)
 			break;
 	}
+
 	//TODO there should be a default handler.
 	if(k == loc_nr) return HTTP_PROCESS_FAIL;
 	
@@ -647,6 +659,7 @@ int connection_run(connection_t* thiz, int fd)
 	int ret = 1;
 
 	if(thiz->running || !thiz->inited) return 0;
+	assert(thiz->r.pool == NULL && thiz->fd == -1);
 	thiz->r.pool = pool_create(thiz->conf->request_pool_size);
 	if(thiz->r.pool == NULL) return 0;
 	thiz->start_time = time();
@@ -666,6 +679,7 @@ int connection_run(connection_t* thiz, int fd)
 		if(thiz->timedout) break;
 		
 		ret = connection_process_request(thiz);
+		//TODO should be <= HTTP_STATUS_SPECIAL_RESPONSE
 		if(ret == HTTP_STATUS_OK)
 		{
 			if(!connection_send_response(thiz)) ret = HTTP_STATUS_CLOSE;

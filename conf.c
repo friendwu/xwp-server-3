@@ -1,5 +1,12 @@
 #include "conf.h"
-
+#include "typedef.h"
+#include "pool.h"
+#include <dlfcn.h>
+#define DEFAULT_PORT 80
+#define DEFAULT_MAX_THREADS 50
+#define DEFAULT_CONNECTION_TIMEOUT 30
+#define DEFAULT_ROOT "."
+/*
 static void config_parse_loadmodule(conf_t* thiz, XmlNode* root)
 {
 	pool_t* pool = thiz->pool;
@@ -25,9 +32,8 @@ static void config_parse_loadmodule(conf_t* thiz, XmlNode* root)
 
 		assert(so != NULL);
 		module_get_info(so, pool);
-		array_push(thiz->module_sos, so);
+		array_push(&thiz->module_sos, so);
 
-		dlclose(handler);
 		handler = NULL;
 	}
 }
@@ -101,7 +107,6 @@ static void config_parse_vhost(conf_t* thiz, XmlNode* root)
 {
 	pool_t* pool = thiz->pool;
 
-	char* value = NULL;
 	vhost_conf_t* vhost = pool_calloc(pool, sizeof(vhost_conf_t));
 	assert(vhost != NULL); 
 
@@ -143,15 +148,24 @@ conf_t* config_parse(const char* config_file, pool_t* pool)
 
 	thiz = pool_calloc(pool, sizeof(conf_t));
 	if(thiz == NULL) goto DONE;
+	if(!array_init(&thiz->module_sos, pool, 10)) goto DONE;
+	if(!array_init(&thiz->vhosts, pool, 10)) goto DONE;
+	if(!array_init(&thiz->default_pages, pool, 10)) goto DONE;
+	
 	XmlNode* node = tree;
 
-	thiz->ip = pool_strdup(pool, xml_tree_str(root, "ip", 0));
-	thiz->port = xml_tree_int(root, "port", 0);
-	thiz->max_threads = xml_tree_int(root, "max_threads", 0);
-	thiz->connection_timeout = xml_tree_int(root, "connection_timeout", 0);
-	thiz->root = pool_strdup(pool, xml_tree_str(root, "root", 0));
+	thiz->ip = pool_strdup(pool, xml_tree_str(root, "ip", 0, NULL));
+	thiz->port = xml_tree_int(root, "port", 0, DEFAULT_PORT);
+	thiz->max_threads = xml_tree_int(root, "max_threads", 0, DEFAULT_MAX_THREADS);
+	thiz->connection_timeout = xml_tree_int(root, "connection_timeout", 0, DEFAULT_CONNECTION_TIMEOUT);
+	thiz->root = pool_strdup(pool, xml_tree_str(root, "root", 0, NULL));
 
 	node = xml_tree_find(root, "load_module", 0);
+	if(node == NULL) goto DONE;
+	{
+		printf("cannot find load module conf\n");
+		exit(-1);
+	}
 	config_parse_loadmodule(thiz, node);
 	
 	int i = 0;
@@ -189,5 +203,55 @@ DONE:
 
 	return thiz;
 }
+*/
 
+conf_t* conf_parse(const char* config_file, pool_t* pool)
+{
+	conf_t* thiz = pool_calloc(pool, sizeof(conf_t));
+	
+	thiz->max_threads = 1;
+	thiz->connection_timeout = 30;
+	thiz->port = 9001;
+	thiz->root = pool_strdup(pool, ".");
+	array_init(&thiz->module_sos, pool, 10);
+	array_init(&thiz->vhosts, pool, 10);
+	//if(!array_init(&thiz->default_pages, pool, 10)) exit(-1);
 
+	//loadmodule
+	void* handler = NULL;
+	MODULE_GET_INFO module_get_info = NULL;
+
+	thiz->module_path = pool_strdup(pool, "./modules");
+	char* so_file = "./modules/module_default.so";
+
+	handler = dlopen(so_file, RTLD_NOW);
+	assert(handler != NULL);
+
+	module_get_info = (MODULE_GET_INFO_FUNC)(handler, "module_get_info");
+	assert(module_get_info != NULL);
+	module_so_conf_t* so = pool_calloc(thiz, pool, sizeof(module_so_conf_t));
+	assert(so != NULL);
+
+	module_get_info(so, pool);
+	array_push(&thiz->module_sos, so);
+
+	//vhost
+	vhost_conf_t* vhost = pool_calloc(pool, sizeof(vhost_conf_t));
+	array_push(&thiz->vhosts, vhost);
+	array_init(&vhost->locs, pool, 10);
+	vhost->name = pool_strdup(pool, "wpeng.me");
+	vhost->root = pool_strdup(pool, ".");
+
+	vhost_loc_conf_t* loc = pool_calloc(pool, sizeof(vhost_loc_conf_t));
+	assert(loc != NULL);
+	loc->root = pool_strdup(pool, "./static");
+	loc->pattern = pool_strdup(pool, "/.*");
+	regcomp(&loc->pattern_reg, loc->pattern, 0);
+	loc->handler_name = pool_strdup(pool, "default");
+	
+	loc->handler = so->module_create(&loc->handle_params);
+
+	array_push(&vhost->locs, loc);
+
+	return thiz;
+}
