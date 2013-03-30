@@ -129,6 +129,7 @@ static void config_parse_vhost(conf_t* thiz, XmlNode* root)
 
 conf_t* config_parse(const char* config_file, pool_t* pool)
 {
+	//TODO hook the destroy handler to the pool.
 	assert(config_file != NULL && pool != NULL);
 
 	conf_t* thiz = NULL;
@@ -207,12 +208,19 @@ DONE:
 
 conf_t* conf_parse(const char* config_file, pool_t* pool)
 {
+	//TODO hook the destroy handler to the pool.
 	conf_t* thiz = pool_calloc(pool, sizeof(conf_t));
 	
 	thiz->max_threads = 1;
+	thiz->request_pool_size = 1024 * 8;
 	thiz->connection_timeout = 30;
+	thiz->client_header_size = 1024 * 2;
+	thiz->large_client_header_size = 1024 * 4;
+	thiz->max_content_len = 16 * 1024;
+	thiz->ip = NULL;
 	thiz->port = 9001;
 	thiz->root = pool_strdup(pool, ".");
+
 	array_init(&thiz->module_sos, pool, 10);
 	array_init(&thiz->vhosts, pool, 10);
 	//if(!array_init(&thiz->default_pages, pool, 10)) exit(-1);
@@ -220,7 +228,6 @@ conf_t* conf_parse(const char* config_file, pool_t* pool)
 	//loadmodule
 	void* handler = NULL;
 	MODULE_GET_INFO module_get_info = NULL;
-
 	thiz->module_path = pool_strdup(pool, "./modules");
 	char* so_file = "./modules/module_default.so";
 
@@ -244,14 +251,16 @@ conf_t* conf_parse(const char* config_file, pool_t* pool)
 
 	vhost_loc_conf_t* loc = pool_calloc(pool, sizeof(vhost_loc_conf_t));
 	assert(loc != NULL);
+	loc->parent = vhost;
 	loc->root = pool_strdup(pool, "./static");
-	loc->pattern = pool_strdup(pool, "/.*");
+	loc->pattern_str = pool_strdup(pool, "/.*");
+	//TODO regfree in destroy hook.
 	regcomp(&loc->pattern_reg, loc->pattern, 0);
 	loc->handler_name = pool_strdup(pool, "default");
-	
-	loc->handler = so->module_create(&loc->handle_params);
-
+	loc->handler = so->module_create(&loc->handle_params, pool);
 	array_push(&vhost->locs, loc);
 
 	return thiz;
 }
+
+

@@ -1,22 +1,26 @@
 #ifndef MODULE_H
 #define MODULE_H
+#include "pool.h"
 #include "typedef.h"
+typedef struct module_so_conf_s module_so_conf_t;
 
 #define HTTP_MODULE_PROCESS_DONE 1
 #define HTTP_MODULE_PROCESS_FAIL 0
 #define HTTP_MODULE_PROCESS_UPSTREAM -1
 
-typedef module_t* (*MODULE_CREATE_FUNC)(server_t* server, module_so_conf_t* conf, module_param_t* params, size_t param_nr);
+typedef int (*MODULE_PROCESS_FUNC)(module_t* thiz, http_request_t* request, pool_t* pool);
 
-typedef struct _module
+typedef struct module_s
 {
 	module_so_conf_t* parent;
 
 	MODULE_PROCESS_FUNC process;
-	MODULE_DESTROY_FUNC destroy;
 
 	char priv[0];
 }module_t;
+
+//TODO should hook the destroy handler to the pool. 
+typedef module_t* (*MODULE_CREATE_FUNC)(module_so_conf_t* conf, array_t* params, pool_t* pool);
 
 static inline int module_process(module_t* thiz, http_request_t* request)
 {
@@ -24,14 +28,8 @@ static inline int module_process(module_t* thiz, http_request_t* request)
 
 	if(thiz->process != NULL)	
 		return thiz->process(thiz, request);
-}
-
-static inline int module_destroy(module_t* thiz)
-{
-	assert(thiz != NULL);
-
-	if(thiz->destroy != NULL)
-		thiz->destroy(thiz);
+	
+	return HTTP_MODULE_PROCESS_FAIL;
 }
 
 #endif

@@ -6,72 +6,75 @@
 !_TAG_PROGRAM_VERSION	5.8	//
 CONF_H	conf.h	2;"	d
 CONNECTION_H	connection.h	2;"	d
+DEFAULT_CONNECTION_TIMEOUT	conf.c	7;"	d	file:
+DEFAULT_MAX_THREADS	conf.c	6;"	d	file:
+DEFAULT_PORT	conf.c	5;"	d	file:
+DEFAULT_ROOT	conf.c	8;"	d	file:
 DESTROY_MEM	typedef.h	7;"	d
-HTTPS_CERT_ERROR	typedef.h	117;"	d
-HTTPS_NO_CERT	typedef.h	118;"	d
-HTTP_HEADER_CONNECTION	typedef.h	144;"	d
-HTTP_HEADER_CONTENT_LEN	typedef.h	149;"	d
-HTTP_HEADER_CONTENT_TYPE	typedef.h	148;"	d
-HTTP_HEADER_DATE	typedef.h	145;"	d
-HTTP_HEADER_HOST	typedef.h	147;"	d
-HTTP_HEADER_KEEPALIVE	typedef.h	150;"	d
-HTTP_HEADER_SERVER	typedef.h	146;"	d
-HTTP_MODULE_PROCESS_DONE	module.h	5;"	d
-HTTP_MODULE_PROCESS_FAIL	module.h	6;"	d
-HTTP_MODULE_PROCESS_UPSTREAM	module.h	7;"	d
-HTTP_PARSE_AGAIN	connection.c	19;"	d	file:
-HTTP_PARSE_DONE	connection.c	17;"	d	file:
-HTTP_PARSE_FAIL	connection.c	18;"	d	file:
-HTTP_STATUS_ACCEPTED	typedef.h	85;"	d
-HTTP_STATUS_BAD_GATEWAY	typedef.h	139;"	d
-HTTP_STATUS_BAD_REQUEST	typedef.h	96;"	d
-HTTP_STATUS_CLIENT_CLOSED_REQUEST	typedef.h	134;"	d
-HTTP_STATUS_CLOSE	typedef.h	111;"	d
-HTTP_STATUS_CONFLICT	typedef.h	102;"	d
-HTTP_STATUS_CREATED	typedef.h	84;"	d
-HTTP_STATUS_FORBIDDEN	typedef.h	98;"	d
-HTTP_STATUS_GATEWAY_TIME_OUT	typedef.h	141;"	d
-HTTP_STATUS_INSUFFICIENT_STORAGE	typedef.h	142;"	d
-HTTP_STATUS_INTERNAL_SERVER_ERROR	typedef.h	137;"	d
-HTTP_STATUS_LENGTH_REQUIRED	typedef.h	103;"	d
-HTTP_STATUS_MOVED_PERMANENTLY	typedef.h	90;"	d
-HTTP_STATUS_MOVED_TEMPORARILY	typedef.h	91;"	d
-HTTP_STATUS_NGINX_CODES	typedef.h	113;"	d
-HTTP_STATUS_NOT_ALLOWED	typedef.h	100;"	d
-HTTP_STATUS_NOT_FOUND	typedef.h	99;"	d
-HTTP_STATUS_NOT_IMPLEMENTED	typedef.h	138;"	d
-HTTP_STATUS_NOT_MODIFIED	typedef.h	93;"	d
-HTTP_STATUS_NO_CONTENT	typedef.h	86;"	d
-HTTP_STATUS_OK	typedef.h	83;"	d
-HTTP_STATUS_PARTIAL_CONTENT	typedef.h	87;"	d
-HTTP_STATUS_PRECONDITION_FAILED	typedef.h	104;"	d
-HTTP_STATUS_RANGE_NOT_SATISFIABLE	typedef.h	108;"	d
-HTTP_STATUS_REQUEST_ENTITY_TOO_LARGE	typedef.h	105;"	d
-HTTP_STATUS_REQUEST_HEADER_TOO_LARGE	typedef.h	115;"	d
-HTTP_STATUS_REQUEST_TIME_OUT	typedef.h	101;"	d
-HTTP_STATUS_REQUEST_URI_TOO_LARGE	typedef.h	106;"	d
-HTTP_STATUS_SEE_OTHER	typedef.h	92;"	d
-HTTP_STATUS_SERVICE_UNAVAILABLE	typedef.h	140;"	d
-HTTP_STATUS_SPECIAL_RESPONSE	typedef.h	89;"	d
-HTTP_STATUS_TEMPORARY_REDIRECT	typedef.h	94;"	d
-HTTP_STATUS_TO_HTTPS	typedef.h	124;"	d
-HTTP_STATUS_UNAUTHORIZED	typedef.h	97;"	d
-HTTP_STATUS_UNSUPPORTED_MEDIA_TYPE	typedef.h	107;"	d
+HTTPS_CERT_ERROR	typedef.h	126;"	d
+HTTPS_NO_CERT	typedef.h	127;"	d
+HTTP_HEADER_CONNECTION	typedef.h	153;"	d
+HTTP_HEADER_CONTENT_LEN	typedef.h	158;"	d
+HTTP_HEADER_CONTENT_TYPE	typedef.h	157;"	d
+HTTP_HEADER_DATE	typedef.h	154;"	d
+HTTP_HEADER_HOST	typedef.h	156;"	d
+HTTP_HEADER_KEEPALIVE	typedef.h	159;"	d
+HTTP_HEADER_SERVER	typedef.h	155;"	d
+HTTP_METHOD_GET	typedef.h	/^	HTTP_METHOD_GET = 0,$/;"	e	enum:__anon1
+HTTP_METHOD_HEAD	typedef.h	/^	HTTP_METHOD_HEAD,$/;"	e	enum:__anon1
+HTTP_METHOD_POST	typedef.h	/^	HTTP_METHOD_POST,$/;"	e	enum:__anon1
+HTTP_MODULE_PROCESS_DONE	module.h	7;"	d
+HTTP_MODULE_PROCESS_FAIL	module.h	8;"	d
+HTTP_MODULE_PROCESS_UPSTREAM	module.h	9;"	d
+HTTP_PARSE_AGAIN	connection.c	21;"	d	file:
+HTTP_PARSE_DONE	connection.c	19;"	d	file:
+HTTP_PARSE_FAIL	connection.c	20;"	d	file:
+HTTP_STATUS_ACCEPTED	typedef.h	94;"	d
+HTTP_STATUS_BAD_GATEWAY	typedef.h	148;"	d
+HTTP_STATUS_BAD_REQUEST	typedef.h	105;"	d
+HTTP_STATUS_CLIENT_CLOSED_REQUEST	typedef.h	143;"	d
+HTTP_STATUS_CLOSE	typedef.h	120;"	d
+HTTP_STATUS_CONFLICT	typedef.h	111;"	d
+HTTP_STATUS_CREATED	typedef.h	93;"	d
+HTTP_STATUS_FORBIDDEN	typedef.h	107;"	d
+HTTP_STATUS_GATEWAY_TIME_OUT	typedef.h	150;"	d
+HTTP_STATUS_INSUFFICIENT_STORAGE	typedef.h	151;"	d
+HTTP_STATUS_INTERNAL_SERVER_ERROR	typedef.h	146;"	d
+HTTP_STATUS_LENGTH_REQUIRED	typedef.h	112;"	d
+HTTP_STATUS_MOVED_PERMANENTLY	typedef.h	99;"	d
+HTTP_STATUS_MOVED_TEMPORARILY	typedef.h	100;"	d
+HTTP_STATUS_NGINX_CODES	typedef.h	122;"	d
+HTTP_STATUS_NOT_ALLOWED	typedef.h	109;"	d
+HTTP_STATUS_NOT_FOUND	typedef.h	108;"	d
+HTTP_STATUS_NOT_IMPLEMENTED	typedef.h	147;"	d
+HTTP_STATUS_NOT_MODIFIED	typedef.h	102;"	d
+HTTP_STATUS_NO_CONTENT	typedef.h	95;"	d
+HTTP_STATUS_OK	typedef.h	92;"	d
+HTTP_STATUS_PARTIAL_CONTENT	typedef.h	96;"	d
+HTTP_STATUS_PRECONDITION_FAILED	typedef.h	113;"	d
+HTTP_STATUS_RANGE_NOT_SATISFIABLE	typedef.h	117;"	d
+HTTP_STATUS_REQUEST_ENTITY_TOO_LARGE	typedef.h	114;"	d
+HTTP_STATUS_REQUEST_HEADER_TOO_LARGE	typedef.h	124;"	d
+HTTP_STATUS_REQUEST_TIME_OUT	typedef.h	110;"	d
+HTTP_STATUS_REQUEST_URI_TOO_LARGE	typedef.h	115;"	d
+HTTP_STATUS_SEE_OTHER	typedef.h	101;"	d
+HTTP_STATUS_SERVICE_UNAVAILABLE	typedef.h	149;"	d
+HTTP_STATUS_SPECIAL_RESPONSE	typedef.h	98;"	d
+HTTP_STATUS_TEMPORARY_REDIRECT	typedef.h	103;"	d
+HTTP_STATUS_TO_HTTPS	typedef.h	133;"	d
+HTTP_STATUS_UNAUTHORIZED	typedef.h	106;"	d
+HTTP_STATUS_UNSUPPORTED_MEDIA_TYPE	typedef.h	116;"	d
 HTTP_UPSTREAM_DONE	upstream.h	3;"	d
 HTTP_UPSTREAM_FAIL	upstream.h	4;"	d
 IS_DELIM	utils.c	13;"	d	file:
 IS_DELIM_FUNC	utils.h	/^typedef int (*IS_DELIM_FUNC)(int c);$/;"	t
-MAX_ATTR_NR	typedef.h	12;"	d
-METHOD_GET	typedef.h	/^	METHOD_GET = 0,$/;"	e	enum:__anon1
-METHOD_HEAD	typedef.h	/^	METHOD_HEAD,$/;"	e	enum:__anon1
-METHOD_POST	typedef.h	/^	METHOD_POST,$/;"	e	enum:__anon1
-MODULE_CREATE_FUNC	module.h	/^typedef module_t* (*MODULE_CREATE_FUNC)(server_t* server, module_so_conf_t* conf, module_param_t* params, size_t param_nr);$/;"	t
+MAX_ATTR_NR	typedef.h	20;"	d
+MODULE_CREATE_FUNC	module.h	/^typedef module_t* (*MODULE_CREATE_FUNC)(module_so_conf_t* conf, array_t* params, pool_t* pool);$/;"	t
 MODULE_H	module.h	2;"	d
+MODULE_PROCESS_FUNC	module.h	/^typedef int (*MODULE_PROCESS_FUNC)(module_t* thiz, http_request_t* request, pool_t* pool);$/;"	t
 MODULE_TYPE_FILTER	conf.h	/^	MODULE_TYPE_FILTER,$/;"	e	enum:__anon3
-MODULE_TYPE_FILTER	conf.h	4;"	d
 MODULE_TYPE_HANDLER	conf.h	/^	MODULE_TYPE_HANDLER = 0,$/;"	e	enum:__anon3
-MODULE_TYPE_HANDLER	conf.h	3;"	d
-ModuleDefaultPriv	modules/module_default.c	/^}ModuleDefaultPriv;$/;"	t	typeref:struct:_ModuleDefaultPriv	file:
+POOL_CLEANUP_FUNC	pool.h	/^typedef void (*POOL_CLEANUP_FUNC)(void* ctx);$/;"	t
 POOL_H	pool.h	2;"	d
 PrivInfo	xml_builder_tree.c	/^}PrivInfo;$/;"	t	typeref:struct:_PrivInfo	file:
 SAFE_FREE	typedef.h	10;"	d
@@ -109,7 +112,6 @@ XmlNodePi	xml_tree.h	/^}XmlNodePi;$/;"	t	typeref:struct:_XmlNodePi
 XmlNodeType	xml_tree.h	/^}XmlNodeType;$/;"	t	typeref:enum:_XmlNodeType
 XmlNodeVisitFunc	xml_tree.h	/^typedef Ret (*XmlNodeVisitFunc)(void* ctx, int level, XmlNode* node);$/;"	t
 XmlParser	xml_parser.h	/^typedef struct _XmlParser XmlParser;$/;"	t	typeref:struct:_XmlParser
-_ModuleDefaultPriv	modules/module_default.c	/^typedef struct _ModuleDefaultPriv$/;"	s	file:
 _PrivInfo	xml_builder_tree.c	/^typedef struct _PrivInfo$/;"	s	file:
 _Vhost	trash/vhost.c	/^typedef struct _Vhost$/;"	s	file:
 _VhostLoc	trash/vhost.c	/^typedef struct _VhostLoc$/;"	s	file:
@@ -120,7 +122,6 @@ _XmlNodeNormal	xml_tree.h	/^typedef struct _XmlNodeNormal$/;"	s
 _XmlNodePi	xml_tree.h	/^typedef struct _XmlNodePi$/;"	s
 _XmlNodeType	xml_tree.h	/^typedef enum _XmlNodeType$/;"	g
 _XmlParser	xml_parser.c	/^struct _XmlParser$/;"	s	file:
-_module	module.h	/^typedef struct _module$/;"	s
 array_init	utils.c	/^int array_init(array_t* thiz, pool_t* pool, int nalloc)$/;"	f
 array_push	utils.c	/^int array_push(array_t* thiz, void* data)$/;"	f
 array_s	typedef.h	/^typedef struct array_s$/;"	s
@@ -137,24 +138,22 @@ buffer_total	xml_parser.c	/^	int buffer_total;$/;"	m	struct:_XmlParser	file:
 buffer_used	xml_parser.c	/^	int buffer_used;$/;"	m	struct:_XmlParser	file:
 builder	xml_parser.c	/^	XmlBuilder* builder;$/;"	m	struct:_XmlParser	file:
 children	xml_tree.h	/^	struct _XmlNode* children;$/;"	m	struct:_XmlNode	typeref:struct:_XmlNode::_XmlNode
+cleanup	pool.c	/^	POOL_CLEANUP_FUNC cleanup;$/;"	m	struct:pool_cleanup_node_s	file:
+cleanup_head	pool.c	/^	pool_cleanup_node_t* cleanup_head;$/;"	m	struct:pool_s	file:
 client_header_size	conf.h	/^	int client_header_size;$/;"	m	struct:conf_s
 comment	xml_tree.h	/^		char* comment;$/;"	m	union:_XmlNode::__anon2
 conf	connection.h	/^	conf_t* conf;$/;"	m	struct:connection_s
 conf	server.c	/^	conf_t* conf;$/;"	m	struct:server_s	file:
+conf_parse	conf.c	/^conf_t* conf_parse(const char* config_file, pool_t* pool)$/;"	f
 conf_s	conf.h	/^typedef struct conf_s$/;"	s
 conf_t	conf.h	/^}conf_t;$/;"	t	typeref:struct:conf_s
-config_parse	conf.c	/^conf_t* config_parse(const char* config_file, pool_t* pool)$/;"	f
-config_parse_defaultpages	conf.c	/^static void config_parse_defaultpages(conf_t* thiz, XmlNode* root, pool_t* pool)$/;"	f	file:
-config_parse_loadmodule	conf.c	/^static void config_parse_loadmodule(conf_t* thiz, XmlNode* root)$/;"	f	file:
-config_parse_location	conf.c	/^static void config_parse_location(conf_t* thiz, XmlNode* root, vhost_conf_t* vhost)$/;"	f	file:
-config_parse_vhost	conf.c	/^static void config_parse_vhost(conf_t* thiz, XmlNode* root)$/;"	f	file:
 connection_alloc_large_header_buf	connection.c	/^static int connection_alloc_large_header_buf(connection_t* thiz)$/;"	f	file:
 connection_calculate_response_len	connection.c	/^static size_t connection_calculate_response_len(connection_t* thiz)$/;"	f	file:
 connection_check_timeout	connection.c	/^int connection_check_timeout(connection_t* thiz)$/;"	f
-connection_close	connection.c	/^int connection_close(connection_t* thiz)$/;"	f
+connection_close	connection.c	/^void connection_close(void* ctx)$/;"	f
+connection_create	connection.c	/^connection_t* connection_create(pool_t* pool, conf_t* conf)$/;"	f
 connection_finalize_request	connection.c	/^static int connection_finalize_request(connection_t* thiz)$/;"	f	file:
 connection_gen_request	connection.c	/^static int connection_gen_request(connection_t* thiz)$/;"	f	file:
-connection_init	connection.c	/^int connection_init(connection_t* thiz, conf_t* conf)$/;"	f
 connection_nr	server.c	/^	size_t connection_nr;$/;"	m	struct:server_s	file:
 connection_parse_header_line	connection.c	/^static int connection_parse_header_line(connection_t* thiz)$/;"	f	file:
 connection_parse_request_line	connection.c	/^static int connection_parse_request_line(connection_t* thiz)$/;"	f	file:
@@ -167,28 +166,25 @@ connection_send_response	connection.c	/^static int connection_send_response(conn
 connection_special_response	connection.c	/^static int connection_special_response(connection_t* thiz, int status)$/;"	f	file:
 connection_t	connection.h	/^}connection_t;$/;"	t	typeref:struct:connection_s
 connection_timeout	conf.h	/^	int connection_timeout;$/;"	m	struct:conf_s
-connections	server.c	/^	connection_t* connections;$/;"	m	struct:server_s	file:
+connections	server.c	/^	connection_t** connections;$/;"	m	struct:server_s	file:
 content_body	typedef.h	/^	buf_t content_body;$/;"	m	struct:http_response_s
 content_fd	typedef.h	/^	int content_fd;$/;"	m	struct:http_response_s
 content_length	typedef.h	/^	int content_length;$/;"	m	struct:http_request_s
 count	typedef.h	/^	int count;$/;"	m	struct:array_s
+ctx	pool.c	/^	void* ctx;$/;"	m	struct:pool_cleanup_node_s	file:
 current	xml_builder_tree.c	/^	XmlNode* current;$/;"	m	struct:_PrivInfo	file:
 data	typedef.h	/^	char* data; \/\/should be zero terminated.$/;"	m	struct:str_s
 default_loc	conf.h	/^	vhost_loc_conf_t* default_loc;$/;"	m	struct:vhost_conf_s
-default_pages	conf.h	/^	array_t default_pages; \/\/char*$/;"	m	struct:conf_s
-default_pages	conf.h	/^	array_t default_pages;$/;"	m	struct:vhost_conf_s
 description	conf.h	/^	char* description;$/;"	m	struct:module_so_conf_s
-destroy	module.h	/^	MODULE_DESTROY_FUNC destroy;$/;"	m	struct:_module
 destroy	xml_builder.h	/^	XmlBuilderDestroyFunc        destroy;$/;"	m	struct:_XmlBuilder
 dump_tree	xml_builder_tree.c	/^void dump_tree(XmlNode* tree)$/;"	f
 elts	typedef.h	/^	void** elts;$/;"	m	struct:array_s
 end	typedef.h	/^	char* end;$/;"	m	struct:buf_s
-eol	connection.c	15;"	d	file:
+eol	connection.c	17;"	d	file:
 fd	connection.h	/^	int fd;$/;"	m	struct:connection_s
 find_next_eol	connection.c	/^static char* find_next_eol(char* line)$/;"	f	file:
 first_attr	xml_tree.h	/^	XmlAttr* first_attr;$/;"	m	struct:_XmlNodeNormal
 first_attr	xml_tree.h	/^	XmlAttr* first_attr;$/;"	m	struct:_XmlNodePi
-fragment_id	typedef.h	/^	str_t fragment_id;$/;"	m	struct:url_s
 free_connections	server.c	/^	connection_t* free_connections;$/;"	m	struct:server_s	file:
 get_token	utils.c	/^int get_token(str_t* str, char** buf, IS_DELIM_FUNC delim_func, const char* delim)$/;"	f
 global_handle_req	trash/globals.c	/^Ret global_handle_req(Server* thiz, HttpReq* req, HttpResp* resp)$/;"	f
@@ -197,7 +193,7 @@ handle_module	trash/vhost.c	/^	Module* handle_module;$/;"	m	struct:_VhostLoc	fil
 handler	conf.h	/^	module_t* handler;$/;"	m	struct:vhost_loc_conf_s
 handler_name	conf.h	/^	char* handler_name;$/;"	m	struct:vhost_loc_conf_s
 handler_params	conf.h	/^	array_t handler_params; \/\/ module_param_t*$/;"	m	struct:vhost_loc_conf_s
-head	pool.c	/^	pool_node_s* head;	$/;"	m	struct:pool_s	file:
+head	pool.c	/^	pool_node_t* head;	$/;"	m	struct:pool_s	file:
 header_buf	typedef.h	/^	buf_t header_buf;$/;"	m	struct:http_request_s
 headers	typedef.h	/^	array_t headers; \/\/http_header_t* $/;"	m	struct:http_request_s
 headers	typedef.h	/^	array_t headers; \/\/http_header_t* $/;"	m	struct:http_response_s
@@ -220,9 +216,8 @@ http_status_line	utils.c	/^const char* http_status_line(int status)$/;"	f
 http_status_s	utils.c	/^typedef struct http_status_s $/;"	s	file:
 http_status_t	utils.c	/^}http_status_t;$/;"	t	typeref:struct:http_status_s	file:
 init_req_ctx	trash/vhost.c	/^static void init_req_ctx(Vhost* thiz, VhostLoc* loc)$/;"	f	file:
-inited	connection.h	/^	int inited;$/;"	m	struct:connection_s
 ip	conf.h	/^	char* ip;$/;"	m	struct:conf_s
-is_character	connection.c	16;"	d	file:
+is_character	connection.c	18;"	d	file:
 keep_alive	typedef.h	/^	int keep_alive;$/;"	m	struct:http_request_s
 large_client_header_size	conf.h	/^	int large_client_header_size;$/;"	m	struct:conf_s
 last	typedef.h	/^	char* last;$/;"	m	struct:buf_s
@@ -240,20 +235,23 @@ max_content_len	conf.h	/^	int max_content_len;$/;"	m	struct:conf_s
 max_threads	conf.h	/^	int max_threads;$/;"	m	struct:conf_s
 method	typedef.h	/^	http_method_e method;$/;"	m	struct:http_request_s
 module_create	conf.h	/^	MODULE_CREATE_FUNC module_create;$/;"	m	struct:module_so_conf_s
-module_default_create	modules/module_default.c	/^Module* module_default_create(ModuleFactory* factory, ModuleParam param[])$/;"	f
+module_create	modules/module_default.c	/^module_t* module_create()$/;"	f
 module_default_destroy	modules/module_default.c	/^static Ret module_default_destroy(Module* thiz)$/;"	f	file:
-module_default_handle_req	modules/module_default.c	/^static Ret module_default_handle_req(Module* thiz, const HttpReqCtx* req_ctx, $/;"	f	file:
-module_destroy	module.h	/^static inline int module_destroy(module_t* thiz)$/;"	f
-module_factory_create	modules/module_default.c	/^ModuleFactory* module_factory_create(Server* server)$/;"	f
+module_default_handle_req	modules/module_default.c	/^static int module_default_handle_req(module_t* thiz, http_request_t* request)$/;"	f	file:
+module_default_priv_s	modules/module_default.c	/^typedef struct module_default_priv_s $/;"	s	file:
+module_default_priv_t	modules/module_default.c	/^}module_default_priv_t;$/;"	t	typeref:struct:module_default_priv_s	file:
 module_factory_default_destroy	modules/module_default.c	/^static Ret module_factory_default_destroy(ModuleFactory* thiz)$/;"	f	file:
+module_get_info	modules/module_default.c	/^ModuleFactory* module_get_info(Server* server)$/;"	f
 module_param_s	conf.h	/^typedef struct module_param_s$/;"	s
 module_param_t	conf.h	/^}module_param_t;$/;"	t	typeref:struct:module_param_s
 module_path	conf.h	/^	char* module_path;$/;"	m	struct:conf_s
 module_process	module.h	/^static inline int module_process(module_t* thiz, http_request_t* request)$/;"	f
+module_s	module.h	/^typedef struct module_s$/;"	s
 module_so_conf_s	conf.h	/^typedef struct module_so_conf_s$/;"	s
 module_so_conf_t	conf.h	/^}module_so_conf_t;$/;"	t	typeref:struct:module_so_conf_s
+module_so_conf_t	module.h	/^typedef struct module_so_conf_s module_so_conf_t;$/;"	t	typeref:struct:module_so_conf_s
 module_sos	conf.h	/^	array_t module_sos;    \/\/module_so_conf_t*$/;"	m	struct:conf_s
-module_t	module.h	/^}module_t;$/;"	t	typeref:struct:_module
+module_t	module.h	/^}module_t;$/;"	t	typeref:struct:module_s
 module_type	conf.h	/^	module_type_e module_type; \/*0 handler, 1 filter.*\/$/;"	m	struct:module_so_conf_s
 module_type_e	conf.h	/^}module_type_e;$/;"	t	typeref:enum:__anon3
 mutex	connection.h	/^	pthread_mutex_t mutex;$/;"	m	struct:connection_s
@@ -267,6 +265,7 @@ name	xml_tree.h	/^	char* name;	$/;"	m	struct:_XmlNodePi
 name	xml_tree.h	/^	char* name;$/;"	m	struct:_XmlAttr
 name	xml_tree.h	/^	char* name;$/;"	m	struct:_XmlNodeNormal
 next	connection.h	/^	connection_t* next;$/;"	m	struct:connection_s
+next	pool.c	/^	struct pool_node_s* next;$/;"	m	struct:pool_cleanup_node_s	typeref:struct:pool_cleanup_node_s::pool_node_s	file:
 next	pool.c	/^	struct pool_node_s* next;$/;"	m	struct:pool_node_s	typeref:struct:pool_node_s::pool_node_s	file:
 next	xml_tree.h	/^	struct _XmlAttr* next;$/;"	m	struct:_XmlAttr	typeref:struct:_XmlAttr::_XmlAttr
 normal	xml_tree.h	/^		XmlNodeNormal normal;$/;"	m	union:_XmlNode::__anon2
@@ -279,18 +278,22 @@ on_start_element	xml_builder.h	/^	XmlBuilderOnStartElementFunc on_start_element;
 on_text	xml_builder.h	/^	XmlBuilderOnTextFunc         on_text;$/;"	m	struct:_XmlBuilder
 open_listen_fd	utils.c	/^int open_listen_fd(char* ip, int port)$/;"	f
 parent	conf.h	/^	vhost_conf_t* parent;$/;"	m	struct:vhost_loc_conf_s
-parent	module.h	/^	module_so_conf_t* parent;$/;"	m	struct:_module
+parent	module.h	/^	module_so_conf_t* parent;$/;"	m	struct:module_s
 parent	xml_tree.h	/^	struct _XmlNode* parent;$/;"	m	struct:_XmlNode	typeref:struct:_XmlNode::_XmlNode
 path	typedef.h	/^	str_t path;$/;"	m	struct:url_s
 pattern_regex	conf.h	/^	regex_t pattern_regex;$/;"	m	struct:vhost_loc_conf_s
 pattern_str	conf.h	/^	char* pattern_str;$/;"	m	struct:vhost_loc_conf_s
 pi	xml_tree.h	/^		XmlNodePi pi;$/;"	m	union:_XmlNode::__anon2
 pool	conf.h	/^	pool_t* pool;$/;"	m	struct:conf_s
+pool	connection.h	/^	pool_t* pool;$/;"	m	struct:connection_s
 pool	server.c	/^	pool_t* pool;$/;"	m	struct:server_s	file:
 pool	typedef.h	/^	pool_t* pool;$/;"	m	struct:array_s
 pool	typedef.h	/^	pool_t* pool;$/;"	m	struct:http_request_s
-pool_alloc	pool.c	/^char* pool_alloc(pool_t* thiz, int size)$/;"	f
-pool_calloc	pool.c	/^char* pool_calloc(pool_t* thiz, int size)$/;"	f
+pool_add_cleanup	pool.c	/^int pool_add_cleanup(pool_t* thiz, POOL_CLEANUP_FUNC cleanup, void* ctx)$/;"	f
+pool_alloc	pool.c	/^void* pool_alloc(pool_t* thiz, int size)$/;"	f
+pool_calloc	pool.c	/^void* pool_calloc(pool_t* thiz, int size)$/;"	f
+pool_cleanup_node_s	pool.c	/^typdef struct pool_cleanup_node_s$/;"	s	file:
+pool_cleanup_node_t	pool.c	/^}pool_cleanup_node_t;$/;"	v	typeref:struct:pool_cleanup_node_s
 pool_create	pool.c	/^pool_t* pool_create(int size)$/;"	f
 pool_destroy	pool.c	/^int pool_destroy(pool_t* thiz)$/;"	f
 pool_node_s	pool.c	/^typdef struct pool_node_s$/;"	s	file:
@@ -298,16 +301,17 @@ pool_node_t	pool.c	/^}pool_node_t;$/;"	v	typeref:struct:pool_node_s
 pool_reset	pool.c	/^int pool_reset(pool_t* thiz)$/;"	f
 pool_s	pool.c	/^typedef struct pool_s$/;"	s	file:
 pool_strdup	pool.c	/^char* pool_strdup(pool_t* thiz, char* str)$/;"	f
+pool_t	conf.h	/^typedef struct pool_s pool_t;$/;"	t	typeref:struct:pool_s
 pool_t	pool.c	/^}pool_t;$/;"	t	typeref:struct:pool_s	file:
 pool_t	pool.h	/^typedef struct pool_s pool_t;$/;"	t	typeref:struct:pool_s
 port	conf.h	/^	int port;$/;"	m	struct:conf_s
 port	typedef.h	/^	int port;$/;"	m	struct:url_s
 pos	typedef.h	/^	char* pos;$/;"	m	struct:buf_s
-priv	module.h	/^	char priv[0];$/;"	m	struct:_module
-priv	modules/module_default.c	/^	char priv[1];$/;"	m	struct:_ModuleDefaultPriv	file:
+priv	module.h	/^	char priv[0];$/;"	m	struct:module_s
+priv	modules/module_default.c	/^	char priv[1];$/;"	m	struct:module_default_priv_s	file:
 priv	upstream.h	/^	char priv[1];$/;"	m	struct:upstream_s
 priv	xml_builder.h	/^	char priv[1];$/;"	m	struct:_XmlBuilder
-process	module.h	/^	MODULE_PROCESS_FUNC process;$/;"	m	struct:_module
+process	module.h	/^	MODULE_PROCESS_FUNC process;$/;"	m	struct:module_s
 query_string	typedef.h	/^	st_t query_string;$/;"	m	struct:url_s
 r	connection.h	/^	http_request_t r;$/;"	m	struct:connection_s
 read_file	utils.c	/^char* read_file(const char* file_name)$/;"	f
@@ -316,6 +320,8 @@ reg	trash/vhost.c	/^	regex_t reg;$/;"	m	struct:_VhostLoc	file:
 req_ctx	trash/vhost.c	/^	HttpReqCtx req_ctx;$/;"	m	struct:_Vhost	file:
 request_pool_size	conf.h	/^	int request_pool_size;$/;"	m	struct:conf_s
 response	typedef.h	/^	http_response_t* response;$/;"	m	struct:http_request_s
+return_if_fail	typedef.h	12;"	d
+return_val_if_fail	typedef.h	15;"	d
 root	conf.h	/^	char* root;$/;"	m	struct:conf_s
 root	conf.h	/^	char* root;$/;"	m	struct:vhost_conf_s
 root	conf.h	/^	char* root;$/;"	m	struct:vhost_loc_conf_s

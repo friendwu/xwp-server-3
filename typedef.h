@@ -9,6 +9,14 @@
 	
 #define SAFE_FREE(p) if(p != NULL) {free(p); p = NULL;}
 
+#define return_if_fail(p) if(!(p)) \
+	{printf("%s:%d Warning: "#p" failed.\n", \
+		__func__, __LINE__); return;}
+#define return_val_if_fail(p, ret) if(!(p)) \
+	{printf("%s:%d Warning: "#p" failed.\n",\
+	__func__, __LINE__); return (ret);}
+
+
 #define MAX_ATTR_NR 64
 typedef struct array_s
 {
@@ -45,14 +53,14 @@ typedef struct url_s
 	int port;
 	str_t path;
 	st_t query_string;
-	str_t fragment_id;
+	//str_t fragment_id;
 }url_t;
 
 typedef enum 
 {
-	METHOD_GET = 0,
-	METHOD_POST,
-	METHOD_HEAD,
+	HTTP_METHOD_GET = 0,
+	HTTP_METHOD_POST,
+	HTTP_METHOD_HEAD,
 }http_method_e;
 
 typedef struct http_request_s
@@ -79,6 +87,7 @@ typedef struct http_response_s
 	buf_t content_body;
 	int content_fd;
 }http_response_t;
+
 
 #define HTTP_STATUS_OK                        200
 #define HTTP_STATUS_CREATED                   201

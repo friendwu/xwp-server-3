@@ -15,7 +15,7 @@ typedef struct server_s
 {
 	pool_t* pool;
 	conf_t* conf;
-	connection_t* connections;
+	connection_t** connections;
 	size_t connection_nr;
 	connection_t* free_connections;
 	pthread_mutex_t mutex;
@@ -86,6 +86,8 @@ server_t* server_create(const char* config_file)
 	}
 	thiz->pool = pool;
 
+	signal(SIGPIPE, SIG_IGN);
+
 	conf_t* conf = conf_parse(config_file, pool);
 	if(conf == NULL)
 	{
@@ -94,14 +96,20 @@ server_t* server_create(const char* config_file)
 	}
 	thiz->conf = conf;
 
-	thiz->connections = pool_calloc(pool, conf->max_threads * sizeof(connection_t));
+	thiz->connections = (connection_t** )pool_calloc(pool, conf->max_threads * sizeof(connection_t*));
 	int i = 0;
 	for(i=0; i<conf->max_threads-1; i++)
 	{
-		thiz->connections[i].next = &thiz->connections[i+1];
-		connection_init(&(thiz->connections[i]), conf);
+		thiz->connections[i] = connection_create(pool, conf);
+		if(thiz->connections[i] == NULL) 
+		{
+			pool_destroy(pool);
+			return NULL;
+		}
+		thiz->connections[i]->next = thiz->connections[i + 1];
 	}
-	thiz->connections[conf->max_threads-1].next = NULL;
+
+	thiz->connections[conf->max_threads-1]->next = NULL;
 	thiz->connection_nr = conf->max_threads;
 
 	thiz->listen_fd = open_listen_fd(conf->ip, conf->port);
@@ -119,8 +127,8 @@ server_t* server_create(const char* config_file)
 	pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
 	thiz->running = 1;
 	thiz->listen_tids = pool_alloc(pool, conf->max_threads);
-	int k=0;
-	for(k=0; k<conf->max_threads; k++)
+	int k = 0;
+	for(k; k<conf->max_threads; k++)
 	{
 		pthread_create(&thiz->listen_tids[k], &attr, server_listen_proc, thiz);
 	}
@@ -137,10 +145,11 @@ int server_destroy(server_t* thiz)
 	if(thiz->listen_fd >= 0) close(thiz->listen_fd);
 
 	thiz->running = 0;
+	//TODO hook this in connection_create.
 	int k = 0;
 	for(k; k<thiz->connection_nr; k++)
 	{
-		connection_close(&(thiz->connections[k]));
+		connection_close(thiz->connections[k]);
 	}
 
 	pthread_join(thiz->guard_tid, NULL);

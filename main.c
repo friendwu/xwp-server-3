@@ -5,10 +5,7 @@
 
 int main(int argc, char** argv)
 {
-	signal(SIGPIPE, SIG_IGN);
-
 	server_t* server = server_create("config.xml");
-
 	if(server) 
 	{
 		//TODO accept command from console.

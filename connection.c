@@ -11,6 +11,8 @@
 #include "connection.h"
 #include "pool.h"
 #include "module.h"
+#include "typedef.h"
+#include "upstream.h"
 
 #define eol(c) ((c) == '\n')
 #define is_character(c) ((c)|0x20 >='a' && (c)|0x20 <= 'z')
@@ -211,11 +213,13 @@ static int connection_parse_url(connection_t* thiz, str_t* url)
 	{
 		thiz->r.url.schema.data = schema_start;
 		thiz->r.url.schema.len = schema_end - schema_start;
+		*schema_end = '\0';
 	}
 	if(host_start && host_end)
 	{
 		thiz->r.url.host.data = host_start;
 		thiz->r.url.host.len = host_end - host_start;
+		*host_end = '\0';
 	}
 	if(port_start && port_end)
 	{
@@ -225,11 +229,13 @@ static int connection_parse_url(connection_t* thiz, str_t* url)
 	{
 		thiz->r.url.path.data = path_start;
 		thiz->r.url.path.len = path_end - path_start;
+		*path_end = '\0';
 	}
 	if(query_start && query_end)
 	{
 		thiz->r.url.query.data = query_start;
 		thiz->r.url.query.len = query_end - query_start;
+		*query_end = '\0';
 	}
 
 	return HTTP_PARSE_DONE;
@@ -480,8 +486,8 @@ static size_t connection_calculate_response_len(connection_t* thiz)
 	size_t len = 0;
 	assert(thiz->r.version >= HTTP_VERSION_10);
 	
-	len += strlen("HTTP/1.x ");
-	len += strlen("200"); //all length of status code are 3.
+	len += sizeof("HTTP/1.x ") - 1;
+	len += sizeof("200") - 1; //all length of status code are 3.
 	len += strlen(http_status_line(thiz->r.response->status));
 	len += new_line_len; 
 
@@ -542,6 +548,8 @@ static int connection_send_response(connection_t* thiz)
 	if(response->content_fd >= 0)
 	{
 		ssize_t ret = sendfile(thiz->fd, response->content_fd, NULL, response->content_len);
+		close(response->content_fd);
+		repsone->content_fd = -1;
 
 		if(ret < 0) return 0;
 	}
@@ -639,18 +647,19 @@ static int connection_special_response(connection_t* thiz, int status)
 	//such as keepalive.
 }
 
-int connection_init(connection_t* thiz, conf_t* conf)
+connection_t* connection_create(pool_t* pool, conf_t* conf)
 {
-	assert(thiz != NULL);
-	if(thiz->inited) return 0;
-
-	bzero(thiz, sizeof(connection_t));
+	assert(pool!=NULL && conf!=NULL);
+	connection_t* thiz = pool_calloc(pool, sizeof(connection_t));
+	if(thiz == NULL) return NULL;
+	pool_add_cleanup(pool, connection_close, thiz);
+	
 	pthread_mutex_init(&thiz->mutex, NULL);
+	thiz->pool = pool;
 	thiz->conf = conf;
-	thiz->inited = 1;
 	thiz->fd = -1;
 
-	return 1;
+	return thiz;
 }
 
 int connection_run(connection_t* thiz, int fd)
@@ -658,7 +667,7 @@ int connection_run(connection_t* thiz, int fd)
 	assert(thiz!=NULL && fd >= 0);
 	int ret = 1;
 
-	if(thiz->running || !thiz->inited) return 0;
+	if(thiz->running) return 0;
 	assert(thiz->r.pool == NULL && thiz->fd == -1);
 	thiz->r.pool = pool_create(thiz->conf->request_pool_size);
 	if(thiz->r.pool == NULL) return 0;
@@ -716,14 +725,15 @@ DONE:
 int connection_check_timeout(connection_t* thiz)
 {
 	assert(thiz != NULL);
-	if(thiz->running == 0 || thiz->inited == 0) return 1;
+	if(thiz->running == 0) return 1;
 
 	time_t now = time();
 	if(now-thiz->start_time >= thiz->conf->connection_timeout)
 	{
 		pthread_mutex_lock(&thiz->mutex);
-		if(thiz->running && thiz->inited)
+		if(thiz->running)
 		{
+			//close blocking process to help connection_run thread exit asap.
 			thiz->timedout = 1;
 			if(thiz->fd >= 0) 
 			{
@@ -748,8 +758,6 @@ static int connection_reusable(connection_t* thiz, int reuseable)
 {
 	assert(thiz!=NULL);	
 
-	if(thiz->inited == 0) return 0;
-
 	pthread_mutex_lock(&thiz->mutex);
 	thiz->timedout = 0;
 	if(thiz->fd >= 0)
@@ -769,10 +777,6 @@ static int connection_reusable(connection_t* thiz, int reuseable)
 
 	pool_destroy(&thiz->r.pool);
 	bzero(&(thiz->r), sizeof(http_request_t));
-	if(!reuseable)
-	{
-		thiz->inited = 0;
-	}
 
 	pthread_mutex_unlock(&thiz->mutex);
 	
@@ -782,7 +786,10 @@ static int connection_reusable(connection_t* thiz, int reuseable)
 	return 1;
 }
 
-int connection_close(connection_t* thiz)
+void connection_close(void* ctx)
 {
-	return connection_reusable(thiz, 0);
+	connection_t* thiz = (connection_t* ) ctx;
+
+	connection_reusable(thiz, 0);
 }
+

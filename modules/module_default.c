@@ -1,15 +1,14 @@
 #include <string.h>
 #include <sys/stat.h>
-#include <utils.h>
+#include "utils.h"
 #include "module.h"
 
-typedef struct _ModuleDefaultPriv
+typedef struct module_default_priv_s 
 {
 	char priv[1];
-}ModuleDefaultPriv;
+}module_default_priv_t;
 
-static Ret module_default_handle_req(Module* thiz, const HttpReqCtx* req_ctx, 
-									 const HttpReq* req, HttpResp* resp)
+static int module_default_handle_req(module_t* thiz, http_request_t* request)
 {
 	if(strcasecmp(req->method, "GET") != 0)
 	{
@@ -68,7 +67,7 @@ static Ret module_default_destroy(Module* thiz)
 	return RET_OK;
 }
 
-Module* module_default_create(ModuleFactory* factory, ModuleParam param[])
+module_t* module_create()
 {
 	Module* thiz = calloc(1, sizeof(Module) + sizeof(ModuleDefaultPriv));
 	if(thiz == NULL) return NULL;
@@ -87,7 +86,7 @@ static Ret module_factory_default_destroy(ModuleFactory* thiz)
 	return RET_OK;
 }
 
-ModuleFactory* module_factory_create(Server* server)
+ModuleFactory* module_get_info(Server* server)
 {
 	ModuleFactory* thiz = calloc(1, sizeof(ModuleFactory));
 	if(thiz == NULL) return NULL;
@@ -104,3 +103,4 @@ ModuleFactory* module_factory_create(Server* server)
 
 	return thiz;
 }
+
