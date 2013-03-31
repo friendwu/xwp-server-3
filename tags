@@ -13,13 +13,13 @@ DEFAULT_ROOT	conf.c	8;"	d	file:
 DESTROY_MEM	typedef.h	7;"	d
 HTTPS_CERT_ERROR	typedef.h	126;"	d
 HTTPS_NO_CERT	typedef.h	127;"	d
-HTTP_HEADER_CONNECTION	typedef.h	153;"	d
-HTTP_HEADER_CONTENT_LEN	typedef.h	158;"	d
-HTTP_HEADER_CONTENT_TYPE	typedef.h	157;"	d
-HTTP_HEADER_DATE	typedef.h	154;"	d
-HTTP_HEADER_HOST	typedef.h	156;"	d
-HTTP_HEADER_KEEPALIVE	typedef.h	159;"	d
-HTTP_HEADER_SERVER	typedef.h	155;"	d
+HTTP_HEADER_CONNECTION	typedef.h	155;"	d
+HTTP_HEADER_CONTENT_LEN	typedef.h	160;"	d
+HTTP_HEADER_CONTENT_TYPE	typedef.h	159;"	d
+HTTP_HEADER_DATE	typedef.h	156;"	d
+HTTP_HEADER_HOST	typedef.h	158;"	d
+HTTP_HEADER_KEEPALIVE	typedef.h	161;"	d
+HTTP_HEADER_SERVER	typedef.h	157;"	d
 HTTP_METHOD_GET	typedef.h	/^	HTTP_METHOD_GET = 0,$/;"	e	enum:__anon1
 HTTP_METHOD_HEAD	typedef.h	/^	HTTP_METHOD_HEAD,$/;"	e	enum:__anon1
 HTTP_METHOD_POST	typedef.h	/^	HTTP_METHOD_POST,$/;"	e	enum:__anon1
@@ -153,22 +153,23 @@ connection_check_timeout	connection.c	/^int connection_check_timeout(connection_
 connection_close	connection.c	/^void connection_close(void* ctx)$/;"	f
 connection_create	connection.c	/^connection_t* connection_create(pool_t* pool, conf_t* conf)$/;"	f
 connection_finalize_request	connection.c	/^static int connection_finalize_request(connection_t* thiz)$/;"	f	file:
-connection_gen_request	connection.c	/^static int connection_gen_request(connection_t* thiz)$/;"	f	file:
+connection_gen_request	connection.c	/^static void connection_gen_request(connection_t* thiz)$/;"	f	file:
 connection_nr	server.c	/^	size_t connection_nr;$/;"	m	struct:server_s	file:
 connection_parse_header_line	connection.c	/^static int connection_parse_header_line(connection_t* thiz)$/;"	f	file:
 connection_parse_request_line	connection.c	/^static int connection_parse_request_line(connection_t* thiz)$/;"	f	file:
 connection_parse_url	connection.c	/^static int connection_parse_url(connection_t* thiz, str_t* url)$/;"	f	file:
-connection_process_request	connection.c	/^static int connection_process_request(connection_t* thiz)$/;"	f	file:
+connection_process_request	connection.c	/^static void connection_process_request(connection_t* thiz)$/;"	f	file:
 connection_reusable	connection.c	/^static int connection_reusable(connection_t* thiz, int reuseable)$/;"	f	file:
 connection_run	connection.c	/^int connection_run(connection_t* thiz, int fd)$/;"	f
 connection_s	connection.h	/^typedef struct connection_s$/;"	s
 connection_send_response	connection.c	/^static int connection_send_response(connection_t* thiz)$/;"	f	file:
-connection_special_response	connection.c	/^static int connection_special_response(connection_t* thiz, int status)$/;"	f	file:
+connection_special_response	connection.c	/^static int connection_special_response(connection_t* thiz)$/;"	f	file:
 connection_t	connection.h	/^}connection_t;$/;"	t	typeref:struct:connection_s
 connection_timeout	conf.h	/^	int connection_timeout;$/;"	m	struct:conf_s
 connections	server.c	/^	connection_t** connections;$/;"	m	struct:server_s	file:
-content_body	typedef.h	/^	buf_t content_body;$/;"	m	struct:http_response_s
+content_body	typedef.h	/^	char* content_body;$/;"	m	struct:http_response_s
 content_fd	typedef.h	/^	int content_fd;$/;"	m	struct:http_response_s
+content_len	typedef.h	/^	int content_len;$/;"	m	struct:http_response_s
 content_length	typedef.h	/^	int content_length;$/;"	m	struct:http_request_s
 count	typedef.h	/^	int count;$/;"	m	struct:array_s
 ctx	pool.c	/^	void* ctx;$/;"	m	struct:pool_cleanup_node_s	file:
@@ -201,10 +202,10 @@ host	typedef.h	/^	str_t host;$/;"	m	struct:url_s
 host_name	trash/vhost.c	/^	char* host_name;$/;"	m	struct:_Vhost	file:
 http_content_type	utils.c	/^const char* http_content_type(const char* extension)$/;"	f
 http_header_equal	utils.c	/^int http_header_equal(array_t* headers, const char* name, const char* value)$/;"	f
-http_header_int	utils.c	/^int http_header_int(array_t* headers, const char* name)$/;"	f
+http_header_int	utils.c	/^int http_header_int(array_t* headers, const str_t* name)$/;"	f
 http_header_s	typedef.h	/^typedef struct http_header_s $/;"	s
 http_header_set	utils.c	/^int http_header_set(array_t* headers, const str_t* name, const str_t* value)$/;"	f
-http_header_str	utils.c	/^const str_t* http_header_str(array_t* headers, const char* name)$/;"	f
+http_header_str	utils.c	/^const str_t* http_header_str(array_t* headers, const str_t* name)$/;"	f
 http_header_t	typedef.h	/^}http_header_t;$/;"	t	typeref:struct:http_header_s
 http_method_e	typedef.h	/^}http_method_e;$/;"	t	typeref:enum:__anon1
 http_request_s	typedef.h	/^typedef struct http_request_s$/;"	s
@@ -237,9 +238,9 @@ method	typedef.h	/^	http_method_e method;$/;"	m	struct:http_request_s
 module_create	conf.h	/^	MODULE_CREATE_FUNC module_create;$/;"	m	struct:module_so_conf_s
 module_create	modules/module_default.c	/^module_t* module_create()$/;"	f
 module_default_destroy	modules/module_default.c	/^static Ret module_default_destroy(Module* thiz)$/;"	f	file:
-module_default_handle_req	modules/module_default.c	/^static int module_default_handle_req(module_t* thiz, http_request_t* request)$/;"	f	file:
 module_default_priv_s	modules/module_default.c	/^typedef struct module_default_priv_s $/;"	s	file:
 module_default_priv_t	modules/module_default.c	/^}module_default_priv_t;$/;"	t	typeref:struct:module_default_priv_s	file:
+module_default_process	modules/module_default.c	/^static int module_default_process(module_t* thiz, http_request_t* request)$/;"	f	file:
 module_factory_default_destroy	modules/module_default.c	/^static Ret module_factory_default_destroy(ModuleFactory* thiz)$/;"	f	file:
 module_get_info	modules/module_default.c	/^ModuleFactory* module_get_info(Server* server)$/;"	f
 module_param_s	conf.h	/^typedef struct module_param_s$/;"	s
@@ -319,7 +320,7 @@ read_ptr	xml_parser.c	/^	const char* read_ptr;$/;"	m	struct:_XmlParser	file:
 reg	trash/vhost.c	/^	regex_t reg;$/;"	m	struct:_VhostLoc	file:
 req_ctx	trash/vhost.c	/^	HttpReqCtx req_ctx;$/;"	m	struct:_Vhost	file:
 request_pool_size	conf.h	/^	int request_pool_size;$/;"	m	struct:conf_s
-response	typedef.h	/^	http_response_t* response;$/;"	m	struct:http_request_s
+response	typedef.h	/^	http_response_t response;$/;"	m	struct:http_request_s
 return_if_fail	typedef.h	12;"	d
 return_val_if_fail	typedef.h	15;"	d
 root	conf.h	/^	char* root;$/;"	m	struct:conf_s

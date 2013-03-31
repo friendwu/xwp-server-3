@@ -10,6 +10,7 @@
 #include "server.h"
 #include "pool.h"
 #include "connection.h"
+#include "utils.h"
 
 typedef struct server_s
 {

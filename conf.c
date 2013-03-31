@@ -26,7 +26,7 @@ static void config_parse_loadmodule(conf_t* thiz, XmlNode* root)
 		handler = dlopen(path_buf, RTLD_NOW);
 		assert(handler != NULL);
 
-		module_get_info = (MODULE_GET_INFO_FUNC)(handler, "module_get_info");
+		module_get_info = (MODULE_GET_INFO_FUNC)dlsym(handler, "module_get_info");
 		assert(module_get_info != NULL);
 		module_so_conf_t* so = pool_calloc(thiz, pool, sizeof(module_so_conf_t));
 
@@ -238,12 +238,14 @@ conf_t* conf_parse(const char* config_file, pool_t* pool)
 	assert(module_get_info != NULL);
 	module_so_conf_t* so = pool_calloc(thiz, pool, sizeof(module_so_conf_t));
 	assert(so != NULL);
+	so->parent = thiz;
 
 	module_get_info(so, pool);
 	array_push(&thiz->module_sos, so);
 
 	//vhost
 	vhost_conf_t* vhost = pool_calloc(pool, sizeof(vhost_conf_t));
+	vhost->parent = thiz;
 	array_push(&thiz->vhosts, vhost);
 	array_init(&vhost->locs, pool, 10);
 	vhost->name = pool_strdup(pool, "wpeng.me");
@@ -257,7 +259,8 @@ conf_t* conf_parse(const char* config_file, pool_t* pool)
 	//TODO regfree in destroy hook.
 	regcomp(&loc->pattern_reg, loc->pattern, 0);
 	loc->handler_name = pool_strdup(pool, "default");
-	loc->handler = so->module_create(&loc->handle_params, pool);
+	HANDLER_CREATE_FUNC handler_create = (HANDLER_CREATE_FUNC) so->module_create;
+	loc->handler = handler_create(&loc->handle_params, pool);
 	array_push(&vhost->locs, loc);
 
 	return thiz;

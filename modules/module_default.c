@@ -1,6 +1,7 @@
 #include <string.h>
 #include <sys/stat.h>
 #include "utils.h"
+#include "typedef.h"
 #include "module.h"
 
 typedef struct module_default_priv_s 
@@ -8,99 +9,91 @@ typedef struct module_default_priv_s
 	char priv[1];
 }module_default_priv_t;
 
-static int module_default_handle_req(module_t* thiz, http_request_t* request)
+static int module_default_handle_request(module_t* thiz, http_request_t* request)
 {
-	if(strcasecmp(req->method, "GET") != 0)
-	{
-		resp->status = HTTP_STATUS_BAD_REQUEST;
+	assert(thiz!=NULL && request!=NULL);
+	http_response_t* response = &request->response;
 
-		//TODO should we add status file?
-		return RET_OK;
+	if(request->method != HTTP_METHOD_GET)
+	{
+		response->status = HTTP_STATUS_BAD_REQUEST;
+		return HTTP_MODULE_PROCESS_DONE;
 	}
 	
 	//TODO check there is no '..' contains in the path.
-	char path_buf[MAX_PATH_LEN] = {0};
-	snprintf(path_buf, "%s/%s", req_ctx->root, req->path);
+	pool_t* pool = request->pool;
+	vhost_loc_conf_t* loc = (vhost_loc_conf_t* )thiz->parent;
 
+	char* path = pool_calloc(pool, strlen(loc->root) + request->url.path.len + 1);
+
+	sprintf(path, "%s/%s", loc->root, request->url.path.data);
+	
 	struct stat st = {0};
-	if(stat(path_buf, &st) != 0)
+	if(stat(path, &st) != 0)
 	{
-		resp->status = HTTP_STATUS_NOT_FOUND;
-		printf("stat %s failed: %s\n", path_buf, strerror(errno));
+		response->status = HTTP_STATUS_NOT_FOUND;
+		printf("stat %s failed: %s\n", path, strerror(errno));
 
-		return RET_OK;
+		return HTTP_MODULE_PROCESS_DONE;
 	}
 
 	//TODO allow list dir.
-	if(!(S_ISDIR(st.st_mode) && req_ctx->allow_list_dir) || 
+	if(S_ISDIR(st.st_mode) || 
 		!(S_ISREG(st.st_mode) && (S_IRUSR & st.st_mode)))
 	{
-		resp->status = HTTP_STATUS_FORBIDDEN;
+		response->status = HTTP_STATUS_FORBIDDEN;
 
-		return RET_OK;
+		return HTTP_MODULE_PROCESS_DONE;
 	}
 
-	int fd = open(path_buf, O_RDONLY);
+	int fd = open(path, O_RDONLY);
 	if(fd < 0) 
 	{
-		resp->status = HTTP_STATUS_NOT_FOUND;
+		response->status = HTTP_STATUS_NOT_FOUND;
 
-		return RET_OK;
+		return HTTP_MODULE_PROCESS_DONE;
 	}
 	
-	resp->content_fd = fd;
-	resp->content_len = st.st_size;
+	response->content_fd = fd;
+	response->content_len = st.st_size;
 
-	char* extension = strrchr(req->path, '.');
+	char* extension = strrchr(request->url.path.data, '.');
 	if(extension != NULL) extension += 1;
-
-	http_header_set(resp->headers, HTTP_HEADER_CONENT_TYPE, http_content_type(extension));
-	resp->status = HTTP_STATUS_OK;
 	
-	return RET_OK;
+	http_header_set(response->headers, HTTP_HEADER_CONENT_TYPE, http_content_type(extension));
+	response->status = HTTP_STATUS_OK;
+	
+	return HTTP_MODULE_PROCESS_DONE;
 }
 
-static Ret module_default_destroy(Module* thiz)
+module_t* module_default_create(vhost_loc_conf_t* parent, array_t* params, pool_t* pool)
 {
-	free(thiz);
-
-	return RET_OK;
-}
-
-module_t* module_create()
-{
-	Module* thiz = calloc(1, sizeof(Module) + sizeof(ModuleDefaultPriv));
+	module_t* thiz = pool_calloc(sizeof(module_t) + sizeof(module_default_priv_t));
 	if(thiz == NULL) return NULL;
 
-	thiz->parent = factory;
-	thiz->handle = module_default_handle_req;
-	thiz->destroy_module = module_default_destroy;
+	thiz->parent = parent;
+	thiz->process = module_default_handle_request;
+	pool_add_cleanup(pool, module_default_destroy, thiz);
 
 	return thiz;
 }
 
-static Ret module_factory_default_destroy(ModuleFactory* thiz)
+static void module_default_destroy(void* data)
 {
-	free(thiz);
-
-	return RET_OK;
+	//TODO cleanup 
+	return;
 }
 
-ModuleFactory* module_get_info(Server* server)
+void module_get_info(module_so_conf_t* so_conf, pool_t* pool)
 {
-	ModuleFactory* thiz = calloc(1, sizeof(ModuleFactory));
-	if(thiz == NULL) return NULL;
+	assert(so_conf_t==NULL && pool!=NULL);
 
-	thiz->name = "module_default";
-	thiz->author = "pengwu<wp.4163196@gmail.com>";
-	thiz->description = "default request handler";
-	thiz->version = "0.1";
-	
-	thiz->server = server;
+	so_conf->name = pool_strdup(pool, "module_default");
+	so_conf->author = pool_strdup(pool, "pengwu<wp.4163196@gmail.com>");
+	so_conf->description = pool_strdup(pool, "default request handler");
+	so_conf->version = pool_strdup(pool, "0.1");
+	so_conf->create_module = module_default_create;
 
-	thiz->create_module = module_default_create;
-	thiz->destroy_module_factory = module_factory_default_destroy;
-
-	return thiz;
+	return;
 }
 

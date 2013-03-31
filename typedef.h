@@ -18,6 +18,7 @@
 
 
 #define MAX_ATTR_NR 64
+#define server_string(s) {(char* )s, sizeof(s)-1}
 typedef struct array_s
 {
 	pool_t* pool;
@@ -77,17 +78,17 @@ typedef struct http_request_s
 	int content_length;
 	upstream_t* upstream;
 
-	http_response_t* response;
+	http_response_t response;
 }http_request_t;
 
 typedef struct http_response_s
 {
 	int status;
 	array_t headers; //http_header_t* 
-	buf_t content_body;
+	int content_len;
+	char* content_body;
 	int content_fd;
 }http_response_t;
-
 
 #define HTTP_STATUS_OK                        200
 #define HTTP_STATUS_CREATED                   201
@@ -150,13 +151,11 @@ typedef struct http_response_s
 #define HTTP_STATUS_GATEWAY_TIME_OUT          504
 #define HTTP_STATUS_INSUFFICIENT_STORAGE      507
 
-#define HTTP_HEADER_CONNECTION "Connection"
-#define HTTP_HEADER_DATE "Date"
-#define HTTP_HEADER_SERVER "Server"
-#define HTTP_HEADER_HOST "Host"
-#define HTTP_HEADER_CONTENT_TYPE "Content-Type"
-#define HTTP_HEADER_CONTENT_LEN "Content-Len"
-#define HTTP_HEADER_KEEPALIVE "Keep-alive"
-
-#endif/*TYPEDEF_H*/
+extern const str_t* HTTP_HEADER_CONNECTION;
+extern const str_t* HTTP_HEADER_DATE;
+extern const str_t* HTTP_HEADER_SERVER;
+extern const str_t* HTTP_HEADER_HOST;
+extern const str_t* HTTP_HEADER_CONTENT_TYPE;
+extern const str_t* HTTP_HEADER_CONTENT_LEN;
+extern const str_t* HTTP_HEADER_KEEPALIVE;
 

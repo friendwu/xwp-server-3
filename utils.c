@@ -11,77 +11,111 @@
 #include "pool.h"
 
 #define IS_DELIM(delim_func, s, c) ((delim_func!=NULL && delim_func(c)) || (s!=NULL && strchr(s, c)!=NULL))
+
+const str_t http_header_names[] = 
+{
+	server_string("Connection"),
+	server_string("Date"),
+	server_string("Server"),
+	server_string("Host"),
+	server_string("Content-Type"),
+	server_string("Content-Len"),
+	server_string("Keep-alive"),
+}
+
+const str_t* HTTP_HEADER_CONNECTION = &http_header_names[0];
+const str_t* HTTP_HEADER_DATE = &http_header_names[1];
+const str_t* HTTP_HEADER_SERVER = &http_header_names[2];
+const str_t* HTTP_HEADER_HOST = &http_header_names[3];
+const str_t* HTTP_HEADER_CONTENT_TYPE = &http_header_names[4];
+const str_t* HTTP_HEADER_CONTENT_LEN = &http_header_names[5];
+const str_t* HTTP_HEADER_KEEPALIVE = &http_header_names[6];
+
+#endif/*TYPEDEF_H*/
+
 typedef struct http_status_s 
 {
 	int status;
-	const char* line;
-	const char* verbose;
+	str_t line;
+	//const char* verbose;
 }http_status_t;
 
 static http_status_t http_status_infos[] = {
-	 {100, "Continue", "Request received, please continue"},
-	 {101, "Switching Protocols",
-			 "Switching to new protocol; obey Upgrade header"},
+	{200, server_string("200 OK")},
+	{201, server_string("201 Created")},
+	{202, server_string("202 Accepted")},
+	//ngx_null_string,  /* "203 Non-Authoritative Information" */
+	{204, server_string("204 No Content")},
+	//ngx_null_string,  /* "205 Reset Content" */
+	{206, server_string("206 Partial Content")},
 
-	 {200, "OK", "Request fulfilled, document follows"},
-	 {201, "Created", "Document created, URL follows"},
-	 {202, "Accepted",
-			 "Request accepted, processing continues off-line"},
-	 {203, "Non-Authoritative Information", "Request fulfilled from cache"},
-	 {204, "No Content", "Request fulfilled, nothing follows"},
-	 {205, "Reset Content", "Clear input form for further input."},
-	 {206, "Partial Content", "Partial content follows."},
+	/* //ngx_null_string, */  /* "207 Multi-Status" */
 
-	 {300, "Multiple Choices",
-			 "Object has several resources -- see URI list"},
-	 {301, "Moved Permanently", "Object moved permanently -- see URI list"},
-	 {302, "Found", "Object moved temporarily -- see URI list"},
-	 {303, "See Other", "Object moved -- see Method and URL list"},
-	 {304, "Not Modified",
-			 "Document has not changed since given time"},
-	 {305, "Use Proxy",
-			 "You must use proxy specified in Location to access this "
-			 "resource."},
-	 {307, "Temporary Redirect",
-			 "Object moved temporarily -- see URI list"},
+	//#define NGX_HTTP_LAST_2XX  207
+	//#define NGX_HTTP_OFF_3XX   (NGX_HTTP_LAST_2XX - 200)
 
-	 {400, "Bad Request",
-			 "Bad request syntax or unsupported method"},
-	 {401, "Unauthorized",
-			 "No permission -- see authorization schemes"},
-	 {402, "Payment Required",
-			 "No payment -- see charging schemes"},
-	 {403, "Forbidden",
-			 "Request forbidden -- authorization will not help"},
-	 {404, "Not Found", "Nothing matches the given URI"},
-	 {405, "Method Not Allowed",
-			 "Specified method is invalid for this resource."},
-	 {406, "Not Acceptable", "URI not available in preferred format."},
-	 {407, "Proxy Authentication Required", "You must authenticate with "
-			 "this proxy before proceeding."},
-	 {408, "Request Timeout", "Request timed out; try again later."},
-	 {409, "Conflict", "Request conflict."},
-	 {410, "Gone",
-			 "URI no longer exists and has been permanently removed."},
-	 {411, "Length Required", "Client must specify Content-Length."},
-	 {412, "Precondition Failed", "Precondition in headers is false."},
-	 {413, "Request Entity Too Large", "Entity is too large."},
-	 {414, "Request-URI Too Long", "URI is too long."},
-	 {415, "Unsupported Media Type", "Entity body in unsupported format."},
-	 {416, "Requested Range Not Satisfiable",
-			 "Cannot satisfy request range."},
-	 {417, "Expectation Failed",
-			 "Expect condition could not be satisfied."},
+	/* //ngx_null_string, */  /* "300 Multiple Choices" */
 
-	 {500, "Internal Server Error", "Server got itself in trouble"},
-	 {501, "Not Implemented",
-			 "Server does not support this operation"},
-	 {502, "Bad Gateway", "Invalid responses from another server/proxy."},
-	 {503, "Service Unavailable",
-			 "The server cannot process the request due to a high load"},
-	 {504, "Gateway Timeout",
-			 "The gateway server did not receive a timely response"},
-	 {505, "HTTP Version Not Supported", "Cannot fulfill request."}
+	{301, server_string("301 Moved Permanently")},
+	{302, server_string("302 Moved Temporarily")},
+	{303, server_string("303 See Other")},
+	{304, server_string("304 Not Modified")},
+	//ngx_null_string,  /* "305 Use Proxy" */
+	//ngx_null_string,  /* "306 unused" */
+	{307, server_string("307 Temporary Redirect")},
+
+	//#define NGX_HTTP_LAST_3XX  308
+	//#define NGX_HTTP_OFF_4XX   (NGX_HTTP_LAST_3XX - 301 + NGX_HTTP_OFF_3XX)
+
+	{400, server_string("400 Bad Request")},
+	{401, server_string("401 Unauthorized")},
+	{402, server_string("402 Payment Required")},
+	{403, server_string("403 Forbidden")},
+	{404, server_string("404 Not Found")},
+	{405, server_string("405 Not Allowed")},
+	{406, server_string("406 Not Acceptable")},
+	//ngx_null_string,  /* "407 Proxy Authentication Required" */
+	{408, server_string("408 Request Time-out")},
+	{409, server_string("409 Conflict")},
+	{410, server_string("410 Gone")},
+	{411, server_string("411 Length Required")},
+	{412, server_string("412 Precondition Failed")},
+	{413, server_string("413 Request Entity Too Large")},
+	//ngx_null_string,  /* "414 Request-URI Too Large", but we never send it
+					   * because we treat such requests as the HTTP/0.9
+					   * requests and send only a body without a header
+					   */
+	{415, server_string("415 Unsupported Media Type")},
+	{416, server_string("416 Requested Range Not Satisfiable")},
+
+	/* //ngx_null_string, */  /* "417 Expectation Failed" */
+	/* //ngx_null_string, */  /* "418 unused" */
+	/* //ngx_null_string, */  /* "419 unused" */
+	/* //ngx_null_string, */  /* "420 unused" */
+	/* //ngx_null_string, */  /* "421 unused" */
+	/* //ngx_null_string, */  /* "422 Unprocessable Entity" */
+	/* //ngx_null_string, */  /* "423 Locked" */
+	/* //ngx_null_string, */  /* "424 Failed Dependency" */
+
+	//#define NGX_HTTP_LAST_4XX  417
+	//#define NGX_HTTP_OFF_5XX   (NGX_HTTP_LAST_4XX - 400 + NGX_HTTP_OFF_4XX)
+
+	{500, server_string("500 Internal Server Error")},
+	{501, server_string("501 Method Not Implemented")},
+	{502, server_string("502 Bad Gateway")},
+	{503, server_string("503 Service Temporarily Unavailable")},
+	{504, server_string("504 Gateway Time-out")},
+
+	//ngx_null_string,        /* "505 HTTP Version Not Supported" */
+	//ngx_null_string,        /* "506 Variant Also Negotiates" */
+	{507, server_string("507 Insufficient Storage")},
+	/* //ngx_null_string, */  /* "508 unused" */
+	/* //ngx_null_string, */  /* "509 unused" */
+	/* //ngx_null_string, */  /* "510 Not Extended" */
+
+	//#define NGX_HTTP_LAST_5XX  508
+
+
 };
 
 const char* http_status_line(int status)
@@ -277,30 +311,28 @@ int http_header_set(array_t* headers, const str_t* name, const str_t* value)
 	return 1;
 }
 
-const str_t* http_header_str(array_t* headers, const char* name)
+const str_t* http_header_str(array_t* headers, const str_t* name)
 {
 	assert(headers!=NULL && name!=NULL);
-
-	str_t hname = {name, strlen(name)};
 
 	int i = 0;
 	for(; i<headers->count; i++)
 	{
-		if(strncasecmp(hname.data, h[i].name.data, name.len) == 0)
+		if(strncasecmp(name.data, h[i].name.data, name.len) == 0)
 			return &h[i].value;
 	}
 
 	return NULL;
 }
 
-int http_header_int(array_t* headers, const char* name)
+int http_header_int(array_t* headers, const str_t* name)
 {
 	const str_t* value = http_header_str(headers, name);
 
 	return atoi(value.data);
 }
 
-int http_header_equal(array_t* headers, const char* name, const char* value)
+int http_header_equal(array_t* headers, const str_t* name, const str_t* value)
 {
 	const str_t* header_value = http_header_str(h, name);
 

@@ -270,7 +270,7 @@ static int connection_parse_request_line(connection_t* thiz)
 	thiz->r.version_str = version;
 	version.data = strstr(version, "HTTP/");
 	if(version.data == NULL) return HTTP_PARSE_FAIL;
-	version.data += 5;
+	version.data += 5; //strlen("HTTP/")
 	version.len = 3;
 
 	if(strcmp(version.data, "1.0") == 0) thiz->r.version = HTTP_VERSION_10;
@@ -312,7 +312,7 @@ static int connection_parse_header_line(connection_t* thiz)
 		}
 
 		//full line
-		//TODO should trim space.
+		//FIXME should trim space.
 		get_token(&name, &pos, NULL, ":");
 		get_token(&value, &pos, isspace, NULL);
 		if(name.data == NULL) 
@@ -371,7 +371,7 @@ static int connection_alloc_large_header_buf(connection_t* thiz)
 	else return 1;
 }
 
-static int connection_gen_request(connection_t* thiz)
+static void connection_gen_request(connection_t* thiz)
 {
 	enum 
 	{
@@ -381,7 +381,6 @@ static int connection_gen_request(connection_t* thiz)
 		HTTP_PARSE_DONE,
 	}parse_state = HTTP_PARSE_REQUEST_LINE;
 
-	int ret = HTTP_STATUS_OK;
 	int parse_ret = HTTP_PARSE_AGAIN;
 
 	array_init(&(thiz->r.headers), thiz->r.pool, 24);
@@ -389,7 +388,8 @@ static int connection_gen_request(connection_t* thiz)
 	buf_create(&(thiz->r.header_buf), thiz->r.pool, thiz->conf->client_header_size);
 	if(thiz->r.header_buf.start == NULL) 
 	{
-		return HTTP_STATUS_INTERNAL_SERVER_ERROR;
+		thiz->r.response.status = HTTP_STATUS_INTERNAL_SERVER_ERROR;
+		return; 
 	}
 
 	buf_t* buf = &(thiz->r.header_buf);
@@ -404,15 +404,15 @@ static int connection_gen_request(connection_t* thiz)
 			assert(parse_state <= HTTP_PARSE_HEADER_LINE);
 			if(!connection_alloc_large_header_buf(thiz))
 			{
-				ret = HTTP_STATUS_INTERNAL_SERVER_ERROR;
-				break;
+				thiz->r.response.status = HTTP_STATUS_INTERNAL_SERVER_ERROR;
+				return;	
 			}
 		}
 
 		count = recv(thiz->fd, buf->last, buf->end-1-buf->last);
 		if(count <= 0) 
 		{
-			ret = HTTP_STATUS_CLOSE;
+			thiz->r.response.status = HTTP_STATUS_CLOSE;
 			break;
 		}
 		buf->last += count;
@@ -431,8 +431,8 @@ static int connection_gen_request(connection_t* thiz)
 
 					if(thiz->r.content_len > thiz->conf->max_content_len)
 					{
-						ret = HTTP_STATUS_BAD_REQUEST;
-						break;
+						thiz->r.response.status = HTTP_STATUS_BAD_REQUEST;
+						return;	
 					}
 					else if(thiz->r.content_len > buf->end-1 - buf->pos)
 					{
@@ -440,8 +440,8 @@ static int connection_gen_request(connection_t* thiz)
 						buf_create(&(thiz->r.body_buf), thiz->r.pool, thiz->r.content_len + 1);
 						if(thiz->r.body_buf.start == NULL) 
 						{
-							ret = HTTP_STATUS_INTERNAL_SERVER_ERROR;
-							break;
+							thiz->r.response.status = HTTP_STATUS_INTERNAL_SERVER_ERROR;
+							return;	
 						}
 						if(rest > 0)
 						{
@@ -467,17 +467,17 @@ static int connection_gen_request(connection_t* thiz)
 
 		if(parse_ret==HTTP_PARSE_FAIL)
 		{
-			ret = HTTP_STATUS_BAD_REQUEST;
-			break;
+			thiz->r.response.status = HTTP_STATUS_BAD_REQUEST;
+			return;	
 		}
 		if(parse_state==HTTP_PARSE_DONE)
 		{
-			ret = HTTP_STATUS_OK;
-			break;
+			thiz->r.response.status = HTTP_STATUS_OK;
+			return;	
 		}
 	}
 
-	return ret;
+	return;
 }
 
 static size_t connection_calculate_response_len(connection_t* thiz)
@@ -488,12 +488,11 @@ static size_t connection_calculate_response_len(connection_t* thiz)
 	
 	len += sizeof("HTTP/1.x ") - 1;
 	len += sizeof("200") - 1; //all length of status code are 3.
-	len += strlen(http_status_line(thiz->r.response->status));
+	len += strlen(http_status_line(thiz->r.response.status));
 	len += new_line_len; 
 
-
-	http_header_t** headers = (http_header_t**) thiz->r.response->headers;
-	int header_count = thiz->r.response->headers.count;
+	http_header_t** headers = (http_header_t**) thiz->r.response.headers.elts;
+	int header_count = thiz->r.response.headers.count;
 	int i = 0; 
 	for(i; i<header_count; i++)
 	{
@@ -512,7 +511,7 @@ static int connection_send_response(connection_t* thiz)
 {
 	int count = 0;
 	size_t num = 0;
-	http_response_t* response = thiz->r.response;
+	http_response_t* response = &thiz->r.response;
 	http_header_t** headers = (http_header_t**) response->headers.elts;
 	int header_count = response->headers.count;
 
@@ -543,26 +542,26 @@ static int connection_send_response(connection_t* thiz)
 
 	if(!nwrite(thiz->fd, buf, num)) return 0;
 
-	assert((response->content_fd>=0 && response->content_body.pos==NULL)
-			|| (response->content_fd<0 && response->content_body.pos!=NULL));
+	assert((response->content_fd>=0 && response->content_body==NULL)
+			|| (response->content_fd<0 && response->content_body!=NULL));
 	if(response->content_fd >= 0)
 	{
 		ssize_t ret = sendfile(thiz->fd, response->content_fd, NULL, response->content_len);
 		close(response->content_fd);
-		repsone->content_fd = -1;
+		response->content_fd = -1;
 
 		if(ret < 0) return 0;
 	}
-	else if(response->content_body.pos != NULL)
+	else if(response->content_body != NULL)
 	{
-		if(!nwrite(thiz->fd, response->content_body.pos, response->content_len)) 
+		if(!nwrite(thiz->fd, response->content_body, response->content_len)) 
 			return 0;
 	}
 
 	return 1;
 }
 
-static int connection_process_request(connection_t* thiz)
+static void connection_process_request(connection_t* thiz)
 {
 	vhost_conf_t** vhosts = (vhost_conf_t** )thiz->conf->vhosts.elts;
 	size_t vhost_nr = thiz->conf->vhosts.count;
@@ -577,7 +576,12 @@ static int connection_process_request(connection_t* thiz)
 		}
 	}
 
-	if(i == vhost_nr) return HTTP_PROCESS_FAIL;
+	//cannot find matched vhost.
+	if(i == vhost_nr) 
+	{
+		thiz->r.response.status = HTTP_STATUS_BAD_REQUEST;
+		return;
+	}
 		
 	vhost_loc_conf_t** locs = (vhost_loc_conf_t** ) vhosts[i]->locs.elts;
 	size_t loc_nr = vhost[i]->locs.count;
@@ -590,29 +594,36 @@ static int connection_process_request(connection_t* thiz)
 	}
 
 	//TODO there should be a default handler.
-	if(k == loc_nr) return HTTP_PROCESS_FAIL;
+	//cannot find matched location.
+	if(k == loc_nr) 
+	{
+		thiz->r.response.status = HTTP_STATUS_BAD_REQUEST;
+		return;
+	}
 	
 	int ret = HTTP_MODULE_PROCESS_DONE;
 	ret = module_process(locs[k]->handler, &(thiz->r));
 
-	if(ret == HTTP_MODULE_PROCESS_FAIL)
+	if(ret == HTTP_MODULE_PROCESS_DONE)
 	{
-		return HTTP_STATUS_BAD_REQUEST;
-	}
-	else if(ret == HTTP_MODULE_PROCESS_DONE)
-	{
-		return HTTP_STATUS_OK;
+		return;
 	}
 	else if(ret == HTTP_MODULE_PROCESS_UPSTREAM)
 	{
+		//TODO will upstream modify the status?
 		ret = upstream_process(thiz->r.upstream);
-		if(ret == HTTP_UPSTREAM_DONE) return HTTP_STATUS_OK;
-		else return HTTP_STATUS_BAD_REQUEST;
+		if(ret == HTTP_UPSTREAM_DONE) thiz->r.response.status = HTTP_STATUS_OK;
+		else 
+		{
+			thiz->r.response.status = HTTP_STATUS_BAD_REQUEST;
+			return;
+		}
 	}
 	else
 	{
 		assert(0);
-		return HTTP_STATUS_INTERNAL_SERVER_ERROR;
+		thiz->r.response.status = HTTP_STATUS_INTERNAL_SERVER_ERROR;
+		return;
 	}
 }
 
@@ -637,7 +648,7 @@ static int connection_finalize_request(connection_t* thiz)
 	return 1;
 }
 
-static int connection_special_response(connection_t* thiz, int status)
+static int connection_special_response(connection_t* thiz)
 {
 	//TODO....
 	//we need an array for the status,
@@ -680,29 +691,29 @@ int connection_run(connection_t* thiz, int fd)
 		//only this thread are permitted to change it.
 		assert(thiz->running); 
 
-		ret = connection_gen_request(thiz);
-		if(ret != HTTP_STATUS_OK)
+		connection_gen_request(thiz);
+		if(thiz->r.response.status != HTTP_STATUS_OK)
 		{
 			goto DONE;
 		}
 		if(thiz->timedout) break;
 		
-		ret = connection_process_request(thiz);
+		connection_process_request(thiz);
 		//TODO should be <= HTTP_STATUS_SPECIAL_RESPONSE
-		if(ret == HTTP_STATUS_OK)
+		if(thiz->r.response.status == HTTP_STATUS_OK)
 		{
-			if(!connection_send_response(thiz)) ret = HTTP_STATUS_CLOSE;
+			if(!connection_send_response(thiz)) thiz->r.response.status = HTTP_STATUS_CLOSE;
 		}
 		if(thiz->timedout) break;
 
 DONE:
-		if(ret == HTTP_STATUS_CLOSE) 
+		if(thiz->r.response.status == HTTP_STATUS_CLOSE) 
 		{
 			break;
 		}
-		else if(ret >= HTTP_STATUS_SPECIAL_RESPONSE)
+		else if(thiz->r.response.status >= HTTP_STATUS_SPECIAL_RESPONSE)
 		{
-			connection_special_response(thiz, ret);
+			connection_special_response(thiz);
 		}
 
 		if(thiz->r.keep_alive && !thiz->timedout)

@@ -9,10 +9,10 @@ char* get_token(char** buf, IS_DELIM_FUNC delim_func, const char* delim);
 int nwrite(int fd, char* buf, size_t len);
 char* read_file(const char* file_name);
 
-const char* http_content_type(const char* extension);
-const char* http_status_line(int status);
+const str_t* http_content_type(const char* extension);
+const str_t* http_status_line(int status);
 int http_header_set(array_t* headers, const str_t* name, const str_t* value);
-int http_header_equal(array_t* headers, const char* name, const char* value);
+int http_header_equal(array_t* headers, const str_t* name, const str_t* value);
 const str_t* http_header_str(array_t* headers, const char* name);
 int http_header_int(array_t* headers, const char* name);
 

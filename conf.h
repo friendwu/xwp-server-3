@@ -1,6 +1,7 @@
 #ifndef CONF_H
 #define CONF_H
 typedef struct pool_s pool_t;
+typedef struct conf_s conf_t;
 typedef enum
 {
 	MODULE_TYPE_HANDLER = 0,
@@ -27,6 +28,7 @@ typedef struct vhost_loc_conf_s
 
 typedef struct vhost_conf_s
 {
+	conf_t* parent;
 	char* name;
 	char* root;
 	//array_t default_pages;
@@ -37,13 +39,14 @@ typedef struct vhost_conf_s
 
 typedef struct module_so_conf_s
 {
+	conf_t* parent;
 	char* name;
 	char* author;
 	char* description;
 	char* version;
 	module_type_e module_type; /*0 handler, 1 filter.*/
 
-	MODULE_CREATE_FUNC module_create;
+	void* module_create;
 }module_so_conf_t;
 
 typedef struct conf_s
@@ -62,6 +65,7 @@ typedef struct conf_s
 
 	char* module_path;
 	array_t module_sos;    //module_so_conf_t*
+
 	array_t vhosts;        //vhost_conf_t*
 }conf_t;
 
