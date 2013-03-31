@@ -11,6 +11,7 @@
 #include "pool.h"
 #include "connection.h"
 #include "utils.h"
+#include "conf.h"
 
 typedef struct server_s
 {

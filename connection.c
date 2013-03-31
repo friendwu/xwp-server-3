@@ -7,9 +7,7 @@
 #include <string.h>
 #include <ctype.h>
 #include <errno.h>
-#include "utils.h"
 #include "connection.h"
-#include "pool.h"
 #include "module.h"
 #include "typedef.h"
 #include "upstream.h"

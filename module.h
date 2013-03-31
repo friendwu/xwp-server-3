@@ -1,13 +1,17 @@
 #ifndef MODULE_H
 #define MODULE_H
 #include "pool.h"
-#include "typedef.h"
+#include "http.h"
+#include "conf.h"
+
 typedef struct module_so_conf_s module_so_conf_t;
 
 #define HTTP_MODULE_PROCESS_DONE 1
 #define HTTP_MODULE_PROCESS_UPSTREAM -1
 
 typedef int (*MODULE_PROCESS_FUNC)(module_t* thiz, http_request_t* request, pool_t* pool);
+
+typedef int (*MODULE_GET_INFO_FUNC)(module_t* thiz, module_so_conf_t* so_conf, pool_t* pool);
 
 typedef struct module_s
 {

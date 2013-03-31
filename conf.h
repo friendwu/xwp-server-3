@@ -1,7 +1,12 @@
 #ifndef CONF_H
 #define CONF_H
-typedef struct pool_s pool_t;
+#include <regex.h>
+#include <sys/types.h>
+#include "pool.h"
+#include "array.h"
+typedef struct vhost_conf_s vhost_conf_t;
 typedef struct conf_s conf_t;
+
 typedef enum
 {
 	MODULE_TYPE_HANDLER = 0,

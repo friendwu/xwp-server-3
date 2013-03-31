@@ -1,8 +1,11 @@
 #ifndef CONNECTION_H
 #define CONNECTION_H
-#include "typedef.h"
+#include <pthread.h>
+#include "utils.h"
+#include "conf.h"
+#include "pool.h"
+#include "http.h"
 
-typedef struct server_s server_t;
 typedef struct connection_s
 {
 	connection_t* next;

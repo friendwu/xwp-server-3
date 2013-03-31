@@ -1,7 +1,6 @@
 #include "conf.h"
-#include "typedef.h"
-#include "pool.h"
 #include <dlfcn.h>
+#include "module.h"
 #define DEFAULT_PORT 80
 #define DEFAULT_MAX_THREADS 50
 #define DEFAULT_CONNECTION_TIMEOUT 30
@@ -234,7 +233,7 @@ conf_t* conf_parse(const char* config_file, pool_t* pool)
 	handler = dlopen(so_file, RTLD_NOW);
 	assert(handler != NULL);
 
-	module_get_info = (MODULE_GET_INFO_FUNC)(handler, "module_get_info");
+	module_get_info = (MODULE_GET_INFO_FUNC)dlsym(handler, "module_get_info");
 	assert(module_get_info != NULL);
 	module_so_conf_t* so = pool_calloc(thiz, pool, sizeof(module_so_conf_t));
 	assert(so != NULL);
@@ -260,7 +259,7 @@ conf_t* conf_parse(const char* config_file, pool_t* pool)
 	regcomp(&loc->pattern_reg, loc->pattern, 0);
 	loc->handler_name = pool_strdup(pool, "default");
 	HANDLER_CREATE_FUNC handler_create = (HANDLER_CREATE_FUNC) so->module_create;
-	loc->handler = handler_create(&loc->handle_params, pool);
+	loc->handler = handler_create(NULL, pool);
 	array_push(&vhost->locs, loc);
 
 	return thiz;
