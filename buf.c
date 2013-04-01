@@ -1,5 +1,6 @@
-#include "pool.h"
+#include "typedef.h"
 #include "buf.h"
+#include "pool.h"
 
 int buf_create(buf_t* thiz, pool_t* pool, int size)
 {

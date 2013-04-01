@@ -8,7 +8,7 @@
 
 typedef struct connection_s
 {
-	connection_t* next;
+	struct connection_s* next;
 
 	pool_t* pool;
 	conf_t* conf;

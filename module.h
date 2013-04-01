@@ -4,14 +4,16 @@
 #include "http.h"
 #include "conf.h"
 
-typedef struct module_so_conf_s module_so_conf_t;
-
 #define HTTP_MODULE_PROCESS_DONE 1
 #define HTTP_MODULE_PROCESS_UPSTREAM -1
+typedef struct module_so_conf_s module_so_conf_t;
+typedef struct vhost_loc_conf_s vhost_loc_conf_t;
+typedef struct module_s module_t;
 
-typedef int (*MODULE_PROCESS_FUNC)(module_t* thiz, http_request_t* request, pool_t* pool);
-
-typedef int (*MODULE_GET_INFO_FUNC)(module_t* thiz, module_so_conf_t* so_conf, pool_t* pool);
+typedef int (*MODULE_PROCESS_FUNC)(module_t* thiz, http_request_t* request);
+typedef int (*MODULE_GET_INFO_FUNC)(module_so_conf_t* so_conf, pool_t* pool);
+//must hook the destroy handler on the pool cleanup. 
+typedef module_t* (*HANDLER_CREATE_FUNC)(vhost_loc_conf_t* parent, array_t* params, pool_t* pool);
 
 typedef struct module_s
 {
@@ -22,9 +24,6 @@ typedef struct module_s
 	char priv[0];
 }module_t;
 
-//must hook the destroy handler on the pool cleanup. 
-typedef module_t* (*HANDLER_CREATE_FUNC)(vhost_loc_conf_t* parent, array_t* params, pool_t* pool);
-
 static inline int module_process(module_t* thiz, http_request_t* request)
 {
 	assert(thiz!=NULL && request!=NULL);
@@ -32,7 +31,7 @@ static inline int module_process(module_t* thiz, http_request_t* request)
 	if(thiz->process != NULL)
 		return thiz->process(thiz, request);
 	
-	return HTTP_MODULE_PROCESS_FAIL;
+	return HTTP_MODULE_PROCESS_DONE;
 }
 
 #endif

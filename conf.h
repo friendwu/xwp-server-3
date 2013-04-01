@@ -4,6 +4,7 @@
 #include <sys/types.h>
 #include "pool.h"
 #include "array.h"
+typedef struct module_s module_t;
 typedef struct vhost_conf_s vhost_conf_t;
 typedef struct conf_s conf_t;
 
@@ -39,6 +40,7 @@ typedef struct vhost_conf_s
 	//array_t default_pages;
 
 	array_t locs; //vhost_loc_conf_t*
+	//TODO
 	vhost_loc_conf_t* default_loc;
 }vhost_conf_t;
 
@@ -70,7 +72,6 @@ typedef struct conf_s
 
 	char* module_path;
 	array_t module_sos;    //module_so_conf_t*
-
 	array_t vhosts;        //vhost_conf_t*
 }conf_t;
 

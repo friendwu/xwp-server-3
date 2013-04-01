@@ -2,6 +2,9 @@
 #define HTTP_H
 #include "typedef.h"
 #include "array.h"
+#include "buf.h"
+typedef struct upstream_s upstream_t;
+
 typedef struct http_header_s 
 {
 	str_t name;
@@ -14,7 +17,7 @@ typedef struct url_s
 	str_t host;
 	int port;
 	str_t path;
-	st_t query_string;
+	str_t query_string;
 	//str_t fragment_id;
 }url_t;
 
@@ -25,22 +28,11 @@ typedef enum
 	HTTP_METHOD_HEAD,
 }http_method_e;
 
-typedef struct http_request_s
+typedef enum
 {
-	pool_t* pool;
-	http_method_e method;
-	url_t url;
-	http_version_e version;
-	array_t headers; //http_header_t* 
-	buf_t header_buf;
-	buf_t body_buf;
-	int keep_alive;
-	str_t usragent;
-	int content_length;
-	upstream_t* upstream;
-
-	http_response_t response;
-}http_request_t;
+	HTTP_VERSION_10 = 0,
+	HTTP_VERSION_11,
+}http_version_e;
 
 typedef struct http_response_s
 {
@@ -50,6 +42,24 @@ typedef struct http_response_s
 	char* content_body;
 	int content_fd;
 }http_response_t;
+
+typedef struct http_request_s
+{
+	pool_t* pool;
+	http_method_e method;
+	url_t url;
+	str_t version_str;
+	http_version_e version;
+	array_t headers; //http_header_t* 
+	buf_t header_buf;
+	buf_t body_buf;
+	int keep_alive;
+	str_t usragent;
+	int content_len;
+	upstream_t* upstream;
+
+	http_response_t response;
+}http_request_t;
 
 #define HTTP_STATUS_OK                        200
 #define HTTP_STATUS_CREATED                   201
@@ -120,6 +130,7 @@ extern const str_t* HTTP_HEADER_CONTENT_TYPE;
 extern const str_t* HTTP_HEADER_CONTENT_LEN;
 extern const str_t* HTTP_HEADER_KEEPALIVE;
 
+//TODO char* to str_t* 
 const str_t* http_content_type(const char* extension);
 const str_t* http_status_line(int status);
 int http_header_set(array_t* headers, const str_t* name, const str_t* value);

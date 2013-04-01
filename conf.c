@@ -1,5 +1,7 @@
-#include "conf.h"
 #include <dlfcn.h>
+#include <assert.h>
+#include "typedef.h"
+#include "conf.h"
 #include "module.h"
 #define DEFAULT_PORT 80
 #define DEFAULT_MAX_THREADS 50
@@ -222,11 +224,10 @@ conf_t* conf_parse(const char* config_file, pool_t* pool)
 
 	array_init(&thiz->module_sos, pool, 10);
 	array_init(&thiz->vhosts, pool, 10);
-	//if(!array_init(&thiz->default_pages, pool, 10)) exit(-1);
 
 	//loadmodule
 	void* handler = NULL;
-	MODULE_GET_INFO module_get_info = NULL;
+	MODULE_GET_INFO_FUNC module_get_info = NULL;
 	thiz->module_path = pool_strdup(pool, "./modules");
 	char* so_file = "./modules/module_default.so";
 
@@ -235,7 +236,7 @@ conf_t* conf_parse(const char* config_file, pool_t* pool)
 
 	module_get_info = (MODULE_GET_INFO_FUNC)dlsym(handler, "module_get_info");
 	assert(module_get_info != NULL);
-	module_so_conf_t* so = pool_calloc(thiz, pool, sizeof(module_so_conf_t));
+	module_so_conf_t* so = pool_calloc(pool, sizeof(module_so_conf_t));
 	assert(so != NULL);
 	so->parent = thiz;
 
@@ -256,10 +257,10 @@ conf_t* conf_parse(const char* config_file, pool_t* pool)
 	loc->root = pool_strdup(pool, "./static");
 	loc->pattern_str = pool_strdup(pool, "/.*");
 	//TODO regfree in destroy hook.
-	regcomp(&loc->pattern_reg, loc->pattern, 0);
+	regcomp(&loc->pattern_regex, loc->pattern_str, 0);
 	loc->handler_name = pool_strdup(pool, "default");
 	HANDLER_CREATE_FUNC handler_create = (HANDLER_CREATE_FUNC) so->module_create;
-	loc->handler = handler_create(NULL, pool);
+	loc->handler = handler_create(loc, NULL, pool);
 	array_push(&vhost->locs, loc);
 
 	return thiz;

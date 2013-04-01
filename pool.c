@@ -1,5 +1,19 @@
-#include <stdlib.h>
+#include <string.h>
+#include "pool.h"
 #include "typedef.h"
+
+typedef struct pool_node_s
+{
+	struct pool_node_s* next;
+}pool_node_t;
+
+typedef struct pool_cleanup_node_s
+{
+	void* ctx;
+	POOL_CLEANUP_FUNC cleanup;
+	struct pool_cleanup_node_s* next;
+}pool_cleanup_node_t;
+
 typedef struct pool_s
 {
 	pool_node_t* head;	
@@ -7,21 +21,10 @@ typedef struct pool_s
 	pool_cleanup_node_t* cleanup_head;
 }pool_t;
 
-typdef struct pool_node_s
-{
-	struct pool_node_s* next;
-}pool_node_t;
-
-typdef struct pool_cleanup_node_s
-{
-	void* ctx;
-	POOL_CLEANUP_FUNC cleanup;
-	struct pool_node_s* next;
-}pool_cleanup_node_t;
 
 pool_t* pool_create(int size)
 {
-	pool_t* thiz = calloc(1, sizeof(pool_t));	
+	pool_t* thiz = calloc(1, sizeof(pool_t));
 
 	return thiz;
 }
@@ -29,7 +32,7 @@ pool_t* pool_create(int size)
 void* pool_alloc(pool_t* thiz, int size)
 {
 	return_val_if_fail(thiz!=NULL && size > 0, NULL);
-	char* p = malloc(size + sizeof(pool_node_t));	
+	char* p = malloc(size + sizeof(pool_node_t));
 
 	if(p)
 	{
@@ -56,7 +59,7 @@ void* pool_calloc(pool_t* thiz, int size)
 
 int pool_add_cleanup(pool_t* thiz, POOL_CLEANUP_FUNC cleanup, void* ctx)
 {
-	return_val_if_fail(thiz!=NULL && cleanup!=NULL, NULL);
+	return_val_if_fail(thiz!=NULL && cleanup!=NULL, 0);
 	pool_cleanup_node_t* p = malloc(sizeof(pool_cleanup_node_t));	
 
 	if(p)

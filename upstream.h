@@ -8,6 +8,7 @@ typedef struct upstream_s
 	char priv[1];
 }upstream_t;
 
-int upstream_process(upstream_t* thiz);
+static inline int upstream_process(upstream_t* thiz){return 1;}
+static inline int upstream_destroy(upstream_t* thiz){return 1;}
 
 #endif

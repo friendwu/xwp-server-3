@@ -7,6 +7,7 @@
 #include <string.h>
 #include <ctype.h>
 #include <errno.h>
+#include "utils.h"
 
 #define IS_DELIM(delim_func, s, c) ((delim_func!=NULL && delim_func(c)) || (s!=NULL && strchr(s, c)!=NULL))
 
@@ -43,7 +44,7 @@ int open_listen_fd(char* ip, int port)
 
 int get_token(str_t* str, char** buf, IS_DELIM_FUNC delim_func, const char* delim)
 {
-	if(buf==NULL || *buf ==NULL) return NULL;
+	if(buf==NULL || *buf==NULL) return 0;
 
 	char* p = *buf;
 	char* p_start;

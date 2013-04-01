@@ -1,4 +1,5 @@
 #include <pthread.h>
+#include <signal.h>
 #include <time.h>
 #include <strings.h>
 #include <string.h>
@@ -6,8 +7,8 @@
 #include <sys/types.h>
 #include <arpa/inet.h>
 #include <unistd.h>
-#include "utils.h"
 #include "server.h"
+#include "utils.h"
 #include "pool.h"
 #include "connection.h"
 #include "utils.h"
@@ -21,8 +22,8 @@ typedef struct server_s
 	size_t connection_nr;
 	connection_t* free_connections;
 	pthread_mutex_t mutex;
-	pthread_t* listen_tid;
-	pthread_t guard_tids;
+	pthread_t* listen_tids;
+	pthread_t guard_tid;
 	int listen_fd;
 	int running;
 }server_t;
@@ -33,8 +34,7 @@ static void* server_listen_proc(void* ctx)
 	int fd;
 	struct sockaddr_in peer_addr;
 	socklen_t sock_len = (socklen_t) sizeof(struct sockaddr_in);
-	int empty = 1;
-	connection* c = NULL;
+	connection_t* c = NULL;
 
 	while(thiz->running)
 	{
@@ -57,6 +57,8 @@ static void* server_listen_proc(void* ctx)
 		thiz->free_connections = c;
 		pthread_mutex_unlock(&thiz->mutex);
 	}
+
+	return (void* )NULL;
 }
 
 static void* server_guard_proc(void* ctx)
@@ -66,7 +68,7 @@ static void* server_guard_proc(void* ctx)
 	while(thiz->running)
 	{
 		int i = 0;
-		for(i; i<thiz->connection_nr; i++)
+		for(; i<thiz->connection_nr; i++)
 		{
 			if(thiz->connections[i]->running == 0) continue;
 			connection_check_timeout(thiz->connections[i]);
@@ -74,6 +76,8 @@ static void* server_guard_proc(void* ctx)
 
 		sleep(1);
 	}
+
+	return (void* )NULL;
 }
 
 server_t* server_create(const char* config_file)
@@ -130,7 +134,7 @@ server_t* server_create(const char* config_file)
 	thiz->running = 1;
 	thiz->listen_tids = pool_alloc(pool, conf->max_threads);
 	int k = 0;
-	for(k; k<conf->max_threads; k++)
+	for(; k<conf->max_threads; k++)
 	{
 		pthread_create(&thiz->listen_tids[k], &attr, server_listen_proc, thiz);
 	}
@@ -147,12 +151,12 @@ int server_destroy(server_t* thiz)
 	if(thiz->listen_fd >= 0) close(thiz->listen_fd);
 
 	thiz->running = 0;
-	//TODO hook this in connection_create.
+	/*//TODO hook this in connection_create.
 	int k = 0;
 	for(k; k<thiz->connection_nr; k++)
 	{
 		connection_close(thiz->connections[k]);
-	}
+	}*/
 
 	pthread_join(thiz->guard_tid, NULL);
 	int i = 0;
@@ -163,7 +167,7 @@ int server_destroy(server_t* thiz)
 
 	pthread_mutex_destroy(&thiz->mutex);
 
-	pool_destroy(thiz->pool);	
+	pool_destroy(thiz->pool);
 
 	return 1;
 }

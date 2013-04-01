@@ -1,6 +1,6 @@
 #ifndef ARRAY_H
 #define ARRAY_H
-typedef struct pool_s pool_t 
+#include "pool.h"
 
 typedef struct array_s
 {
@@ -10,7 +10,7 @@ typedef struct array_s
 	int nalloc;
 }array_t;
 
-int array_init(array_t* array, pool_t* pool, int count);
-void array_push(array_t* array, void* data);
+int array_init(array_t* array, pool_t* pool, int nalloc);
+int array_push(array_t* array, void* data);
 
 #endif 

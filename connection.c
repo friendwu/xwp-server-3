@@ -3,6 +3,7 @@
 #include <ctype.h>
 #include <sys/sendfile.h>
 #include <sys/types.h>
+#include <sys/socket.h>
 #include <sys/stat.h>
 #include <string.h>
 #include <ctype.h>
@@ -10,10 +11,12 @@
 #include "connection.h"
 #include "module.h"
 #include "typedef.h"
+#include "buf.h"
+#include "array.h"
 #include "upstream.h"
 
 #define eol(c) ((c) == '\n')
-#define is_character(c) ((c)|0x20 >='a' && (c)|0x20 <= 'z')
+#define is_character(c) (((c)|0x20) >='a' && ((c)|0x20) <= 'z')
 #define HTTP_PARSE_DONE 1
 #define HTTP_PARSE_FAIL 0
 #define HTTP_PARSE_AGAIN -1
@@ -24,7 +27,7 @@ static char* find_next_eol(char* line)
 	
 	while(!eol(*p) && *p!='\0') p++;
 
-	if(*p == '\0' || p-line >= max)
+	if(*p == '\0')
 		return NULL;
 	else 
 		return p;
@@ -58,7 +61,7 @@ static int connection_parse_url(connection_t* thiz, str_t* url)
 
 	char* p = url->data;
 	char* url_end = url->data + url->len;
-	for(p; p<url_end && *p!='\0'; p++)
+	for(; p<url_end && *p!='\0'; p++)
 	{
 		switch(state)
 		{
@@ -231,8 +234,8 @@ static int connection_parse_url(connection_t* thiz, str_t* url)
 	}
 	if(query_start && query_end)
 	{
-		thiz->r.url.query.data = query_start;
-		thiz->r.url.query.len = query_end - query_start;
+		thiz->r.url.query_string.data = query_start;
+		thiz->r.url.query_string.len = query_end - query_start;
 		*query_end = '\0';
 	}
 
@@ -244,13 +247,13 @@ static int connection_parse_request_line(connection_t* thiz)
 	str_t method = {0};
 	str_t url = {0};
 	str_t version = {0};
-	char* pos = thiz->header_buf.pos;
-	char* last = thiz->header_buf.last;
+	char* pos = thiz->r.header_buf.pos;
+	char* last = thiz->r.header_buf.last;
 	char* eol = NULL;
 
 	//skip empty line first.
 	while(isspace(*pos) && pos<last && *pos!='\0') pos++;
-	thiz->header_buf.pos = pos;
+	thiz->r.header_buf.pos = pos;
 
 	eol = find_next_eol(pos);
 	if(eol == NULL)
@@ -261,12 +264,12 @@ static int connection_parse_request_line(connection_t* thiz)
 	get_token(&method, &pos, isspace, NULL);
 	get_token(&url, &pos, isspace, NULL);
 	get_token(&version, &pos, isspace, NULL);
-	thiz->header_buf.pos = eol + 1;
+	thiz->r.header_buf.pos = eol + 1;
 
-	if(method.data==NULL || path.data==NULL || version.data==NULL) return HTTP_PARSE_FAIL;
+	if(method.data==NULL || url.data==NULL || version.data==NULL) return HTTP_PARSE_FAIL;
 
 	thiz->r.version_str = version;
-	version.data = strstr(version, "HTTP/");
+	version.data = strstr(version.data, "HTTP/");
 	if(version.data == NULL) return HTTP_PARSE_FAIL;
 	version.data += 5; //strlen("HTTP/")
 	version.len = 3;
@@ -287,7 +290,6 @@ static int connection_parse_request_line(connection_t* thiz)
 static int connection_parse_header_line(connection_t* thiz)
 {
 	int ret = HTTP_PARSE_AGAIN;
-	char* line = NULL;
 	char* pos = thiz->r.header_buf.pos;
 	char* last = thiz->r.header_buf.last;
 	char* eol = NULL;
@@ -328,7 +330,7 @@ static int connection_parse_header_line(connection_t* thiz)
 		pos = eol + 1;
 	}
 
-	thiz->header_buf.pos = pos;
+	thiz->r.header_buf.pos = pos;
 	if(ret == HTTP_PARSE_DONE)
 	{
 		//TODO we should check some crucial headers like host.
@@ -373,11 +375,11 @@ static void connection_gen_request(connection_t* thiz)
 {
 	enum 
 	{
-		HTTP_PARSE_REQUEST_LINE = 0,
-		HTTP_PARSE_HEADER_LINE_LINE,
-		HTTP_PARSE_BODY,
-		HTTP_PARSE_DONE,
-	}parse_state = HTTP_PARSE_REQUEST_LINE;
+		STAT_PARSE_REQUEST_LINE = 0,
+		STAT_PARSE_HEADER_LINE,
+		STAT_PARSE_BODY,
+		STAT_PARSE_DONE,
+	}parse_state = STAT_PARSE_REQUEST_LINE;
 
 	int parse_ret = HTTP_PARSE_AGAIN;
 
@@ -399,7 +401,7 @@ static void connection_gen_request(connection_t* thiz)
 		//the last character of buffer should always be zero.
 		if(buf->last == buf->end-1) 
 		{
-			assert(parse_state <= HTTP_PARSE_HEADER_LINE);
+			assert(parse_state <= STAT_PARSE_HEADER_LINE);
 			if(!connection_alloc_large_header_buf(thiz))
 			{
 				thiz->r.response.status = HTTP_STATUS_INTERNAL_SERVER_ERROR;
@@ -407,7 +409,7 @@ static void connection_gen_request(connection_t* thiz)
 			}
 		}
 
-		count = recv(thiz->fd, buf->last, buf->end-1-buf->last);
+		count = recv(thiz->fd, buf->last, buf->end-1-buf->last, 0);
 		if(count <= 0) 
 		{
 			thiz->r.response.status = HTTP_STATUS_CLOSE;
@@ -417,15 +419,15 @@ static void connection_gen_request(connection_t* thiz)
 
 		switch(parse_state)
 		{
-			case HTTP_PARSE_REQUEST_LINE:
+			case STAT_PARSE_REQUEST_LINE:
 				parse_ret = connection_parse_request_line(thiz);
-				if(parse_ret == HTTP_PARSE_DONE) parse_state = HTTP_PARSE_HEADER_LINE;
+				if(parse_ret == HTTP_PARSE_DONE) parse_state = STAT_PARSE_HEADER_LINE;
 				break;
-			case HTTP_PARSE_HEADER_LINE:
+			case STAT_PARSE_HEADER_LINE:
 				parse_ret = connection_parse_header_line(thiz);
 				if(parse_ret == HTTP_PARSE_DONE) 
 				{
-					parse_state = HTTP_PARSE_BODY;
+					parse_state = STAT_PARSE_BODY;
 
 					if(thiz->r.content_len > thiz->conf->max_content_len)
 					{
@@ -451,13 +453,13 @@ static void connection_gen_request(connection_t* thiz)
 				}
 				
 				break;
-			case HTTP_PARSE_BODY:
+			case STAT_PARSE_BODY:
 				if(buf->last - buf->pos >= thiz->r.content_len)
 				{
-					state = HTTP_PARSE_DONE;
+					parse_state = STAT_PARSE_DONE;
 				}
 				break;
-			case HTTP_PARSE_DONE:
+			case STAT_PARSE_DONE:
 			default:
 				assert(0);
 				break;
@@ -468,7 +470,7 @@ static void connection_gen_request(connection_t* thiz)
 			thiz->r.response.status = HTTP_STATUS_BAD_REQUEST;
 			return;	
 		}
-		if(parse_state==HTTP_PARSE_DONE)
+		if(parse_state == STAT_PARSE_DONE)
 		{
 			thiz->r.response.status = HTTP_STATUS_OK;
 			return;	
@@ -483,16 +485,16 @@ static size_t connection_calculate_response_len(connection_t* thiz)
 	size_t new_line_len = 2;
 	size_t len = 0;
 	assert(thiz->r.version >= HTTP_VERSION_10);
+	const str_t* status_line = http_status_line(thiz->r.response.status);
 	
 	len += sizeof("HTTP/1.x ") - 1;
-	len += sizeof("200") - 1; //all length of status code are 3.
-	len += strlen(http_status_line(thiz->r.response.status));
+	len += status_line->len;
 	len += new_line_len; 
 
 	http_header_t** headers = (http_header_t**) thiz->r.response.headers.elts;
 	int header_count = thiz->r.response.headers.count;
 	int i = 0; 
-	for(i; i<header_count; i++)
+	for(; i<header_count; i++)
 	{
 		len += headers[i]->name.len;
 		len += headers[i]->value.len;
@@ -516,15 +518,15 @@ static int connection_send_response(connection_t* thiz)
 	//TODO add some crucial headers such as: connection, date, server...
 	int response_len = connection_calculate_response_len(thiz);
 	char* buf = pool_alloc(thiz->r.pool, response_len);
+	const str_t* status_line = http_status_line(response->status);
 
-	count = snprintf(buf, "%s %d %s\r\n", thiz->r.version_str, 
-										  response->status, 
-										  http_status_line(response->status));
+	count = snprintf(buf, response_len, "%s %s\r\n", thiz->r.version_str.data, 
+										  status_line->data);
 	if(count <= 0) return 0;
 	num += count;
 
 	int i = 0;
-	for(i; i<header_count; i++)
+	for(; i<header_count; i++)
 	{
 		count = snprintf(buf+num, response_len-num, "%s: %s\r\n", 
 								  headers[i]->name.data, headers[i]->value.data);
@@ -582,10 +584,10 @@ static void connection_process_request(connection_t* thiz)
 	}
 		
 	vhost_loc_conf_t** locs = (vhost_loc_conf_t** ) vhosts[i]->locs.elts;
-	size_t loc_nr = vhost[i]->locs.count;
+	size_t loc_nr = vhosts[i]->locs.count;
 
 	int k = 0;
-	for(k; k<loc_nr; k++)
+	for(; k<loc_nr; k++)
 	{
 		if(regexec(&(locs[k]->pattern_regex), thiz->r.url.path.data, 0, NULL, 0) == 0)
 			break;
@@ -640,13 +642,13 @@ static int connection_finalize_request(connection_t* thiz)
 	bzero(&(thiz->r), sizeof(http_request_t));
 	thiz->r.pool = pool;
 
-	thiz->start_time = time();
+	thiz->start_time = time(NULL);
 	//TODO set new timer value.
 
 	return 1;
 }
 
-static int connection_special_response(connection_t* thiz)
+static void connection_special_response(connection_t* thiz)
 {
 	//TODO....
 	//we need an array for the status,
@@ -654,6 +656,47 @@ static int connection_special_response(connection_t* thiz)
 	//set it as the content body.
 	//maybe we will change some connection attributes here, 
 	//such as keepalive.
+	return;
+}
+
+static int connection_reusable(connection_t* thiz, int reuseable)
+{
+	assert(thiz!=NULL);	
+
+	pthread_mutex_lock(&thiz->mutex);
+	thiz->timedout = 0;
+	if(thiz->fd >= 0)
+	{
+		close(thiz->fd);
+		while(thiz->running) sleep(1);
+		thiz->fd = -1;
+	}
+
+	thiz->start_time = 0;
+	if(thiz->r.upstream != NULL) 
+	{
+		upstream_destroy(thiz->r.upstream);
+		while(thiz->running) sleep(1);
+		thiz->r.upstream = NULL;
+	}
+
+	pool_destroy(thiz->r.pool);
+	bzero(&(thiz->r), sizeof(http_request_t));
+
+	pthread_mutex_unlock(&thiz->mutex);
+	
+	if(!reuseable)
+		pthread_mutex_destroy(&thiz->mutex);
+
+	return 1;
+}
+
+
+static void connection_close(void* ctx)
+{
+	connection_t* thiz = (connection_t* ) ctx;
+
+	connection_reusable(thiz, 0);
 }
 
 connection_t* connection_create(pool_t* pool, conf_t* conf)
@@ -661,6 +704,7 @@ connection_t* connection_create(pool_t* pool, conf_t* conf)
 	assert(pool!=NULL && conf!=NULL);
 	connection_t* thiz = pool_calloc(pool, sizeof(connection_t));
 	if(thiz == NULL) return NULL;
+
 	pool_add_cleanup(pool, connection_close, thiz);
 	
 	pthread_mutex_init(&thiz->mutex, NULL);
@@ -680,7 +724,7 @@ int connection_run(connection_t* thiz, int fd)
 	assert(thiz->r.pool == NULL && thiz->fd == -1);
 	thiz->r.pool = pool_create(thiz->conf->request_pool_size);
 	if(thiz->r.pool == NULL) return 0;
-	thiz->start_time = time();
+	thiz->start_time = time(NULL);
 	thiz->fd = fd;
 	
 	thiz->running = 1;
@@ -736,7 +780,7 @@ int connection_check_timeout(connection_t* thiz)
 	assert(thiz != NULL);
 	if(thiz->running == 0) return 1;
 
-	time_t now = time();
+	time_t now = time(NULL);
 	if(now-thiz->start_time >= thiz->conf->connection_timeout)
 	{
 		pthread_mutex_lock(&thiz->mutex);
@@ -763,42 +807,5 @@ int connection_check_timeout(connection_t* thiz)
 	return 1;
 }
 
-static int connection_reusable(connection_t* thiz, int reuseable)
-{
-	assert(thiz!=NULL);	
 
-	pthread_mutex_lock(&thiz->mutex);
-	thiz->timedout = 0;
-	if(thiz->fd >= 0)
-	{
-		close(thiz->fd);
-		while(thiz->running) sleep(1);
-		thiz->fd = -1;
-	}
-
-	thiz->start_time = 0;
-	if(thiz->r.upstream != NULL) 
-	{
-		upstream_destroy(thiz->r.upstream);
-		while(thiz->running) sleep(1);
-		thiz->r.upstream = NULL;
-	}
-
-	pool_destroy(&thiz->r.pool);
-	bzero(&(thiz->r), sizeof(http_request_t));
-
-	pthread_mutex_unlock(&thiz->mutex);
-	
-	if(!reuseable)
-		pthread_mutex_destroy(&thiz->mutex);
-
-	return 1;
-}
-
-void connection_close(void* ctx)
-{
-	connection_t* thiz = (connection_t* ) ctx;
-
-	connection_reusable(thiz, 0);
-}
 

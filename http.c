@@ -1,9 +1,7 @@
 #include "http.h"
-#include <stdlib.h>
 #include <string.h>
-#include <assert.h>
 
-const str_t http_header_names[] = 
+static const str_t http_header_names[] = 
 {
 	server_string("Connection"),
 	server_string("Date"),
@@ -12,7 +10,7 @@ const str_t http_header_names[] =
 	server_string("Content-Type"),
 	server_string("Content-Len"),
 	server_string("Keep-alive"),
-}
+};
 
 const str_t* HTTP_HEADER_CONNECTION = &http_header_names[0];
 const str_t* HTTP_HEADER_DATE = &http_header_names[1];
@@ -69,7 +67,7 @@ static http_status_t http_status_infos[] = {
 	{411, server_string("411 Length Required")},
 	{412, server_string("412 Precondition Failed")},
 	{413, server_string("413 Request Entity Too Large")},
-	//ngx_null_string,  /* "414 Request-URI Too Large", but we never send it
+	/*ngx_null_string,   "414 Request-URI Too Large", but we never send it
 					   * because we treat such requests as the HTTP/0.9
 					   * requests and send only a body without a header
 					   */
@@ -107,7 +105,7 @@ static http_status_t http_status_infos[] = {
 const str_t* http_status_line(int status)
 {
 	int low = 0;
-	int high = sizeof(http_status_infos) / sizeof(HttpStatusInfo);
+	int high = sizeof(http_status_infos) / sizeof(http_status_t);
 	int mid = (low + high) / 2;
 
 	while(low <= high)
@@ -128,7 +126,7 @@ const str_t* http_status_line(int status)
 	return NULL;
 }
 
-const str_t HCT = server_string("text/html");
+static const str_t HCT = server_string("text/html");
 const str_t* http_content_type(const char* extension)
 {
 	return &HCT;
@@ -181,20 +179,20 @@ int http_header_set(array_t* headers, const str_t* name, const str_t* value)
 {
 	assert(headers!=NULL && name!=NULL && value!=NULL);
 	
-	http_header_t* h = (http_header_t* )headers->elts;
+	http_header_t** harray = (http_header_t** )headers->elts;
 	int i = 0;
 	for(; i<headers->count; i++)
 	{
-		if(strncmp(name.data, h[i].name.data, name.len) == 0)
+		if(strncmp(name->data, harray[i]->name.data, name->len) == 0)
 		{
-			h[i].value = *value;
+			harray[i]->value = *value;
 			return 1;
 		}
 	}
-	http_header_t* h = pool_alloc(headers->pool, sizeof(http_header_t));
+	http_header_t* h = pool_alloc(headers->pool, (int)sizeof(http_header_t));
 
-	h[i].name = *name;
-	h[i].value = *value;
+	harray[i]->name = *name;
+	harray[i]->value = *value;
 
 	array_push(headers, h);
 
@@ -205,11 +203,12 @@ const str_t* http_header_str(array_t* headers, const str_t* name)
 {
 	assert(headers!=NULL && name!=NULL);
 
+	http_header_t** harray = (http_header_t** )headers->elts;
 	int i = 0;
 	for(; i<headers->count; i++)
 	{
-		if(strncasecmp(name.data, h[i].name.data, name.len) == 0)
-			return &h[i].value;
+		if(strncasecmp(name->data, harray[i]->name.data, name->len) == 0)
+			return &harray[i]->value;
 	}
 
 	return NULL;
@@ -219,14 +218,14 @@ int http_header_int(array_t* headers, const str_t* name)
 {
 	const str_t* value = http_header_str(headers, name);
 
-	return atoi(value.data);
+	return atoi(value->data);
 }
 
 int http_header_equal(array_t* headers, const str_t* name, const str_t* value)
 {
-	const str_t* header_value = http_header_str(h, name);
+	const str_t* header_value = http_header_str(headers, name);
 
-	if(header_value != NULL && strncasecmp(header_value.data, value, header_value.len) == 0) 
+	if(header_value != NULL && strncasecmp(header_value->data, value->data, header_value->len) == 0) 
 		return 1;
 	else 
 		return 0;
