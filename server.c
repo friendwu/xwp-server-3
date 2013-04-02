@@ -104,7 +104,7 @@ server_t* server_create(const char* config_file)
 
 	thiz->connections = (connection_t** )pool_calloc(pool, conf->max_threads * sizeof(connection_t*));
 	int i = 0;
-	for(i=0; i<conf->max_threads-1; i++)
+	for(; i<conf->max_threads; i++)
 	{
 		thiz->connections[i] = connection_create(pool, conf);
 		if(thiz->connections[i] == NULL) 
@@ -112,11 +112,13 @@ server_t* server_create(const char* config_file)
 			pool_destroy(pool);
 			return NULL;
 		}
-		thiz->connections[i]->next = thiz->connections[i + 1];
+		if(i < conf->max_threads - 1)
+		{
+			thiz->connections[i]->next = thiz->connections[i + 1];
+		}
 	}
-
-	thiz->connections[conf->max_threads-1]->next = NULL;
 	thiz->connection_nr = conf->max_threads;
+	thiz->free_connections = thiz->connections[0];
 
 	thiz->listen_fd = open_listen_fd(conf->ip, conf->port);
 	if(thiz->listen_fd < 0) 
@@ -125,7 +127,6 @@ server_t* server_create(const char* config_file)
 		pool_destroy(pool);
 		return NULL;
 	}
-
 	pthread_mutex_init(&thiz->mutex, NULL);
 	pthread_attr_t attr;
 	pthread_attr_init(&attr);
@@ -133,14 +134,17 @@ server_t* server_create(const char* config_file)
 	pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
 	thiz->running = 1;
 	thiz->listen_tids = pool_alloc(pool, conf->max_threads);
+
 	int k = 0;
 	for(; k<conf->max_threads; k++)
 	{
 		pthread_create(&thiz->listen_tids[k], &attr, server_listen_proc, thiz);
 	}
-	pthread_create(&thiz->guard_tid, &attr, server_guard_proc, thiz);
-	
+
+	//TODO temp diable it.
+	//pthread_create(&thiz->guard_tid, &attr, server_guard_proc, thiz);
 	pthread_attr_destroy(&attr);
+	printf("listen on port %d\n", conf->port);
 
 	return thiz;
 }
@@ -151,12 +155,6 @@ int server_destroy(server_t* thiz)
 	if(thiz->listen_fd >= 0) close(thiz->listen_fd);
 
 	thiz->running = 0;
-	/*//TODO hook this in connection_create.
-	int k = 0;
-	for(k; k<thiz->connection_nr; k++)
-	{
-		connection_close(thiz->connections[k]);
-	}*/
 
 	pthread_join(thiz->guard_tid, NULL);
 	int i = 0;

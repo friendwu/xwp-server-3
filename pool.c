@@ -1,4 +1,5 @@
 #include <string.h>
+#include <stdlib.h>
 #include "pool.h"
 #include "typedef.h"
 
@@ -32,7 +33,8 @@ pool_t* pool_create(int size)
 void* pool_alloc(pool_t* thiz, int size)
 {
 	return_val_if_fail(thiz!=NULL && size > 0, NULL);
-	char* p = malloc(size + sizeof(pool_node_t));
+
+	char* p = (char* )malloc(size + sizeof(pool_node_t));
 
 	if(p)
 	{
@@ -121,6 +123,19 @@ char* pool_strdup(pool_t* thiz, char* str)
 
 	memcpy(p, str, slen);
 	p[slen] = '\0';
+
+	return p;
+}
+
+char* pool_strndup(pool_t* thiz, char* str, int len)
+{
+	return_val_if_fail(str!=NULL && thiz!=NULL && len>0, NULL);
+
+	char* p = pool_alloc(thiz, len + 1);
+	if(p == NULL) return NULL;
+
+	memcpy(p, str, len);
+	p[len] = '\0';
 
 	return p;
 }

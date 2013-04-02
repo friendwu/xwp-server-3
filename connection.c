@@ -45,6 +45,7 @@ static int connection_parse_url(connection_t* thiz, str_t* url)
 	char* query_end = NULL;
 	char* port_start = NULL;
 	char* port_end = NULL;
+	pool_t* pool = thiz->r.pool;
 
 	enum 
 	{
@@ -209,34 +210,35 @@ static int connection_parse_url(connection_t* thiz, str_t* url)
 		if(state == STAT_DONE) break;
 	}
 	
-	//TODO zero terminated.
-	if(schema_start && schema_end)
+	if(schema_start)
 	{
-		thiz->r.url.schema.data = schema_start;
+		if(!schema_end) return HTTP_PARSE_FAIL;
+		
+		thiz->r.url.schema.data = pool_strndup(pool, schema_start, schema_end-schema_start);
 		thiz->r.url.schema.len = schema_end - schema_start;
-		*schema_end = '\0';
 	}
-	if(host_start && host_end)
+	if(host_start)
 	{
-		thiz->r.url.host.data = host_start;
+		if(!host_end) return HTTP_PARSE_FAIL;
+		thiz->r.url.host.data = pool_strndup(pool, host_start, host_end-host_start);
 		thiz->r.url.host.len = host_end - host_start;
-		*host_end = '\0';
 	}
-	if(port_start && port_end)
+	if(port_start)
 	{
+		if(!port_end) return HTTP_PARSE_FAIL;
 		thiz->r.url.port = strtod(port_start, &port_end);
 	}
-	if(path_start && path_end)
+	if(path_start)
 	{
-		thiz->r.url.path.data = path_start;
+		if(!path_end) path_end = url_end;
+		thiz->r.url.path.data = pool_strndup(pool, path_start, path_end-path_start);
 		thiz->r.url.path.len = path_end - path_start;
-		*path_end = '\0';
 	}
-	if(query_start && query_end)
+	if(query_start)
 	{
-		thiz->r.url.query_string.data = query_start;
+		if(!query_end) query_end = url_end;
+		thiz->r.url.query_string.data = pool_strndup(pool, query_start, query_end-query_start);
 		thiz->r.url.query_string.len = query_end - query_start;
-		*query_end = '\0';
 	}
 
 	return HTTP_PARSE_DONE;
@@ -335,7 +337,9 @@ static int connection_parse_header_line(connection_t* thiz)
 	{
 		//TODO we should check some crucial headers like host.
 		array_t* h = &(thiz->r.headers);
-		if(http_header_str(h, HTTP_HEADER_HOST) == NULL)
+
+		thiz->r.host = http_header_str(h, HTTP_HEADER_HOST);
+		if(thiz->r.host == NULL)
 		{
 			return HTTP_PARSE_FAIL;
 		}
@@ -384,6 +388,7 @@ static void connection_gen_request(connection_t* thiz)
 	int parse_ret = HTTP_PARSE_AGAIN;
 
 	array_init(&(thiz->r.headers), thiz->r.pool, 24);
+	array_init(&(thiz->r.response.headers), thiz->r.pool, 24);
 
 	buf_create(&(thiz->r.header_buf), thiz->r.pool, thiz->conf->client_header_size);
 	if(thiz->r.header_buf.start == NULL) 
@@ -417,6 +422,7 @@ static void connection_gen_request(connection_t* thiz)
 		}
 		buf->last += count;
 
+PARSE:
 		switch(parse_state)
 		{
 			case STAT_PARSE_REQUEST_LINE:
@@ -464,8 +470,13 @@ static void connection_gen_request(connection_t* thiz)
 				assert(0);
 				break;
 		}
-
-		if(parse_ret==HTTP_PARSE_FAIL)
+		
+		if(parse_state!=STAT_PARSE_DONE && 
+			parse_ret==HTTP_PARSE_DONE)
+		{
+			goto PARSE;
+		}
+		else if(parse_ret==HTTP_PARSE_FAIL)
 		{
 			thiz->r.response.status = HTTP_STATUS_BAD_REQUEST;
 			return;	
@@ -568,7 +579,7 @@ static void connection_process_request(connection_t* thiz)
 	size_t i = 0;
 	for(; i<vhost_nr; i++)
 	{
-		if(strncasecmp(thiz->r.url.host.data, 
+		if(strncasecmp(thiz->r.host->data, 
 					   vhosts[i]->name, 
 					   thiz->r.url.host.len) == 0)
 		{
@@ -606,7 +617,7 @@ static void connection_process_request(connection_t* thiz)
 
 	if(ret == HTTP_MODULE_PROCESS_DONE)
 	{
-		return;
+		goto DONE;
 	}
 	else if(ret == HTTP_MODULE_PROCESS_UPSTREAM)
 	{
@@ -616,15 +627,28 @@ static void connection_process_request(connection_t* thiz)
 		else 
 		{
 			thiz->r.response.status = HTTP_STATUS_BAD_REQUEST;
-			return;
+			goto DONE;
 		}
 	}
 	else
 	{
 		assert(0);
 		thiz->r.response.status = HTTP_STATUS_INTERNAL_SERVER_ERROR;
-		return;
+		goto DONE;
 	}
+
+	//output filter.
+DONE:
+	if(thiz->r.response.status == HTTP_STATUS_CLOSE) return;
+	//set content_len, connection, Date, 
+	if(thiz->r.response.content_len > 0)
+	{
+		char clen[64] = {0};
+		int count = snprintf(clen, 64, "%d", thiz->r.response.content_len);
+		str_t clen_str = {clen, count};
+		http_header_set(&thiz->r.response.headers, HTTP_HEADER_CONTENT_LEN, &clen_str);
+	}
+
 }
 
 static int connection_finalize_request(connection_t* thiz)
@@ -756,12 +780,16 @@ DONE:
 		else if(thiz->r.response.status >= HTTP_STATUS_SPECIAL_RESPONSE)
 		{
 			connection_special_response(thiz);
+			//TODO
+			break;
 		}
 
 		if(thiz->r.keep_alive && !thiz->timedout)
 		{
-			connection_finalize_request(thiz);
-			continue;
+			//TODO
+			//connection_finalize_request(thiz);
+			//continue;
+			break;
 		}
 		else
 		{

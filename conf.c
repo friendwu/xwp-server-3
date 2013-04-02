@@ -226,6 +226,7 @@ conf_t* conf_parse(const char* config_file, pool_t* pool)
 	array_init(&thiz->vhosts, pool, 10);
 
 	//loadmodule
+
 	void* handler = NULL;
 	MODULE_GET_INFO_FUNC module_get_info = NULL;
 	thiz->module_path = pool_strdup(pool, "./modules");
@@ -248,7 +249,7 @@ conf_t* conf_parse(const char* config_file, pool_t* pool)
 	vhost->parent = thiz;
 	array_push(&thiz->vhosts, vhost);
 	array_init(&vhost->locs, pool, 10);
-	vhost->name = pool_strdup(pool, "wpeng.me");
+	vhost->name = pool_strdup(pool, "localhost");
 	vhost->root = pool_strdup(pool, ".");
 
 	vhost_loc_conf_t* loc = pool_calloc(pool, sizeof(vhost_loc_conf_t));

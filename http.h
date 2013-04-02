@@ -54,7 +54,8 @@ typedef struct http_request_s
 	buf_t header_buf;
 	buf_t body_buf;
 	int keep_alive;
-	str_t usragent;
+	str_t* usragent;
+	str_t* host;
 	int content_len;
 	upstream_t* upstream;
 

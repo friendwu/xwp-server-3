@@ -1,6 +1,8 @@
 #include <string.h>
+#include <sys/types.h>
+#include <fcntl.h>
 #include <sys/stat.h>
-#include "utils.h"
+#include <errno.h>
 #include "typedef.h"
 #include "module.h"
 
@@ -60,15 +62,21 @@ static int module_default_handle_request(module_t* thiz, http_request_t* request
 	char* extension = strrchr(request->url.path.data, '.');
 	if(extension != NULL) extension += 1;
 	
-	http_header_set(response->headers, HTTP_HEADER_CONENT_TYPE, http_content_type(extension));
+	http_header_set(&response->headers, HTTP_HEADER_CONTENT_TYPE, http_content_type(extension));
 	response->status = HTTP_STATUS_OK;
 	
 	return HTTP_MODULE_PROCESS_DONE;
 }
 
+static void module_default_destroy(void* data)
+{
+	//TODO cleanup 
+	return;
+}
+
 module_t* module_default_create(vhost_loc_conf_t* parent, array_t* params, pool_t* pool)
 {
-	module_t* thiz = pool_calloc(sizeof(module_t) + sizeof(module_default_priv_t));
+	module_t* thiz = pool_calloc(pool, sizeof(module_t) + sizeof(module_default_priv_t));
 	if(thiz == NULL) return NULL;
 
 	thiz->parent = parent;
@@ -78,21 +86,17 @@ module_t* module_default_create(vhost_loc_conf_t* parent, array_t* params, pool_
 	return thiz;
 }
 
-static void module_default_destroy(void* data)
-{
-	//TODO cleanup 
-	return;
-}
+
 
 void module_get_info(module_so_conf_t* so_conf, pool_t* pool)
 {
-	assert(so_conf_t==NULL && pool!=NULL);
+	assert(so_conf!=NULL && pool!=NULL);
 
 	so_conf->name = pool_strdup(pool, "module_default");
 	so_conf->author = pool_strdup(pool, "pengwu<wp.4163196@gmail.com>");
 	so_conf->description = pool_strdup(pool, "default request handler");
 	so_conf->version = pool_strdup(pool, "0.1");
-	so_conf->create_module = module_default_create;
+	so_conf->module_create = module_default_create;
 
 	return;
 }

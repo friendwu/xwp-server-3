@@ -106,10 +106,10 @@ const str_t* http_status_line(int status)
 {
 	int low = 0;
 	int high = sizeof(http_status_infos) / sizeof(http_status_t);
-	int mid = (low + high) / 2;
 
 	while(low <= high)
 	{
+		int mid = (low + high) / 2;
 		if(http_status_infos[mid].status == status) 
 			return &http_status_infos[mid].line;
 		else if(http_status_infos[mid].status < status) 
@@ -189,10 +189,10 @@ int http_header_set(array_t* headers, const str_t* name, const str_t* value)
 			return 1;
 		}
 	}
-	http_header_t* h = pool_alloc(headers->pool, (int)sizeof(http_header_t));
+	http_header_t* h = (http_header_t* )pool_alloc(headers->pool, sizeof(http_header_t));
 
-	harray[i]->name = *name;
-	harray[i]->value = *value;
+	h->name = *name;
+	h->value = *value;
 
 	array_push(headers, h);
 
@@ -217,6 +217,7 @@ const str_t* http_header_str(array_t* headers, const str_t* name)
 int http_header_int(array_t* headers, const str_t* name)
 {
 	const str_t* value = http_header_str(headers, name);
+	if(value == NULL) return -1;
 
 	return atoi(value->data);
 }
