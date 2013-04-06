@@ -26,7 +26,7 @@ static int module_default_handle_request(module_t* thiz, http_request_t* request
 	pool_t* pool = request->pool;
 	vhost_loc_conf_t* loc = (vhost_loc_conf_t* )thiz->parent;
 
-	char* path = pool_calloc(pool, strlen(loc->root) + request->url.path.len + 1);
+	char* path = (char* )pool_calloc(pool, strlen(loc->root) + request->url.path.len + 2);
 
 	sprintf(path, "%s/%s", loc->root, request->url.path.data);
 	

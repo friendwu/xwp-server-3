@@ -63,9 +63,27 @@ pool 生命周期，不需要让caller 显式调用destroy，而是在create的�
 . guard timeout.
 . special response.
 . keep alive.
-. parse_url 中减少内存分配,尤其注意path.
+. parse_url 中减少内存分配,尤其注意path, path 最前面的‘/’可以去掉.
 . http_status_line 是不是要返回一个空str_t 而不是null指针？
 . HTTP_STATUS_OK 改为 <= HTTP_STATUS_FINE
+. 使用master进程管理器，防止进程异常终止而拒绝服务。
 
 
 不确定未来需求的情况下，先按目前最省事的方法来做，接口做好点就可以了。
+
+真的要做单元测试，否则集成起来了很难定位问题。
+用工具发现错误，valgrind clint
+valgrind.
+
+调试还是得借助工具才行啊。
+
+
+bug记录：
+http.c: http_error_page 错用strcat，应该用strcpy, 导致了内存被修改，pool异常。
+index.html content len数据已发出，client端就是不显示。 原来是http header没写对： Content-Len ==> Content-Length
+pool_alloc size 有了，忘记乘上sizeof server.c server_create thiz->listen_tids.
+
+用watch point 定位了一个奇怪的问题（free_connections == NULL）， 看来gdb不只是走常规肉眼跟踪逻辑，要学会用工具而不是肉眼去定位疑难问题。
+
+用valgrind 提前发现了几个内存读写错误（1. 分配alloc时，忘记用sizeof了。2. 分配str时，少分配了一个字符字节）
+

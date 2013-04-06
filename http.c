@@ -9,8 +9,8 @@ static const str_t http_header_names[] =
 	server_string("Server"),
 	server_string("Host"),
 	server_string("Content-Type"),
-	server_string("Content-Len"),
-	server_string("Keep-alive"),
+	server_string("Content-Length"),
+	server_string("Keep-Alive"),
 	server_string("Close"),
 	server_string(XWP_SERVER_VER),
 };
@@ -529,11 +529,11 @@ str_t* http_error_page(int status, pool_t* pool)
 			page = &http_error_pages[mid].page;
 			break;
 		}
-		else if(http_status_infos[mid].status < status) 
+		else if(http_error_pages[mid].status < status) 
 		{
 			low = mid + 1;
 		}
-		else if(http_status_infos[mid].status > status) 
+		else if(http_error_pages[mid].status > status) 
 		{
 			high = mid - 1;
 		}
@@ -546,8 +546,8 @@ str_t* http_error_page(int status, pool_t* pool)
 	ret_page->data = pool_alloc(pool, page->len + sizeof(http_error_full_tail) - 1 + 1);
 	if(ret_page->data == NULL) return NULL;
 
-	strcat(ret_page->data, page->data);
-	strcat(ret_page->data+page->len, http_error_full_tail);
+	strncpy(ret_page->data, page->data, page->len);
+	strncpy(ret_page->data+page->len, http_error_full_tail, sizeof(http_error_full_tail) - 1);
 	ret_page->len = page->len + sizeof(http_error_full_tail) - 1;
 
 	return ret_page;

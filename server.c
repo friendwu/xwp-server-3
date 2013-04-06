@@ -31,7 +31,7 @@ typedef struct server_s
 static void* server_listen_proc(void* ctx)
 {
 	server_t* thiz = (server_t* )ctx;
-	int fd;
+	int fd = 0;
 	struct sockaddr_in peer_addr;
 	socklen_t sock_len = (socklen_t) sizeof(struct sockaddr_in);
 	connection_t* c = NULL;
@@ -39,9 +39,11 @@ static void* server_listen_proc(void* ctx)
 	while(thiz->running)
 	{
 		fd = accept(thiz->listen_fd, (struct sockaddr* )&peer_addr, &sock_len);
+		printf("fd %d %u\n ", fd, pthread_self());
 		if(fd < 0) continue;
 
 		pthread_mutex_lock(&thiz->mutex);
+		assert(thiz->free_connections != NULL);
 		c = thiz->free_connections;
 		thiz->free_connections = c->next;
 		pthread_mutex_unlock(&thiz->mutex);
@@ -102,6 +104,14 @@ server_t* server_create(const char* config_file)
 	}
 	thiz->conf = conf;
 
+	thiz->listen_fd = open_listen_fd(conf->ip, conf->port);
+	if(thiz->listen_fd < 0) 
+	{
+		printf("open listen fd failed.\n");
+		pool_destroy(pool);
+		return NULL;
+	}
+
 	thiz->connections = (connection_t** )pool_calloc(pool, conf->max_threads * sizeof(connection_t*));
 	int i = 0;
 	for(; i<conf->max_threads; i++)
@@ -112,28 +122,22 @@ server_t* server_create(const char* config_file)
 			pool_destroy(pool);
 			return NULL;
 		}
-		if(i < conf->max_threads - 1)
+		if(i > 0)
 		{
-			thiz->connections[i]->next = thiz->connections[i + 1];
+			thiz->connections[i-1]->next = thiz->connections[i];
 		}
 	}
+
 	thiz->connection_nr = conf->max_threads;
 	thiz->free_connections = thiz->connections[0];
 
-	thiz->listen_fd = open_listen_fd(conf->ip, conf->port);
-	if(thiz->listen_fd < 0) 
-	{
-		printf("open listen fd failed.\n");
-		pool_destroy(pool);
-		return NULL;
-	}
 	pthread_mutex_init(&thiz->mutex, NULL);
 	pthread_attr_t attr;
 	pthread_attr_init(&attr);
 	pthread_attr_setstacksize(&attr, 256*1024); 
 	pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
 	thiz->running = 1;
-	thiz->listen_tids = pool_alloc(pool, conf->max_threads);
+	thiz->listen_tids = pool_alloc(pool, conf->max_threads * sizeof(pthread_t* ));
 
 	int k = 0;
 	for(; k<conf->max_threads; k++)

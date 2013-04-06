@@ -43,7 +43,7 @@ void* pool_alloc(pool_t* thiz, int size)
 		thiz->head = n;
 	}
 
-	return p + sizeof(pool_node_t);
+	return (void*)(p + sizeof(pool_node_t));
 }
 
 void* pool_calloc(pool_t* thiz, int size)
@@ -110,6 +110,8 @@ int pool_destroy(pool_t* thiz)
 		n = nn;
 	}
 
+	free(thiz);
+
 	return 1;
 }
 
@@ -139,3 +141,73 @@ char* pool_strndup(pool_t* thiz, char* str, int len)
 
 	return p;
 }
+
+#ifdef POOL_TEST
+int main()
+{
+	int k = 0;
+	for(; k<100; k++)
+	{
+		printf("%d ", k);
+		pool_t* pool = pool_create(1024);
+
+		int i = 0;
+		for(;i<100; i++)
+		{
+			pool_alloc(pool, 1);
+		}
+
+		i = 0;
+		for(;i<100; i++)
+		{
+			pool_alloc(pool, 2);
+		}
+
+		i = 0;
+		for(;i<100; i++)
+		{
+			pool_alloc(pool, 4);
+		}
+
+		i = 0;
+		for(;i<100; i++)
+		{
+			pool_alloc(pool, 16);
+		}
+
+		i = 0;
+		for(;i<100; i++)
+		{
+			pool_alloc(pool, 64);
+		}
+
+		i = 0;
+		for(;i<100; i++)
+		{
+			pool_alloc(pool, 128);
+		}
+
+		i = 0;
+		for(;i<100; i++)
+		{
+			pool_alloc(pool, 512);
+		}
+
+		i = 0;
+		for(;i<100; i++)
+		{
+			pool_alloc(pool, 1024);
+		}
+
+		i = 0;
+		for(;i<100; i++)
+		{
+			pool_alloc(pool, 4096);
+		}
+
+		pool_destroy(pool);
+	}
+	return 0;
+}
+
+#endif

@@ -212,7 +212,7 @@ conf_t* conf_parse(const char* config_file, pool_t* pool)
 	//TODO hook the destroy handler to the pool.
 	conf_t* thiz = pool_calloc(pool, sizeof(conf_t));
 	
-	thiz->max_threads = 1;
+	thiz->max_threads = 50;
 	thiz->request_pool_size = 1024 * 8;
 	thiz->connection_timeout = 30;
 	thiz->client_header_size = 1024 * 2;

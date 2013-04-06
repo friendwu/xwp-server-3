@@ -377,7 +377,7 @@ static int connection_alloc_large_header_buf(connection_t* thiz)
 
 static void connection_gen_request(connection_t* thiz)
 {
-	printf("start %s\n", __func__);
+	printf("start %s thread %u\n", __func__, pthread_self());
 
 	enum 
 	{
@@ -522,7 +522,7 @@ static size_t connection_response_header_len(connection_t* thiz)
 //success return 1 else return 0.
 static int connection_send_response(connection_t* thiz)
 {
-	printf("start %s\n", __func__);
+	printf("start %s thread %u\n", __func__, pthread_self());
 
 	int count = 0;
 	size_t num = 0;
@@ -597,7 +597,7 @@ static int connection_send_response(connection_t* thiz)
 
 static void connection_process_request(connection_t* thiz)
 {
-	printf("start %s\n", __func__);
+	printf("start %s thread %u\n", __func__, pthread_self());
 
 	vhost_conf_t** vhosts = (vhost_conf_t** )thiz->conf->vhosts.elts;
 	size_t vhost_nr = thiz->conf->vhosts.count;
@@ -667,7 +667,7 @@ static void connection_process_request(connection_t* thiz)
 
 static int connection_finalize_request(connection_t* thiz)
 {
-	printf("start %s\n", __func__);
+	printf("start %s thread %u\n", __func__, pthread_self());
 
 	pthread_mutex_lock(&(thiz->mutex));
 
@@ -691,7 +691,7 @@ static int connection_finalize_request(connection_t* thiz)
 
 static void connection_special_response(connection_t* thiz)
 {
-	printf("start %s\n", __func__);
+	printf("start %s thread %u\n", __func__, pthread_self());
 	//TODO maybe need to process by filter.
 	http_response_t* response = &thiz->r.response;
 	str_t* error_page = http_error_page(response->status, thiz->r.pool);
@@ -712,8 +712,9 @@ static void connection_special_response(connection_t* thiz)
 	return;
 }
 
-static int connection_reusable(connection_t* thiz, int reuseable)
+static int connection_reusable(connection_t* thiz, int reusable)
 {
+	printf("start %s thread %u\n", __func__, pthread_self());
 	assert(thiz!=NULL);	
 
 	pthread_mutex_lock(&thiz->mutex);
@@ -733,13 +734,13 @@ static int connection_reusable(connection_t* thiz, int reuseable)
 		thiz->r.upstream = NULL;
 	}
 
-	pool_destroy(thiz->r.pool);
+	if(thiz->r.pool != NULL) pool_destroy(thiz->r.pool);
 	bzero(&(thiz->r), sizeof(http_request_t));
 	thiz->r.response.content_fd = -1;
 
 	pthread_mutex_unlock(&thiz->mutex);
 	
-	if(!reuseable)
+	if(!reusable)
 		pthread_mutex_destroy(&thiz->mutex);
 
 	return 1;
