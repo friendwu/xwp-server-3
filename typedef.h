@@ -19,6 +19,7 @@
 
 #define MAX_ATTR_NR 64
 #define server_string(s) {(char* )s, sizeof(s)-1}
+#define XWP_SERVER_VER "xwp server 0.1"
 
 typedef struct str_s
 {

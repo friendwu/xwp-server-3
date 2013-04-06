@@ -8,16 +8,18 @@ ARRAY_H	array.h	2;"	d
 BUF_H	buf.h	2;"	d
 CONF_H	conf.h	2;"	d
 CONNECTION_H	connection.h	2;"	d
-DEFAULT_CONNECTION_TIMEOUT	conf.c	6;"	d	file:
-DEFAULT_MAX_THREADS	conf.c	5;"	d	file:
-DEFAULT_PORT	conf.c	4;"	d	file:
-DEFAULT_ROOT	conf.c	7;"	d	file:
+CRLF	http.c	3;"	d	file:
+DEFAULT_CONNECTION_TIMEOUT	conf.c	8;"	d	file:
+DEFAULT_MAX_THREADS	conf.c	7;"	d	file:
+DEFAULT_PORT	conf.c	6;"	d	file:
+DEFAULT_ROOT	conf.c	9;"	d	file:
 DESTROY_MEM	typedef.h	7;"	d
 HANDLER_CREATE_FUNC	module.h	/^typedef module_t* (*HANDLER_CREATE_FUNC)(vhost_loc_conf_t* parent, array_t* params, pool_t* pool);$/;"	t
-HCT	http.c	/^const str_t HCT = server_string("text\/html");$/;"	v
-HTTPS_CERT_ERROR	http.h	88;"	d
-HTTPS_NO_CERT	http.h	89;"	d
+HCT	http.c	/^static const str_t HCT = server_string("text\/html");$/;"	v	file:
+HTTPS_CERT_ERROR	http.h	99;"	d
+HTTPS_NO_CERT	http.h	100;"	d
 HTTP_H	http.h	2;"	d
+HTTP_HEADER_CONNECTION	http.c	/^const str_t* HTTP_HEADER_CONNECTION = &http_header_names[0];$/;"	v
 HTTP_HEADER_CONTENT_LEN	http.c	/^const str_t* HTTP_HEADER_CONTENT_LEN = &http_header_names[5];$/;"	v
 HTTP_HEADER_CONTENT_TYPE	http.c	/^const str_t* HTTP_HEADER_CONTENT_TYPE = &http_header_names[4];$/;"	v
 HTTP_HEADER_DATE	http.c	/^const str_t* HTTP_HEADER_DATE = &http_header_names[1];$/;"	v
@@ -27,56 +29,58 @@ HTTP_HEADER_SERVER	http.c	/^const str_t* HTTP_HEADER_SERVER = &http_header_names
 HTTP_METHOD_GET	http.h	/^	HTTP_METHOD_GET = 0,$/;"	e	enum:__anon1
 HTTP_METHOD_HEAD	http.h	/^	HTTP_METHOD_HEAD,$/;"	e	enum:__anon1
 HTTP_METHOD_POST	http.h	/^	HTTP_METHOD_POST,$/;"	e	enum:__anon1
-HTTP_MODULE_PROCESS_DONE	module.h	9;"	d
-HTTP_MODULE_PROCESS_UPSTREAM	module.h	10;"	d
-HTTP_PARSE_AGAIN	connection.c	19;"	d	file:
-HTTP_PARSE_DONE	connection.c	17;"	d	file:
-HTTP_PARSE_FAIL	connection.c	18;"	d	file:
-HTTP_STATUS_ACCEPTED	http.h	56;"	d
-HTTP_STATUS_BAD_GATEWAY	http.h	110;"	d
-HTTP_STATUS_BAD_REQUEST	http.h	67;"	d
-HTTP_STATUS_CLIENT_CLOSED_REQUEST	http.h	105;"	d
-HTTP_STATUS_CLOSE	http.h	82;"	d
-HTTP_STATUS_CONFLICT	http.h	73;"	d
-HTTP_STATUS_CREATED	http.h	55;"	d
-HTTP_STATUS_FORBIDDEN	http.h	69;"	d
-HTTP_STATUS_GATEWAY_TIME_OUT	http.h	112;"	d
-HTTP_STATUS_INSUFFICIENT_STORAGE	http.h	113;"	d
-HTTP_STATUS_INTERNAL_SERVER_ERROR	http.h	108;"	d
-HTTP_STATUS_LENGTH_REQUIRED	http.h	74;"	d
-HTTP_STATUS_MOVED_PERMANENTLY	http.h	61;"	d
-HTTP_STATUS_MOVED_TEMPORARILY	http.h	62;"	d
-HTTP_STATUS_NGINX_CODES	http.h	84;"	d
-HTTP_STATUS_NOT_ALLOWED	http.h	71;"	d
-HTTP_STATUS_NOT_FOUND	http.h	70;"	d
-HTTP_STATUS_NOT_IMPLEMENTED	http.h	109;"	d
-HTTP_STATUS_NOT_MODIFIED	http.h	64;"	d
-HTTP_STATUS_NO_CONTENT	http.h	57;"	d
-HTTP_STATUS_OK	http.h	54;"	d
-HTTP_STATUS_PARTIAL_CONTENT	http.h	58;"	d
-HTTP_STATUS_PRECONDITION_FAILED	http.h	75;"	d
-HTTP_STATUS_RANGE_NOT_SATISFIABLE	http.h	79;"	d
-HTTP_STATUS_REQUEST_ENTITY_TOO_LARGE	http.h	76;"	d
-HTTP_STATUS_REQUEST_HEADER_TOO_LARGE	http.h	86;"	d
-HTTP_STATUS_REQUEST_TIME_OUT	http.h	72;"	d
-HTTP_STATUS_REQUEST_URI_TOO_LARGE	http.h	77;"	d
-HTTP_STATUS_SEE_OTHER	http.h	63;"	d
-HTTP_STATUS_SERVICE_UNAVAILABLE	http.h	111;"	d
-HTTP_STATUS_SPECIAL_RESPONSE	http.h	60;"	d
-HTTP_STATUS_TEMPORARY_REDIRECT	http.h	65;"	d
-HTTP_STATUS_TO_HTTPS	http.h	95;"	d
-HTTP_STATUS_UNAUTHORIZED	http.h	68;"	d
-HTTP_STATUS_UNSUPPORTED_MEDIA_TYPE	http.h	78;"	d
+HTTP_MODULE_PROCESS_DONE	module.h	7;"	d
+HTTP_MODULE_PROCESS_UPSTREAM	module.h	8;"	d
+HTTP_PARSE_AGAIN	connection.c	22;"	d	file:
+HTTP_PARSE_DONE	connection.c	20;"	d	file:
+HTTP_PARSE_FAIL	connection.c	21;"	d	file:
+HTTP_STATUS_ACCEPTED	http.h	67;"	d
+HTTP_STATUS_BAD_GATEWAY	http.h	121;"	d
+HTTP_STATUS_BAD_REQUEST	http.h	78;"	d
+HTTP_STATUS_CLIENT_CLOSED_REQUEST	http.h	116;"	d
+HTTP_STATUS_CLOSE	http.h	93;"	d
+HTTP_STATUS_CONFLICT	http.h	84;"	d
+HTTP_STATUS_CREATED	http.h	66;"	d
+HTTP_STATUS_FORBIDDEN	http.h	80;"	d
+HTTP_STATUS_GATEWAY_TIME_OUT	http.h	123;"	d
+HTTP_STATUS_INSUFFICIENT_STORAGE	http.h	124;"	d
+HTTP_STATUS_INTERNAL_SERVER_ERROR	http.h	119;"	d
+HTTP_STATUS_LENGTH_REQUIRED	http.h	85;"	d
+HTTP_STATUS_MOVED_PERMANENTLY	http.h	72;"	d
+HTTP_STATUS_MOVED_TEMPORARILY	http.h	73;"	d
+HTTP_STATUS_NGINX_CODES	http.h	95;"	d
+HTTP_STATUS_NOT_ALLOWED	http.h	82;"	d
+HTTP_STATUS_NOT_FOUND	http.h	81;"	d
+HTTP_STATUS_NOT_IMPLEMENTED	http.h	120;"	d
+HTTP_STATUS_NOT_MODIFIED	http.h	75;"	d
+HTTP_STATUS_NO_CONTENT	http.h	68;"	d
+HTTP_STATUS_OK	http.h	65;"	d
+HTTP_STATUS_PARTIAL_CONTENT	http.h	69;"	d
+HTTP_STATUS_PRECONDITION_FAILED	http.h	86;"	d
+HTTP_STATUS_RANGE_NOT_SATISFIABLE	http.h	90;"	d
+HTTP_STATUS_REQUEST_ENTITY_TOO_LARGE	http.h	87;"	d
+HTTP_STATUS_REQUEST_HEADER_TOO_LARGE	http.h	97;"	d
+HTTP_STATUS_REQUEST_TIME_OUT	http.h	83;"	d
+HTTP_STATUS_REQUEST_URI_TOO_LARGE	http.h	88;"	d
+HTTP_STATUS_SEE_OTHER	http.h	74;"	d
+HTTP_STATUS_SERVICE_UNAVAILABLE	http.h	122;"	d
+HTTP_STATUS_SPECIAL_RESPONSE	http.h	71;"	d
+HTTP_STATUS_TEMPORARY_REDIRECT	http.h	76;"	d
+HTTP_STATUS_TO_HTTPS	http.h	106;"	d
+HTTP_STATUS_UNAUTHORIZED	http.h	79;"	d
+HTTP_STATUS_UNSUPPORTED_MEDIA_TYPE	http.h	89;"	d
 HTTP_UPSTREAM_DONE	upstream.h	3;"	d
 HTTP_UPSTREAM_FAIL	upstream.h	4;"	d
-IS_DELIM	utils.c	11;"	d	file:
+HTTP_VERSION_10	http.h	/^	HTTP_VERSION_10 = 0,$/;"	e	enum:__anon2
+HTTP_VERSION_11	http.h	/^	HTTP_VERSION_11,$/;"	e	enum:__anon2
+IS_DELIM	utils.c	12;"	d	file:
 IS_DELIM_FUNC	utils.h	/^typedef int (*IS_DELIM_FUNC)(int c);$/;"	t
 MAX_ATTR_NR	typedef.h	20;"	d
-MODULE_GET_INFO_FUNC	module.h	/^typedef int (*MODULE_GET_INFO_FUNC)(module_t* thiz, module_so_conf_t* so_conf, pool_t* pool);$/;"	t
+MODULE_GET_INFO_FUNC	module.h	/^typedef int (*MODULE_GET_INFO_FUNC)(module_so_conf_t* so_conf, pool_t* pool);$/;"	t
 MODULE_H	module.h	2;"	d
-MODULE_PROCESS_FUNC	module.h	/^typedef int (*MODULE_PROCESS_FUNC)(module_t* thiz, http_request_t* request, pool_t* pool);$/;"	t
-MODULE_TYPE_FILTER	conf.h	/^	MODULE_TYPE_FILTER,$/;"	e	enum:__anon3
-MODULE_TYPE_HANDLER	conf.h	/^	MODULE_TYPE_HANDLER = 0,$/;"	e	enum:__anon3
+MODULE_PROCESS_FUNC	module.h	/^typedef int (*MODULE_PROCESS_FUNC)(module_t* thiz, http_request_t* request);$/;"	t
+MODULE_TYPE_FILTER	conf.h	/^	MODULE_TYPE_FILTER,$/;"	e	enum:__anon4
+MODULE_TYPE_HANDLER	conf.h	/^	MODULE_TYPE_HANDLER = 0,$/;"	e	enum:__anon4
 POOL_CLEANUP_FUNC	pool.h	/^typedef void (*POOL_CLEANUP_FUNC)(void* ctx);$/;"	t
 POOL_H	pool.h	2;"	d
 PrivInfo	xml_builder_tree.c	/^}PrivInfo;$/;"	t	typeref:struct:_PrivInfo	file:
@@ -99,6 +103,7 @@ XML_NODE_PI	xml_tree.h	/^	XML_NODE_PI,$/;"	e	enum:_XmlNodeType
 XML_NODE_TEXT	xml_tree.h	/^	XML_NODE_TEXT,$/;"	e	enum:_XmlNodeType
 XML_PARSER_H	xml_parser.h	2;"	d
 XML_TREE_H	xml_tree.h	36;"	d
+XWP_SERVER_VER	typedef.h	22;"	d
 XmlAttr	xml_tree.h	/^}XmlAttr;$/;"	t	typeref:struct:_XmlAttr
 XmlBuilder	xml_builder.h	/^typedef struct _XmlBuilder XmlBuilder;$/;"	t	typeref:struct:_XmlBuilder
 XmlBuilderDestroyFunc	xml_builder.h	/^typedef void (*XmlBuilderDestroyFunc)(XmlBuilder* thiz);$/;"	t
@@ -132,6 +137,7 @@ attrs	xml_parser.c	/^	char* attrs[2*MAX_ATTR_NR+1];$/;"	m	struct:_XmlParser	file
 attrs_nr	xml_parser.c	/^	int   attrs_nr;$/;"	m	struct:_XmlParser	file:
 author	conf.h	/^	char* author;$/;"	m	struct:module_so_conf_s
 body_buf	http.h	/^	buf_t body_buf;$/;"	m	struct:http_request_s
+buf	buf.h	/^	buf_t* buf;$/;"	m	struct:chain_s
 buf_create	buf.c	/^int buf_create(buf_t* thiz, pool_t* pool, int size)$/;"	f
 buf_s	buf.h	/^typedef struct buf_s$/;"	s
 buf_t	buf.h	/^}buf_t;$/;"	t	typeref:struct:buf_s
@@ -139,11 +145,13 @@ buffer	xml_parser.c	/^	char* buffer;$/;"	m	struct:_XmlParser	file:
 buffer_total	xml_parser.c	/^	int buffer_total;$/;"	m	struct:_XmlParser	file:
 buffer_used	xml_parser.c	/^	int buffer_used;$/;"	m	struct:_XmlParser	file:
 builder	xml_parser.c	/^	XmlBuilder* builder;$/;"	m	struct:_XmlParser	file:
+chain_s	buf.h	/^typedef struct chain_s$/;"	s
+chain_t	buf.h	/^}chain_t;$/;"	t	typeref:struct:chain_s
 children	xml_tree.h	/^	struct _XmlNode* children;$/;"	m	struct:_XmlNode	typeref:struct:_XmlNode::_XmlNode
 cleanup	pool.c	/^	POOL_CLEANUP_FUNC cleanup;$/;"	m	struct:pool_cleanup_node_s	file:
 cleanup_head	pool.c	/^	pool_cleanup_node_t* cleanup_head;$/;"	m	struct:pool_s	file:
 client_header_size	conf.h	/^	int client_header_size;$/;"	m	struct:conf_s
-comment	xml_tree.h	/^		char* comment;$/;"	m	union:_XmlNode::__anon2
+comment	xml_tree.h	/^		char* comment;$/;"	m	union:_XmlNode::__anon3
 conf	connection.h	/^	conf_t* conf;$/;"	m	struct:connection_s
 conf	server.c	/^	conf_t* conf;$/;"	m	struct:server_s	file:
 conf_parse	conf.c	/^conf_t* conf_parse(const char* config_file, pool_t* pool)$/;"	f
@@ -151,9 +159,8 @@ conf_s	conf.h	/^typedef struct conf_s$/;"	s
 conf_t	conf.h	/^typedef struct conf_s conf_t;$/;"	t	typeref:struct:conf_s
 conf_t	conf.h	/^}conf_t;$/;"	t	typeref:struct:conf_s
 connection_alloc_large_header_buf	connection.c	/^static int connection_alloc_large_header_buf(connection_t* thiz)$/;"	f	file:
-connection_calculate_response_len	connection.c	/^static size_t connection_calculate_response_len(connection_t* thiz)$/;"	f	file:
 connection_check_timeout	connection.c	/^int connection_check_timeout(connection_t* thiz)$/;"	f
-connection_close	connection.c	/^void connection_close(void* ctx)$/;"	f
+connection_close	connection.c	/^static void connection_close(void* ctx)$/;"	f	file:
 connection_create	connection.c	/^connection_t* connection_create(pool_t* pool, conf_t* conf)$/;"	f
 connection_finalize_request	connection.c	/^static int connection_finalize_request(connection_t* thiz)$/;"	f	file:
 connection_gen_request	connection.c	/^static void connection_gen_request(connection_t* thiz)$/;"	f	file:
@@ -162,18 +169,19 @@ connection_parse_header_line	connection.c	/^static int connection_parse_header_l
 connection_parse_request_line	connection.c	/^static int connection_parse_request_line(connection_t* thiz)$/;"	f	file:
 connection_parse_url	connection.c	/^static int connection_parse_url(connection_t* thiz, str_t* url)$/;"	f	file:
 connection_process_request	connection.c	/^static void connection_process_request(connection_t* thiz)$/;"	f	file:
+connection_response_header_len	connection.c	/^static size_t connection_response_header_len(connection_t* thiz)$/;"	f	file:
 connection_reusable	connection.c	/^static int connection_reusable(connection_t* thiz, int reuseable)$/;"	f	file:
 connection_run	connection.c	/^int connection_run(connection_t* thiz, int fd)$/;"	f
 connection_s	connection.h	/^typedef struct connection_s$/;"	s
 connection_send_response	connection.c	/^static int connection_send_response(connection_t* thiz)$/;"	f	file:
-connection_special_response	connection.c	/^static int connection_special_response(connection_t* thiz)$/;"	f	file:
+connection_special_response	connection.c	/^static void connection_special_response(connection_t* thiz)$/;"	f	file:
 connection_t	connection.h	/^}connection_t;$/;"	t	typeref:struct:connection_s
 connection_timeout	conf.h	/^	int connection_timeout;$/;"	m	struct:conf_s
 connections	server.c	/^	connection_t** connections;$/;"	m	struct:server_s	file:
-content_body	http.h	/^	char* content_body;$/;"	m	struct:http_response_s
+content_body	http.h	/^	chain_t content_body;$/;"	m	struct:http_response_s
 content_fd	http.h	/^	int content_fd;$/;"	m	struct:http_response_s
+content_len	http.h	/^	int content_len;$/;"	m	struct:http_request_s
 content_len	http.h	/^	int content_len;$/;"	m	struct:http_response_s
-content_length	http.h	/^	int content_length;$/;"	m	struct:http_request_s
 count	array.h	/^	int count;$/;"	m	struct:array_s
 ctx	pool.c	/^	void* ctx;$/;"	m	struct:pool_cleanup_node_s	file:
 current	xml_builder_tree.c	/^	XmlNode* current;$/;"	m	struct:_PrivInfo	file:
@@ -184,7 +192,7 @@ destroy	xml_builder.h	/^	XmlBuilderDestroyFunc        destroy;$/;"	m	struct:_Xml
 dump_tree	xml_builder_tree.c	/^void dump_tree(XmlNode* tree)$/;"	f
 elts	array.h	/^	void** elts;$/;"	m	struct:array_s
 end	buf.h	/^	char* end;$/;"	m	struct:buf_s
-eol	connection.c	15;"	d	file:
+eol	connection.c	18;"	d	file:
 fd	connection.h	/^	int fd;$/;"	m	struct:connection_s
 find_next_eol	connection.c	/^static char* find_next_eol(char* line)$/;"	f	file:
 first_attr	xml_tree.h	/^	XmlAttr* first_attr;$/;"	m	struct:_XmlNodeNormal
@@ -192,7 +200,7 @@ first_attr	xml_tree.h	/^	XmlAttr* first_attr;$/;"	m	struct:_XmlNodePi
 free_connections	server.c	/^	connection_t* free_connections;$/;"	m	struct:server_s	file:
 get_token	utils.c	/^int get_token(str_t* str, char** buf, IS_DELIM_FUNC delim_func, const char* delim)$/;"	f
 global_handle_req	trash/globals.c	/^Ret global_handle_req(Server* thiz, HttpReq* req, HttpResp* resp)$/;"	f
-guard_tids	server.c	/^	pthread_t guard_tids;$/;"	m	struct:server_s	file:
+guard_tid	server.c	/^	pthread_t guard_tid;$/;"	m	struct:server_s	file:
 handle_module	trash/vhost.c	/^	Module* handle_module;$/;"	m	struct:_VhostLoc	file:
 handler	conf.h	/^	module_t* handler;$/;"	m	struct:vhost_loc_conf_s
 handler_name	conf.h	/^	char* handler_name;$/;"	m	struct:vhost_loc_conf_s
@@ -202,16 +210,56 @@ header_buf	http.h	/^	buf_t header_buf;$/;"	m	struct:http_request_s
 headers	http.h	/^	array_t headers; \/\/http_header_t* $/;"	m	struct:http_request_s
 headers	http.h	/^	array_t headers; \/\/http_header_t* $/;"	m	struct:http_response_s
 host	http.h	/^	str_t host;$/;"	m	struct:url_s
+host	http.h	/^	str_t* host;$/;"	m	struct:http_request_s
 host_name	trash/vhost.c	/^	char* host_name;$/;"	m	struct:_Vhost	file:
 http_content_type	http.c	/^const str_t* http_content_type(const char* extension)$/;"	f
+http_error_301_page	http.c	/^static char http_error_301_page[] =$/;"	v	file:
+http_error_302_page	http.c	/^static char http_error_302_page[] =$/;"	v	file:
+http_error_303_page	http.c	/^static char http_error_303_page[] =$/;"	v	file:
+http_error_307_page	http.c	/^static char http_error_307_page[] =$/;"	v	file:
+http_error_400_page	http.c	/^static char http_error_400_page[] =$/;"	v	file:
+http_error_401_page	http.c	/^static char http_error_401_page[] =$/;"	v	file:
+http_error_402_page	http.c	/^static char http_error_402_page[] =$/;"	v	file:
+http_error_403_page	http.c	/^static char http_error_403_page[] =$/;"	v	file:
+http_error_404_page	http.c	/^static char http_error_404_page[] =$/;"	v	file:
+http_error_405_page	http.c	/^static char http_error_405_page[] =$/;"	v	file:
+http_error_406_page	http.c	/^static char http_error_406_page[] =$/;"	v	file:
+http_error_408_page	http.c	/^static char http_error_408_page[] =$/;"	v	file:
+http_error_409_page	http.c	/^static char http_error_409_page[] =$/;"	v	file:
+http_error_410_page	http.c	/^static char http_error_410_page[] =$/;"	v	file:
+http_error_411_page	http.c	/^static char http_error_411_page[] =$/;"	v	file:
+http_error_412_page	http.c	/^static char http_error_412_page[] =$/;"	v	file:
+http_error_413_page	http.c	/^static char http_error_413_page[] =$/;"	v	file:
+http_error_414_page	http.c	/^static char http_error_414_page[] =$/;"	v	file:
+http_error_415_page	http.c	/^static char http_error_415_page[] =$/;"	v	file:
+http_error_416_page	http.c	/^static char http_error_416_page[] =$/;"	v	file:
+http_error_494_page	http.c	/^static char http_error_494_page[] =$/;"	v	file:
+http_error_495_page	http.c	/^static char http_error_495_page[] =$/;"	v	file:
+http_error_496_page	http.c	/^static char http_error_496_page[] =$/;"	v	file:
+http_error_497_page	http.c	/^static char http_error_497_page[] =$/;"	v	file:
+http_error_500_page	http.c	/^static char http_error_500_page[] =$/;"	v	file:
+http_error_501_page	http.c	/^static char http_error_501_page[] =$/;"	v	file:
+http_error_502_page	http.c	/^static char http_error_502_page[] =$/;"	v	file:
+http_error_503_page	http.c	/^static char http_error_503_page[] =$/;"	v	file:
+http_error_504_page	http.c	/^static char http_error_504_page[] =$/;"	v	file:
+http_error_507_page	http.c	/^static char http_error_507_page[] =$/;"	v	file:
+http_error_full_tail	http.c	/^static char http_error_full_tail[] =$/;"	v	file:
+http_error_page	http.c	/^const str_t* http_error_page(int status)$/;"	f
+http_error_page_s	http.c	/^typedef struct http_error_page_s$/;"	s	file:
+http_error_page_t	http.c	/^}http_error_page_t;$/;"	t	typeref:struct:http_error_page_s	file:
+http_error_pages	http.c	/^static http_error_page_t http_error_pages[] = {$/;"	v	file:
+http_error_tail	http.c	/^static char http_error_tail[] =$/;"	v	file:
 http_header_equal	http.c	/^int http_header_equal(array_t* headers, const str_t* name, const str_t* value)$/;"	f
 http_header_int	http.c	/^int http_header_int(array_t* headers, const str_t* name)$/;"	f
-http_header_names	http.c	/^const str_t http_header_names[] = $/;"	v
+http_header_names	http.c	/^static const str_t http_header_names[] = $/;"	v	file:
 http_header_s	http.h	/^typedef struct http_header_s $/;"	s
 http_header_set	http.c	/^int http_header_set(array_t* headers, const str_t* name, const str_t* value)$/;"	f
 http_header_str	http.c	/^const str_t* http_header_str(array_t* headers, const str_t* name)$/;"	f
 http_header_t	http.h	/^}http_header_t;$/;"	t	typeref:struct:http_header_s
 http_method_e	http.h	/^}http_method_e;$/;"	t	typeref:enum:__anon1
+http_msie_padding	http.c	/^static char http_msie_padding[] =$/;"	v	file:
+http_msie_refresh_head	http.c	/^static char http_msie_refresh_head[] =$/;"	v	file:
+http_msie_refresh_tail	http.c	/^static char http_msie_refresh_tail[] =$/;"	v	file:
 http_request_s	http.h	/^typedef struct http_request_s$/;"	s
 http_request_t	http.h	/^}http_request_t;$/;"	t	typeref:struct:http_request_s
 http_response_s	http.h	/^typedef struct http_response_s$/;"	s
@@ -220,16 +268,17 @@ http_status_infos	http.c	/^static http_status_t http_status_infos[] = {$/;"	v	fi
 http_status_line	http.c	/^const str_t* http_status_line(int status)$/;"	f
 http_status_s	http.c	/^typedef struct http_status_s $/;"	s	file:
 http_status_t	http.c	/^}http_status_t;$/;"	t	typeref:struct:http_status_s	file:
+http_version_e	http.h	/^}http_version_e;$/;"	t	typeref:enum:__anon2
 init_req_ctx	trash/vhost.c	/^static void init_req_ctx(Vhost* thiz, VhostLoc* loc)$/;"	f	file:
 ip	conf.h	/^	char* ip;$/;"	m	struct:conf_s
-is_character	connection.c	16;"	d	file:
+is_character	connection.c	19;"	d	file:
 keep_alive	http.h	/^	int keep_alive;$/;"	m	struct:http_request_s
 large_client_header_size	conf.h	/^	int large_client_header_size;$/;"	m	struct:conf_s
 last	buf.h	/^	char* last;$/;"	m	struct:buf_s
 len	typedef.h	/^	size_t len;$/;"	m	struct:str_s
 line	http.c	/^	str_t line;$/;"	m	struct:http_status_s	file:
 listen_fd	server.c	/^	int listen_fd;$/;"	m	struct:server_s	file:
-listen_tid	server.c	/^	pthread_t* listen_tid;$/;"	m	struct:server_s	file:
+listen_tids	server.c	/^	pthread_t* listen_tids;$/;"	m	struct:server_s	file:
 loc_nr	trash/vhost.c	/^	size_t loc_nr;$/;"	m	struct:_Vhost	file:
 locs	conf.h	/^	array_t locs; \/\/vhost_loc_conf_t*$/;"	m	struct:vhost_conf_s
 locs	trash/vhost.c	/^	VhostLoc locs[MAX_VHOST_LOCATION];$/;"	m	struct:_Vhost	file:
@@ -255,9 +304,11 @@ module_so_conf_s	conf.h	/^typedef struct module_so_conf_s$/;"	s
 module_so_conf_t	conf.h	/^}module_so_conf_t;$/;"	t	typeref:struct:module_so_conf_s
 module_so_conf_t	module.h	/^typedef struct module_so_conf_s module_so_conf_t;$/;"	t	typeref:struct:module_so_conf_s
 module_sos	conf.h	/^	array_t module_sos;    \/\/module_so_conf_t*$/;"	m	struct:conf_s
+module_t	conf.h	/^typedef struct module_s module_t;$/;"	t	typeref:struct:module_s
+module_t	module.h	/^typedef struct module_s module_t;$/;"	t	typeref:struct:module_s
 module_t	module.h	/^}module_t;$/;"	t	typeref:struct:module_s
 module_type	conf.h	/^	module_type_e module_type; \/*0 handler, 1 filter.*\/$/;"	m	struct:module_so_conf_s
-module_type_e	conf.h	/^}module_type_e;$/;"	t	typeref:enum:__anon3
+module_type_e	conf.h	/^}module_type_e;$/;"	t	typeref:enum:__anon4
 mutex	connection.h	/^	pthread_mutex_t mutex;$/;"	m	struct:connection_s
 mutex	server.c	/^	pthread_mutex_t mutex;$/;"	m	struct:server_s	file:
 nalloc	array.h	/^	int nalloc;$/;"	m	struct:array_s
@@ -268,11 +319,12 @@ name	http.h	/^	str_t name;$/;"	m	struct:http_header_s
 name	xml_tree.h	/^	char* name;	$/;"	m	struct:_XmlNodePi
 name	xml_tree.h	/^	char* name;$/;"	m	struct:_XmlAttr
 name	xml_tree.h	/^	char* name;$/;"	m	struct:_XmlNodeNormal
-next	connection.h	/^	connection_t* next;$/;"	m	struct:connection_s
+next	buf.h	/^	struct chain_s next;$/;"	m	struct:chain_s	typeref:struct:chain_s::chain_s
+next	connection.h	/^	struct connection_s* next;$/;"	m	struct:connection_s	typeref:struct:connection_s::connection_s
 next	pool.c	/^	struct pool_cleanup_node_s* next;$/;"	m	struct:pool_cleanup_node_s	typeref:struct:pool_cleanup_node_s::pool_cleanup_node_s	file:
 next	pool.c	/^	struct pool_node_s* next;$/;"	m	struct:pool_node_s	typeref:struct:pool_node_s::pool_node_s	file:
 next	xml_tree.h	/^	struct _XmlAttr* next;$/;"	m	struct:_XmlAttr	typeref:struct:_XmlAttr::_XmlAttr
-normal	xml_tree.h	/^		XmlNodeNormal normal;$/;"	m	union:_XmlNode::__anon2
+normal	xml_tree.h	/^		XmlNodeNormal normal;$/;"	m	union:_XmlNode::__anon3
 nwrite	utils.c	/^int nwrite(int fd, char* buf, size_t len)$/;"	f
 on_comment	xml_builder.h	/^	XmlBuilderOnCommentFunc      on_comment;$/;"	m	struct:_XmlBuilder
 on_end_element	xml_builder.h	/^	XmlBuilderOnEndElementFunc   on_end_element;$/;"	m	struct:_XmlBuilder
@@ -281,6 +333,7 @@ on_pi_element	xml_builder.h	/^	XmlBuilderOnPiElementFunc    on_pi_element;$/;"	m
 on_start_element	xml_builder.h	/^	XmlBuilderOnStartElementFunc on_start_element;$/;"	m	struct:_XmlBuilder
 on_text	xml_builder.h	/^	XmlBuilderOnTextFunc         on_text;$/;"	m	struct:_XmlBuilder
 open_listen_fd	utils.c	/^int open_listen_fd(char* ip, int port)$/;"	f
+page	http.c	/^	str_t page;$/;"	m	struct:http_error_page_s	file:
 parent	conf.h	/^	conf_t* parent;$/;"	m	struct:module_so_conf_s
 parent	conf.h	/^	conf_t* parent;$/;"	m	struct:vhost_conf_s
 parent	conf.h	/^	vhost_conf_t* parent;$/;"	m	struct:vhost_loc_conf_s
@@ -289,7 +342,7 @@ parent	xml_tree.h	/^	struct _XmlNode* parent;$/;"	m	struct:_XmlNode	typeref:stru
 path	http.h	/^	str_t path;$/;"	m	struct:url_s
 pattern_regex	conf.h	/^	regex_t pattern_regex;$/;"	m	struct:vhost_loc_conf_s
 pattern_str	conf.h	/^	char* pattern_str;$/;"	m	struct:vhost_loc_conf_s
-pi	xml_tree.h	/^		XmlNodePi pi;$/;"	m	union:_XmlNode::__anon2
+pi	xml_tree.h	/^		XmlNodePi pi;$/;"	m	union:_XmlNode::__anon3
 pool	array.h	/^	pool_t* pool;$/;"	m	struct:array_s
 pool	conf.h	/^	pool_t* pool;$/;"	m	struct:conf_s
 pool	connection.h	/^	pool_t* pool;$/;"	m	struct:connection_s
@@ -298,15 +351,16 @@ pool	server.c	/^	pool_t* pool;$/;"	m	struct:server_s	file:
 pool_add_cleanup	pool.c	/^int pool_add_cleanup(pool_t* thiz, POOL_CLEANUP_FUNC cleanup, void* ctx)$/;"	f
 pool_alloc	pool.c	/^void* pool_alloc(pool_t* thiz, int size)$/;"	f
 pool_calloc	pool.c	/^void* pool_calloc(pool_t* thiz, int size)$/;"	f
-pool_cleanup_node_s	pool.c	/^typdef struct pool_cleanup_node_s$/;"	s	file:
-pool_cleanup_node_t	pool.c	/^}pool_cleanup_node_t;$/;"	v	typeref:struct:pool_cleanup_node_s
+pool_cleanup_node_s	pool.c	/^typedef struct pool_cleanup_node_s$/;"	s	file:
+pool_cleanup_node_t	pool.c	/^}pool_cleanup_node_t;$/;"	t	typeref:struct:pool_cleanup_node_s	file:
 pool_create	pool.c	/^pool_t* pool_create(int size)$/;"	f
 pool_destroy	pool.c	/^int pool_destroy(pool_t* thiz)$/;"	f
-pool_node_s	pool.c	/^typdef struct pool_node_s$/;"	s	file:
-pool_node_t	pool.c	/^}pool_node_t;$/;"	v	typeref:struct:pool_node_s
+pool_node_s	pool.c	/^typedef struct pool_node_s$/;"	s	file:
+pool_node_t	pool.c	/^}pool_node_t;$/;"	t	typeref:struct:pool_node_s	file:
 pool_reset	pool.c	/^int pool_reset(pool_t* thiz)$/;"	f
 pool_s	pool.c	/^typedef struct pool_s$/;"	s	file:
 pool_strdup	pool.c	/^char* pool_strdup(pool_t* thiz, char* str)$/;"	f
+pool_strndup	pool.c	/^char* pool_strndup(pool_t* thiz, char* str, int len)$/;"	f
 pool_t	buf.h	/^typedef struct pool_s pool_t;$/;"	t	typeref:struct:pool_s
 pool_t	pool.c	/^}pool_t;$/;"	t	typeref:struct:pool_s	file:
 pool_t	pool.h	/^typedef struct pool_s pool_t;$/;"	t	typeref:struct:pool_s
@@ -318,7 +372,7 @@ priv	modules/module_default.c	/^	char priv[1];$/;"	m	struct:module_default_priv_
 priv	upstream.h	/^	char priv[1];$/;"	m	struct:upstream_s
 priv	xml_builder.h	/^	char priv[1];$/;"	m	struct:_XmlBuilder
 process	module.h	/^	MODULE_PROCESS_FUNC process;$/;"	m	struct:module_s
-query_string	http.h	/^	st_t query_string;$/;"	m	struct:url_s
+query_string	http.h	/^	str_t query_string;$/;"	m	struct:url_s
 r	connection.h	/^	http_request_t r;$/;"	m	struct:connection_s
 read_file	utils.c	/^char* read_file(const char* file_name)$/;"	f
 read_ptr	xml_parser.c	/^	const char* read_ptr;$/;"	m	struct:_XmlParser	file:
@@ -349,27 +403,32 @@ server_t	server.h	/^typedef struct server_s server_t;$/;"	t	typeref:struct:serve
 sibling	xml_tree.h	/^	struct _XmlNode* sibling;$/;"	m	struct:_XmlNode	typeref:struct:_XmlNode::_XmlNode
 start	buf.h	/^	char* start;$/;"	m	struct:buf_s
 start_time	connection.h	/^	time_t start_time;$/;"	m	struct:connection_s
+status	http.c	/^	int status;$/;"	m	struct:http_error_page_s	file:
 status	http.c	/^	int status;$/;"	m	struct:http_status_s	file:
 status	http.h	/^	int status;$/;"	m	struct:http_response_s
 str_s	typedef.h	/^typedef struct str_s$/;"	s
 str_t	typedef.h	/^}str_t;$/;"	t	typeref:struct:str_s
 strtrim	xml_parser.c	/^static const char* strtrim(char* str)$/;"	f	file:
-text	xml_tree.h	/^		char* text;$/;"	m	union:_XmlNode::__anon2
+text	xml_tree.h	/^		char* text;$/;"	m	union:_XmlNode::__anon3
 timedout	connection.h	/^	int timedout;$/;"	m	struct:connection_s
 type	xml_tree.h	/^	XmlNodeType type;$/;"	m	struct:_XmlNode
-u	xml_tree.h	/^	}u;$/;"	m	struct:_XmlNode	typeref:union:_XmlNode::__anon2
+u	xml_tree.h	/^	}u;$/;"	m	struct:_XmlNode	typeref:union:_XmlNode::__anon3
 upstream	http.h	/^	upstream_t* upstream;$/;"	m	struct:http_request_s
+upstream_destroy	upstream.h	/^static inline int upstream_destroy(upstream_t* thiz){return 1;}$/;"	f
+upstream_process	upstream.h	/^static inline int upstream_process(upstream_t* thiz){return 1;}$/;"	f
 upstream_s	upstream.h	/^typedef struct upstream_s$/;"	s
+upstream_t	http.h	/^typedef struct upstream_s upstream_t;$/;"	t	typeref:struct:upstream_s
 upstream_t	upstream.h	/^}upstream_t;$/;"	t	typeref:struct:upstream_s
 url	http.h	/^	url_t url;$/;"	m	struct:http_request_s
 url_s	http.h	/^typedef struct url_s$/;"	s
 url_t	http.h	/^}url_t;$/;"	t	typeref:struct:url_s
-usragent	http.h	/^	str_t usragent;$/;"	m	struct:http_request_s
+usragent	http.h	/^	str_t* usragent;$/;"	m	struct:http_request_s
 value	http.h	/^	str_t value;$/;"	m	struct:http_header_s
 value	xml_tree.h	/^	char* value;$/;"	m	struct:_XmlAttr
 values	conf.h	/^	array_t values;$/;"	m	struct:module_param_s
 version	conf.h	/^	char* version;$/;"	m	struct:module_so_conf_s
 version	http.h	/^	http_version_e version;$/;"	m	struct:http_request_s
+version_str	http.h	/^	str_t version_str;$/;"	m	struct:http_request_s
 vhost_conf_s	conf.h	/^typedef struct vhost_conf_s$/;"	s
 vhost_conf_t	conf.h	/^typedef struct vhost_conf_s vhost_conf_t;$/;"	t	typeref:struct:vhost_conf_s
 vhost_conf_t	conf.h	/^}vhost_conf_t;$/;"	t	typeref:struct:vhost_conf_s
@@ -378,6 +437,7 @@ vhost_destroy	trash/vhost.c	/^Ret vhost_destroy(Vhost* thiz)$/;"	f
 vhost_handle_req	trash/vhost.c	/^Ret vhost_handle_req(Vhost* thiz, HttpReq* req, HttpResp* resp)$/;"	f
 vhost_loc_conf_s	conf.h	/^typedef struct vhost_loc_conf_s $/;"	s
 vhost_loc_conf_t	conf.h	/^}vhost_loc_conf_t;$/;"	t	typeref:struct:vhost_loc_conf_s
+vhost_loc_conf_t	module.h	/^typedef struct vhost_loc_conf_s vhost_loc_conf_t;$/;"	t	typeref:struct:vhost_loc_conf_s
 vhost_match	trash/vhost.c	/^Ret vhost_match(Vhost* thiz, HttpReq* req)$/;"	f
 vhosts	conf.h	/^	array_t vhosts;        \/\/vhost_conf_t*$/;"	m	struct:conf_s
 xml_attr_destroy	xml_tree.c	/^void xml_attr_destroy(XmlAttr* attr)$/;"	f

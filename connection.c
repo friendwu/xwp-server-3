@@ -377,6 +377,8 @@ static int connection_alloc_large_header_buf(connection_t* thiz)
 
 static void connection_gen_request(connection_t* thiz)
 {
+	printf("start %s\n", __func__);
+
 	enum 
 	{
 		STAT_PARSE_REQUEST_LINE = 0,
@@ -491,7 +493,7 @@ PARSE:
 	return;
 }
 
-static size_t connection_calculate_response_len(connection_t* thiz)
+static size_t connection_response_header_len(connection_t* thiz)
 {
 	size_t new_line_len = 2;
 	size_t len = 0;
@@ -520,18 +522,39 @@ static size_t connection_calculate_response_len(connection_t* thiz)
 //success return 1 else return 0.
 static int connection_send_response(connection_t* thiz)
 {
+	printf("start %s\n", __func__);
+
 	int count = 0;
 	size_t num = 0;
 	http_response_t* response = &thiz->r.response;
 	http_header_t** headers = (http_header_t**) response->headers.elts;
-	int header_count = response->headers.count;
 
 	//TODO add some crucial headers such as: connection, date, server...
-	int response_len = connection_calculate_response_len(thiz);
-	char* buf = pool_alloc(thiz->r.pool, response_len);
+	if(thiz->r.keep_alive)
+	{
+		http_header_set(&response->headers, HTTP_HEADER_CONNECTION, HTTP_HEADER_KEEPALIVE);
+	}
+	else
+	{
+		http_header_set(&response->headers, HTTP_HEADER_CONNECTION, HTTP_HEADER_CLOSE);
+	}
+
+	http_header_set(&response->headers, HTTP_HEADER_SERVER, HTTP_HEADER_XWP_VER);
+
+	if(thiz->r.response.content_len > 0)
+	{
+		char clen[64] = {0};
+		int count = snprintf(clen, 64, "%d", thiz->r.response.content_len);
+		str_t clen_str = {clen, count};
+		http_header_set(&thiz->r.response.headers, HTTP_HEADER_CONTENT_LEN, &clen_str);
+	}
+
+	int header_count = response->headers.count;
+	int header_len = connection_response_header_len(thiz);
+	char* buf = pool_alloc(thiz->r.pool, header_len);
 	const str_t* status_line = http_status_line(response->status);
 
-	count = snprintf(buf, response_len, "%s %s\r\n", thiz->r.version_str.data, 
+	count = snprintf(buf, header_len, "%s %s\r\n", thiz->r.version_str.data, 
 										  status_line->data);
 	if(count <= 0) return 0;
 	num += count;
@@ -539,7 +562,7 @@ static int connection_send_response(connection_t* thiz)
 	int i = 0;
 	for(; i<header_count; i++)
 	{
-		count = snprintf(buf+num, response_len-num, "%s: %s\r\n", 
+		count = snprintf(buf+num, header_len-num, "%s: %s\r\n", 
 								  headers[i]->name.data, headers[i]->value.data);
 		if(count <= 0) return 0;
 		num += count;
@@ -549,7 +572,7 @@ static int connection_send_response(connection_t* thiz)
 	buf[num+1] = '\n';
 	num += 2;
 
-	assert(num == response_len);
+	assert(num == header_len);
 
 	if(!nwrite(thiz->fd, buf, num)) return 0;
 
@@ -574,6 +597,8 @@ static int connection_send_response(connection_t* thiz)
 
 static void connection_process_request(connection_t* thiz)
 {
+	printf("start %s\n", __func__);
+
 	vhost_conf_t** vhosts = (vhost_conf_t** )thiz->conf->vhosts.elts;
 	size_t vhost_nr = thiz->conf->vhosts.count;
 	size_t i = 0;
@@ -617,7 +642,7 @@ static void connection_process_request(connection_t* thiz)
 
 	if(ret == HTTP_MODULE_PROCESS_DONE)
 	{
-		goto DONE;
+		return;
 	}
 	else if(ret == HTTP_MODULE_PROCESS_UPSTREAM)
 	{
@@ -627,32 +652,23 @@ static void connection_process_request(connection_t* thiz)
 		else 
 		{
 			thiz->r.response.status = HTTP_STATUS_BAD_REQUEST;
-			goto DONE;
+			return;
 		}
 	}
 	else
 	{
 		assert(0);
 		thiz->r.response.status = HTTP_STATUS_INTERNAL_SERVER_ERROR;
-		goto DONE;
+		return;
 	}
 
-	//output filter.
-DONE:
-	if(thiz->r.response.status == HTTP_STATUS_CLOSE) return;
-	//set content_len, connection, Date, 
-	if(thiz->r.response.content_len > 0)
-	{
-		char clen[64] = {0};
-		int count = snprintf(clen, 64, "%d", thiz->r.response.content_len);
-		str_t clen_str = {clen, count};
-		http_header_set(&thiz->r.response.headers, HTTP_HEADER_CONTENT_LEN, &clen_str);
-	}
-
+	return;
 }
 
 static int connection_finalize_request(connection_t* thiz)
 {
+	printf("start %s\n", __func__);
+
 	pthread_mutex_lock(&(thiz->mutex));
 
 	if(thiz->r.upstream != NULL) 
@@ -664,6 +680,7 @@ static int connection_finalize_request(connection_t* thiz)
 	pool_t* pool = thiz->r.pool;
 	pool_reset(pool);
 	bzero(&(thiz->r), sizeof(http_request_t));
+	thiz->r.response.content_fd = -1;
 	thiz->r.pool = pool;
 
 	thiz->start_time = time(NULL);
@@ -674,12 +691,24 @@ static int connection_finalize_request(connection_t* thiz)
 
 static void connection_special_response(connection_t* thiz)
 {
-	//TODO....
-	//we need an array for the status,
-	//each element stores specified strings,
-	//set it as the content body.
-	//maybe we will change some connection attributes here, 
-	//such as keepalive.
+	printf("start %s\n", __func__);
+	//TODO maybe need to process by filter.
+	http_response_t* response = &thiz->r.response;
+	str_t* error_page = http_error_page(response->status, thiz->r.pool);
+	
+	assert(response->content_len == 0 && response->content_body == NULL);
+
+	if(error_page != NULL)
+	{
+		response->content_len = error_page->len;
+		response->content_body = error_page->data;
+	}
+
+	if(thiz->r.response.status >= HTTP_STATUS_BAD_REQUEST)
+	{
+		thiz->r.keep_alive = 0;	
+	}
+
 	return;
 }
 
@@ -706,6 +735,7 @@ static int connection_reusable(connection_t* thiz, int reuseable)
 
 	pool_destroy(thiz->r.pool);
 	bzero(&(thiz->r), sizeof(http_request_t));
+	thiz->r.response.content_fd = -1;
 
 	pthread_mutex_unlock(&thiz->mutex);
 	
@@ -735,6 +765,7 @@ connection_t* connection_create(pool_t* pool, conf_t* conf)
 	thiz->pool = pool;
 	thiz->conf = conf;
 	thiz->fd = -1;
+	thiz->r.response.content_fd = -1;
 
 	return thiz;
 }
@@ -762,14 +793,9 @@ int connection_run(connection_t* thiz, int fd)
 		{
 			goto DONE;
 		}
+
 		if(thiz->timedout) break;
-		
 		connection_process_request(thiz);
-		//TODO should be <= HTTP_STATUS_SPECIAL_RESPONSE
-		if(thiz->r.response.status == HTTP_STATUS_OK)
-		{
-			if(!connection_send_response(thiz)) thiz->r.response.status = HTTP_STATUS_CLOSE;
-		}
 		if(thiz->timedout) break;
 
 DONE:
@@ -780,16 +806,14 @@ DONE:
 		else if(thiz->r.response.status >= HTTP_STATUS_SPECIAL_RESPONSE)
 		{
 			connection_special_response(thiz);
-			//TODO
-			break;
 		}
+
+		if(!connection_send_response(thiz)) break;
 
 		if(thiz->r.keep_alive && !thiz->timedout)
 		{
-			//TODO
-			//connection_finalize_request(thiz);
-			//continue;
-			break;
+			connection_finalize_request(thiz);
+			continue;
 		}
 		else
 		{

@@ -130,6 +130,10 @@ extern const str_t* HTTP_HEADER_HOST;
 extern const str_t* HTTP_HEADER_CONTENT_TYPE;
 extern const str_t* HTTP_HEADER_CONTENT_LEN;
 extern const str_t* HTTP_HEADER_KEEPALIVE;
+extern const str_t* HTTP_HEADER_CLOSE;
+extern const str_t* HTTP_HEADER_XWP_VER;
+
+
 
 //TODO char* to str_t* 
 const str_t* http_content_type(const char* extension);
@@ -138,5 +142,6 @@ int http_header_set(array_t* headers, const str_t* name, const str_t* value);
 int http_header_equal(array_t* headers, const str_t* name, const str_t* value);
 const str_t* http_header_str(array_t* headers, const str_t* name);
 int http_header_int(array_t* headers, const str_t* name);
+str_t* http_error_page(int status, pool_t* pool);
 
 #endif
