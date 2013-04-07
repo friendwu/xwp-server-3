@@ -16,6 +16,7 @@ int array_init(array_t* thiz, pool_t* pool, int nalloc)
 	return 1;
 }
 
+//TODO put the data alloc operation in it.
 int array_push(array_t* thiz, void* data)
 {
 	assert(thiz != NULL);

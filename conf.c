@@ -226,7 +226,6 @@ conf_t* conf_parse(const char* config_file, pool_t* pool)
 	array_init(&thiz->vhosts, pool, 10);
 
 	//loadmodule
-
 	void* handler = NULL;
 	MODULE_GET_INFO_FUNC module_get_info = NULL;
 	thiz->module_path = pool_strdup(pool, "./modules");
