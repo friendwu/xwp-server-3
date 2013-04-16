@@ -36,7 +36,7 @@
 		<location>
 			<pattern>/.*</pattern>
 			<handler>
-				<name>default</name>
+				<name>uwsgi</name>
 				<param>
 					<name>uwsgi_pass</name>
 					<value>9000</value>

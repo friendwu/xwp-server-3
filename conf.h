@@ -7,6 +7,7 @@
 typedef struct module_s module_t;
 typedef struct vhost_conf_s vhost_conf_t;
 typedef struct conf_s conf_t;
+typedef module_t* (*MODULE_CREATE_FUNC)(void* parent, array_t* params, pool_t* pool);//must hook the destroy handler on the pool cleanup. 
 
 typedef enum
 {
@@ -16,27 +17,27 @@ typedef enum
 
 typedef struct module_param_s
 {
-	char* name;
-	array_t values;
+	str_t name;
+	array_t values; //str_t*
 }module_param_t;
 
 typedef struct vhost_loc_conf_s 
 {
 	vhost_conf_t* parent;
-	char* root;
-	char* pattern_str;
+	str_t root;
+	str_t pattern_str;
 	regex_t pattern_regex;
 	
 	array_t handler_params; // module_param_t*
-	char* handler_name;
+	str_t handler_name;
 	module_t* handler;
 }vhost_loc_conf_t;
 
 typedef struct vhost_conf_s
 {
 	conf_t* parent;
-	char* name;
-	char* root;
+	str_t name;
+	str_t root;
 	//array_t default_pages;
 
 	array_t locs; //vhost_loc_conf_t*
@@ -47,13 +48,13 @@ typedef struct vhost_conf_s
 typedef struct module_so_conf_s
 {
 	conf_t* parent;
-	char* name;
-	char* author;
-	char* description;
-	char* version;
+	str_t name;
+	str_t author;
+	str_t description;
+	str_t version;
 	module_type_e module_type; /*0 handler, 1 filter.*/
 
-	void* module_create;
+	MODULE_CREATE_FUNC module_create;
 }module_so_conf_t;
 
 typedef struct conf_s
@@ -64,13 +65,14 @@ typedef struct conf_s
 	int client_header_size;
 	int large_client_header_size;
 	int max_content_len;
-	char* ip;
+	str_t ip;
 	int port;
-	char* root;
+	str_t root;
+	str_t default_page;
 	int max_threads;
-	//array_t default_pages; //char*
+	//array_t default_pages; //str_t
 
-	char* module_path;
+	str_t module_path;
 	array_t module_sos;    //module_so_conf_t*
 	array_t vhosts;        //vhost_conf_t*
 }conf_t;

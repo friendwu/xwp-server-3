@@ -39,7 +39,7 @@ static void* server_listen_proc(void* ctx)
 	while(thiz->running)
 	{
 		fd = accept(thiz->listen_fd, (struct sockaddr* )&peer_addr, &sock_len);
-		printf("fd %d %u\n ", fd, pthread_self());
+		printf("fd %d %u\n ", fd, (unsigned) pthread_self());
 		if(fd < 0) continue;
 
 		pthread_mutex_lock(&thiz->mutex);
@@ -72,7 +72,7 @@ static void* server_guard_proc(void* ctx)
 		int i = 0;
 		for(; i<thiz->connection_nr; i++)
 		{
-			if(thiz->connections[i]->running == 0) continue;
+			//if(thiz->connections[i]->running == 0) continue;
 			connection_check_timeout(thiz->connections[i]);
 		}
 
@@ -104,7 +104,7 @@ server_t* server_create(const char* config_file)
 	}
 	thiz->conf = conf;
 
-	thiz->listen_fd = open_listen_fd(conf->ip, conf->port);
+	thiz->listen_fd = open_listen_fd(conf->ip.data, conf->port);
 	if(thiz->listen_fd < 0) 
 	{
 		printf("open listen fd failed.\n");
@@ -145,8 +145,9 @@ server_t* server_create(const char* config_file)
 		pthread_create(&thiz->listen_tids[k], &attr, server_listen_proc, thiz);
 	}
 
-	//TODO temp diable it.
-	//pthread_create(&thiz->guard_tid, &attr, server_guard_proc, thiz);
+#ifndef GUARD_DISABLE
+	pthread_create(&thiz->guard_tid, &attr, server_guard_proc, thiz);
+#endif
 	pthread_attr_destroy(&attr);
 	printf("listen on port %d\n", conf->port);
 

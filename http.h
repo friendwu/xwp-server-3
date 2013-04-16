@@ -133,8 +133,6 @@ extern const str_t* HTTP_HEADER_KEEPALIVE;
 extern const str_t* HTTP_HEADER_CLOSE;
 extern const str_t* HTTP_HEADER_XWP_VER;
 
-
-
 //TODO char* to str_t* 
 const str_t* http_content_type(const char* extension);
 const str_t* http_status_line(int status);

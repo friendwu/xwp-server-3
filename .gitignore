@@ -1,3 +1,5 @@
+MYTRACE
+TRACE
 core
 TODO
 tags 
@@ -6,3 +8,4 @@ xwp
 *.swp
 *.so
 *test
+vgcore.*

@@ -45,7 +45,6 @@ static int connection_parse_url(connection_t* thiz, str_t* url)
 	char* query_end = NULL;
 	char* port_start = NULL;
 	char* port_end = NULL;
-	pool_t* pool = thiz->r.pool;
 
 	enum 
 	{
@@ -78,7 +77,7 @@ static int connection_parse_url(connection_t* thiz, str_t* url)
 				}
 				else if(*p == '/')
 				{
-					path_start = p;
+					path_start = p + 1;
 					state = STAT_PATH;
 					break;
 				}
@@ -131,7 +130,7 @@ static int connection_parse_url(connection_t* thiz, str_t* url)
 				else if(*p == '/')
 				{
 					host_end = p;
-					path_start = p;
+					path_start = p + 1;
 					state = STAT_PATH;
 					break;
 				}
@@ -146,7 +145,7 @@ static int connection_parse_url(connection_t* thiz, str_t* url)
 				if(*p == '/') 
 				{
 					port_end = p;
-					path_start = p;		
+					path_start = p + 1;		
 					state = STAT_PATH;
 					break;
 				}
@@ -209,18 +208,21 @@ static int connection_parse_url(connection_t* thiz, str_t* url)
 		}
 		if(state == STAT_DONE) break;
 	}
-	
+
 	if(schema_start)
 	{
 		if(!schema_end) return HTTP_PARSE_FAIL;
-		
-		thiz->r.url.schema.data = pool_strndup(pool, schema_start, schema_end-schema_start);
+		*schema_end = '\0';
+
+		thiz->r.url.schema.data = schema_start;//pool_strndup(pool, schema_start, schema_end-schema_start);
 		thiz->r.url.schema.len = schema_end - schema_start;
 	}
 	if(host_start)
 	{
 		if(!host_end) return HTTP_PARSE_FAIL;
-		thiz->r.url.host.data = pool_strndup(pool, host_start, host_end-host_start);
+		*host_end = '\0';
+
+		thiz->r.url.host.data = host_start;//pool_strndup(pool, host_start, host_end-host_start);
 		thiz->r.url.host.len = host_end - host_start;
 	}
 	if(port_start)
@@ -231,13 +233,17 @@ static int connection_parse_url(connection_t* thiz, str_t* url)
 	if(path_start)
 	{
 		if(!path_end) path_end = url_end;
-		thiz->r.url.path.data = pool_strndup(pool, path_start, path_end-path_start);
+		*path_end = '\0';
+		
+		thiz->r.url.path.data = path_start;
 		thiz->r.url.path.len = path_end - path_start;
 	}
 	if(query_start)
 	{
 		if(!query_end) query_end = url_end;
-		thiz->r.url.query_string.data = pool_strndup(pool, query_start, query_end-query_start);
+		query_end = '\0';
+
+		thiz->r.url.query_string.data = query_start;//pool_strndup(pool, query_start, query_end-query_start);
 		thiz->r.url.query_string.len = query_end - query_start;
 	}
 
@@ -377,8 +383,6 @@ static int connection_alloc_large_header_buf(connection_t* thiz)
 
 static void connection_gen_request(connection_t* thiz)
 {
-	printf("start %s thread %u\n", __func__, pthread_self());
-
 	enum 
 	{
 		STAT_PARSE_REQUEST_LINE = 0,
@@ -522,8 +526,6 @@ static size_t connection_response_header_len(connection_t* thiz)
 //success return 1 else return 0.
 static int connection_send_response(connection_t* thiz)
 {
-	printf("start %s thread %u\n", __func__, pthread_self());
-
 	int count = 0;
 	size_t num = 0;
 	http_response_t* response = &thiz->r.response;
@@ -597,15 +599,14 @@ static int connection_send_response(connection_t* thiz)
 
 static void connection_process_request(connection_t* thiz)
 {
-	printf("start %s thread %u\n", __func__, pthread_self());
-
 	vhost_conf_t** vhosts = (vhost_conf_t** )thiz->conf->vhosts.elts;
 	size_t vhost_nr = thiz->conf->vhosts.count;
 	size_t i = 0;
 	for(; i<vhost_nr; i++)
 	{
+		//TODO host or url host?
 		if(strncasecmp(thiz->r.host->data, 
-					   vhosts[i]->name, 
+					   vhosts[i]->name.data, 
 					   thiz->r.url.host.len) == 0)
 		{
 			break;
@@ -647,7 +648,7 @@ static void connection_process_request(connection_t* thiz)
 	else if(ret == HTTP_MODULE_PROCESS_UPSTREAM)
 	{
 		//TODO will upstream modify the status?
-		ret = upstream_process(thiz->r.upstream);
+		ret = upstream_process(thiz->r.upstream, &(thiz->r));
 		if(ret == HTTP_UPSTREAM_DONE) thiz->r.response.status = HTTP_STATUS_OK;
 		else 
 		{
@@ -667,12 +668,10 @@ static void connection_process_request(connection_t* thiz)
 
 static int connection_finalize_request(connection_t* thiz)
 {
-	printf("start %s thread %u\n", __func__, pthread_self());
-
 	pthread_mutex_lock(&(thiz->mutex));
 
 	if(thiz->r.upstream != NULL) 
-		upstream_destroy(thiz->r.upstream);
+		upstream_abort(thiz->r.upstream);
 	thiz->r.upstream = NULL;
 	
 	pthread_mutex_unlock(&(thiz->mutex));
@@ -691,7 +690,6 @@ static int connection_finalize_request(connection_t* thiz)
 
 static void connection_special_response(connection_t* thiz)
 {
-	printf("start %s thread %u\n", __func__, pthread_self());
 	//TODO maybe need to process by filter.
 	http_response_t* response = &thiz->r.response;
 	str_t* error_page = http_error_page(response->status, thiz->r.pool);
@@ -714,7 +712,6 @@ static void connection_special_response(connection_t* thiz)
 
 static int connection_reusable(connection_t* thiz, int reusable)
 {
-	printf("start %s thread %u\n", __func__, pthread_self());
 	assert(thiz!=NULL);	
 
 	pthread_mutex_lock(&thiz->mutex);
@@ -729,7 +726,7 @@ static int connection_reusable(connection_t* thiz, int reusable)
 	thiz->start_time = 0;
 	if(thiz->r.upstream != NULL) 
 	{
-		upstream_destroy(thiz->r.upstream);
+		upstream_abort(thiz->r.upstream);
 		while(thiz->running) sleep(1);
 		thiz->r.upstream = NULL;
 	}
@@ -790,7 +787,7 @@ int connection_run(connection_t* thiz, int fd)
 		assert(thiz->running); 
 
 		connection_gen_request(thiz);
-		if(thiz->r.response.status != HTTP_STATUS_OK)
+		if(thiz->r.response.status >= HTTP_STATUS_SPECIAL_RESPONSE)
 		{
 			goto DONE;
 		}
@@ -839,17 +836,18 @@ int connection_check_timeout(connection_t* thiz)
 		pthread_mutex_lock(&thiz->mutex);
 		if(thiz->running)
 		{
-			//close blocking process to help connection_run thread exit asap.
 			thiz->timedout = 1;
 			if(thiz->fd >= 0) 
 			{
+				//add this can speed up the return of connection_run thread.
+				shutdown(thiz->fd, SHUT_RDWR);
 				close(thiz->fd);
 				while(thiz->running) sleep(1);
 				thiz->fd = -1;
 			}
 			if(thiz->r.upstream != NULL) 
 			{
-				upstream_destroy(thiz->r.upstream);
+				upstream_abort(thiz->r.upstream);
 				while(thiz->running) sleep(1);
 				thiz->r.upstream = NULL;
 			}
