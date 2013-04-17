@@ -13,6 +13,7 @@ typedef struct http_header_s
 
 typedef struct url_s
 {
+	//str_t unparsed_url;
 	str_t schema;
 	str_t host;
 	int port;

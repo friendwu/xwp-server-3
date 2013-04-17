@@ -1,9 +1,7 @@
 #ifndef UPSTREAM_H
 #define UPSTREAM_H
-#define HTTP_UPSTREAM_DONE 1
-#define HTTP_UPSTREAM_FAIL 0
-typedef int (*UPSTREAM_PROCESS_FUNC)(upstream_t* thiz, http_request_t* request);
-typedef int (*UPSTREAM_ABORT_FUNC)(upstream_t* thiz);
+typedef void (*UPSTREAM_PROCESS_FUNC)(upstream_t* thiz, http_request_t* request);
+typedef void (*UPSTREAM_ABORT_FUNC)(upstream_t* thiz);
 
 typedef struct upstream_s
 {
@@ -15,24 +13,25 @@ typedef struct upstream_s
 	char priv[0];
 }upstream_t;
 
-static inline int upstream_process(upstream_t* thiz, http_request_t* request)
+static inline void upstream_process(upstream_t* thiz, http_request_t* request)
 {
 	assert(thiz!=NULL && request!=NULL);
 
 	if(thiz->process != NULL)
-		return thiz->process(thiz, request);
+		thiz->process(thiz, request);
 	
-	return HTTP_UPSTREAM_DONE;
+	request->response.status = HTTP_STATUS_BAD_GATEWAY;
+	return;
 }
 
-static inline int upstream_abort(upstream_t* thiz)
+static inline void upstream_abort(upstream_t* thiz)
 {
 	assert(thiz!=NULL);
 
 	if(thiz->abort != NULL)
-		return thiz->abort(thiz);
+		thiz->abort(thiz);
 	
-	return HTTP_UPSTREAM_DONE;
+	return;
 }
 
 #endif

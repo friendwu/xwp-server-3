@@ -647,14 +647,8 @@ static void connection_process_request(connection_t* thiz)
 	}
 	else if(ret == HTTP_MODULE_PROCESS_UPSTREAM)
 	{
-		//TODO will upstream modify the status?
-		ret = upstream_process(thiz->r.upstream, &(thiz->r));
-		if(ret == HTTP_UPSTREAM_DONE) thiz->r.response.status = HTTP_STATUS_OK;
-		else 
-		{
-			thiz->r.response.status = HTTP_STATUS_BAD_REQUEST;
-			return;
-		}
+		//will modify the response status inside.
+		upstream_process(thiz->r.upstream, &(thiz->r));
 	}
 	else
 	{
