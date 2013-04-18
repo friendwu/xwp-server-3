@@ -147,12 +147,13 @@ static uint16_t upstream_uwsgi_calc_packet_len(upstream_t* thiz, http_request_t*
 static void upstream_uwsgi_process(upstream_t* thiz, http_request_t* request)
 {
 	conf_t* root_conf = ((vhost_loc_conf_t*) thiz->module->parent)->parent->parent;
-	vhost_loc_conf_t* loc_conf = (vhost_loc_conf_t*) thiz->module->parent;
+	vhost_loc_conf_t* loc_conf = (vhost_loc_conf_t*) (thiz->module->parent);
+
 	DECL_PRIV(thiz->module, module_priv, module_uwsgi_priv_t*);
 	DECL_PRIV(thiz, upstream_priv, upstream_uwsgi_priv_t*);
 
 	uint16_t datasize = upstream_uwsgi_calc_packet_len(thiz, request);
-	char* buf = pool_calloc(pool, datasize + 4); //4 means the length of packet header.
+	char* buf = (char* )pool_calloc(pool, datasize + 4); //4 means the length of packet header.
 	
 	if(buf == NULL) request->response.status = HTTP_STATUS_BAD_REQUEST;
 
@@ -168,7 +169,7 @@ static void upstream_uwsgi_process(upstream_t* thiz, http_request_t* request)
 	pos += upstream_uwsgi_add_param(buf+pos, &CGI_CONTENT_LENGTH, request->content_len_header);
 	pos += upstream_uwsgi_add_param(buf+pos, &CGI_REQUEST_URI, &request->url.unparsed_url);
 
-	//FIXME url path maybe null.
+	//FIXME url path may be null.
 	pos += upstream_uwsgi_add_param(buf+pos, &CGI_DOCUMENT_URI, &request->url.path);
 	pos += upstream_uwsgi_add_param(buf+pos, &CGI_DOCUMENT_ROOT, &loc_conf->root);
 	pos += upstream_uwsgi_add_param(buf+pos, &CGI_SERVER_PROTOCOL, &request->version_str);
@@ -179,8 +180,6 @@ static void upstream_uwsgi_process(upstream_t* thiz, http_request_t* request)
 
 	pos += upstream_uwsgi_add_param(buf+pos, &CGI_REMOTE_ADDR, &request->remote_ip);
 	pos += upstream_uwsgi_add_param(buf+pos, &CGI_SERVER_ADDR, &root_conf->ip);
-
-	//add header.
 
 	char str[64];
 	int count = sprintf(str, "%d", root_conf->port);
@@ -224,11 +223,25 @@ static void upstream_uwsgi_process(upstream_t* thiz, http_request_t* request)
 	if(!nwrite(upstream_priv->fd, buf, datasize))
 	{
 		request->response->status = HTTP_STATUS_BAD_GATEWAY;
+
 		return;
 	}
 
-	/*http_parse_response_line(upstream_priv->fd, &request->response);
-	http_parse_header_line(upstream_priv->fd, request->response->headers);
+	if(request->content_len > 0)
+	{
+		if(!nwrite(upstream_priv->fd, request->body_buf.pos, request->content_len))
+		{
+			request->response->status = HTTP_STATUS_BAD_GATEWAY;
+
+			return;
+		}
+	}
+
+	//accept the response from app server.
+	//and parse it to response.
+
+	/*http_parse_response_line();
+	http_parse_header_line();
 	http_parse_content_body();*/
 
 	return HTTP_UPSTREAM_DONE;
@@ -243,6 +256,7 @@ static int upstream_uwsgi_abort(upstream_t* thiz)
 	{
 		//TODO maybe there will be a mutex problem.
 		shutdown(priv->fd);
+		while(priv->running) sleep(1);
 	}
 	pthread_mutex_unlock(&priv->mutex);
 
