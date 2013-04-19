@@ -10,7 +10,7 @@ int main(int argc, char** argv)
 	if(server == NULL) return 0; 
 
 	char buf[512] = {0};
-	//TODO accept command from console.
+
 	for(;;) 
 	{
 		//sleep(1);

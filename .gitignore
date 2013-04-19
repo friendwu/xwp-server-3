@@ -9,3 +9,4 @@ xwp
 *.so
 *test
 vgcore.*
+*.o

@@ -231,7 +231,7 @@ conf_t* conf_parse(const char* config_file, pool_t* pool)
 	void* handler = NULL;
 	MODULE_GET_INFO_FUNC module_get_info = NULL;
 	to_string(thiz->module_path, "./modules");
-	char* so_file = "./modules/module_default.so";
+	char* so_file = "./modules/libmodule_default.so";
 
 	handler = dlopen(so_file, RTLD_NOW);
 	assert(handler != NULL);
