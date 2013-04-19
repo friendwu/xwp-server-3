@@ -7,6 +7,5 @@ trash
 xwp
 *.swp
 *.so
-*test
 vgcore.*
 *.o

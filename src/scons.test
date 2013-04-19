@@ -1,0 +1,15 @@
+Import('env')
+
+## txwp
+serverTestEnv = env.Clone(LIBS=['dl', 'pthread'])
+serverTestEnv.Append(CCFLAGS='-DGUARD_DISABLE')
+serverTestSrc = ['buf.c', 'array.c', 'pool.c', 'http.c', 'conf.c', 'utils.c', 'main.c', 'connection.c', 'server.c']
+server_test = serverTestEnv.Executable('txwp', serverTestSrc)
+
+## pool_test
+poolTestEnv = env.Clone()
+poolTestEnv.Append(CCFLAGS='-DPOOL_TEST')
+pool_test = poolTestEnv.Executable('pool_test', ['pool.c'])
+
+env.Alias('test', [server_test, pool_test])
+

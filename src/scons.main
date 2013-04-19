@@ -1,0 +1,16 @@
+Import('env')
+
+commonSrc = ['buf.c', 'array.c', 'pool.c', 'http.c', 'conf.c']
+
+## server
+serverEnv = env.Clone(LIBS=['dl', 'pthread'])
+serverSrc = ['utils.c', 'main.c', 'connection.c', 'server.c']
+server = serverEnv.Program('xwp', commonSrc + serverSrc)
+
+## module_default
+libEnv = env.Clone(CCPATH='.')
+libSrc = ['module_default.c']
+lib = libEnv.SharedLibrary('module_default', commonSrc + libSrc)
+
+env.Default([server, lib])
+

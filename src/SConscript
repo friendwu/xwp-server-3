@@ -1,0 +1,29 @@
+def basename(src):
+    return src.split('.')[0]
+
+def objname(prefix, src):
+    return prefix+'-'+basename(src)
+
+class LocalEnvironment(Environment):
+    def Objects(self, src):
+        return [self.Object(s) for s in src]
+
+    def Objects(self, name, src):
+        return [self.Object(objname(name, s), s) for s in src]
+
+    def SharedObjects(self, src):
+        return [self.SharedObject(s) for s in src]
+
+    def SharedObjects(self, name, src):
+        return [self.SharedObject(objname(name, s), s) for s in src]
+
+    def Executable(self, name, src):
+        return self.Program(name, self.Objects(name, src))
+
+env = LocalEnvironment(CC='gcc', CCFLAGS=['-g', '-Wall'])
+
+Export('env')
+
+SConscript('scons.main', variant_dir='main', duplicate=0)
+SConscript('scons.test', variant_dir='test', duplicate=0)
+
