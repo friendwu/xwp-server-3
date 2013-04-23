@@ -28,7 +28,7 @@ static int module_default_handle_request(module_t* thiz, http_request_t* request
 	vhost_loc_conf_t* loc = (vhost_loc_conf_t* )thiz->parent;
 	str_t request_path = {0};
 
-	if(request->url.path.len == 0)
+	if(request->url.path.len==1 && request->url.path.data[0]=='/')
 	{
 		request_path.data = root_conf->default_page.data;
 		request_path.len = root_conf->default_page.len;
@@ -86,7 +86,7 @@ static void module_default_destroy(void* data)
 	return;
 }
 
-module_t* module_default_create(vhost_loc_conf_t* parent, array_t* params, pool_t* pool)
+module_t* module_default_create(void* parent, array_t* params, pool_t* pool)
 {
 	module_t* thiz = pool_calloc(pool, sizeof(module_t) + sizeof(module_default_priv_t));
 	if(thiz == NULL) return NULL;

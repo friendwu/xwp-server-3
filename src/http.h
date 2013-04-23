@@ -3,6 +3,7 @@
 #include "typedef.h"
 #include "array.h"
 #include "buf.h"
+
 typedef struct upstream_s upstream_t;
 
 typedef struct http_header_s 
@@ -48,6 +49,7 @@ typedef struct http_request_s
 {
 	pool_t* pool;
 	http_method_e method;
+	str_t method_str;
 	url_t url;
 	str_t version_str;
 	http_version_e version;
@@ -55,8 +57,10 @@ typedef struct http_request_s
 	buf_t header_buf;
 	buf_t body_buf;
 	int keep_alive;
-	str_t* usragent;
-	str_t* host;
+
+	const str_t* usragent_header;
+	const str_t* host_header;
+	
 	int content_len;
 	upstream_t* upstream;
 
@@ -142,5 +146,14 @@ int http_header_equal(array_t* headers, const str_t* name, const str_t* value);
 const str_t* http_header_str(array_t* headers, const str_t* name);
 int http_header_int(array_t* headers, const str_t* name);
 str_t* http_error_page(int status, pool_t* pool);
+
+
+#define HTTP_PARSE_DONE 1
+#define HTTP_PARSE_FAIL 0
+#define HTTP_PARSE_AGAIN -1
+int http_parse_request_line(http_request_t* request, buf_t* buf);
+int http_parse_header_line(http_request_t* request, buf_t* buf, array_t* headers);
+int http_parse_content_body(http_request_t* request, buf_t* buf, int chunked, int content_len);
+int http_parse_status_line(http_request_t* request, buf_t* buf, int* status);
 
 #endif
