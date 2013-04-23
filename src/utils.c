@@ -111,4 +111,10 @@ int nwrite(int fd, char* buf, size_t len)
 	return 1;
 }
 
+void uint16_little_endian(char* buf, uint16_t data)
+{
+	buf[0] = (uint8_t) (data & 0x0f);
+	buf[1] = (uint8_t) ((data >> 8) & 0x0f);
 
+	return;
+}

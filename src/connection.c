@@ -6,7 +6,6 @@
 #include <sys/socket.h>
 #include <sys/stat.h>
 #include <string.h>
-#include <ctype.h>
 #include <errno.h>
 #include "connection.h"
 #include "module.h"
@@ -15,370 +14,65 @@
 #include "array.h"
 #include "upstream.h"
 
-#define eol(c) ((c) == '\n')
-#define is_character(c) (((c)|0x20) >='a' && ((c)|0x20) <= 'z')
-#define HTTP_PARSE_DONE 1
-#define HTTP_PARSE_FAIL 0
-#define HTTP_PARSE_AGAIN -1
-
-static char* find_next_eol(char* line)
+static int connection_alloc_large_header_buf(connection_t* thiz, buf_t* buf)
 {
-	char* p = line;
-	
-	while(!eol(*p) && *p!='\0') p++;
+	int rest_len = buf->last - buf->pos;
+	char* old_pos = buf->pos;
 
-	if(*p == '\0')
-		return NULL;
-	else 
-		return p;
+	if(thiz->conf->large_header_size <= rest_len)
+	{
+		return 0;
+	}
+	buf_create(buf, thiz->r.pool, thiz->conf->large_client_header_size + 1);
+
+	if(buf->start == NULL) return 0;
+
+	*(buf->end - 1) = '\0'; 
+	buf->end -= 1;
+	if(rest_len > 0)
+	{
+		memcpy(buf->start, old_pos, rest_len);
+		buf->last += rest_len;
+	}
+
+	return 1;
 }
 
-static int connection_parse_url(connection_t* thiz, str_t* url)
+static int connection_sync_request_headers(connection_t* thiz)
 {
-	char* schema_start = NULL;
-	char* schema_end = NULL;
-	char* host_start = NULL;
-	char* host_end = NULL;
-	char* path_start = NULL;
-	char* path_end = NULL;
-	char* query_start = NULL;
-	char* query_end = NULL;
-	char* port_start = NULL;
-	char* port_end = NULL;
+	//TODO we should check some crucial headers like host.
+	array_t* h = &(thiz->r.headers);
 
-	enum 
+	thiz->r.host_header = http_header_str(h, HTTP_HEADER_HOST);
+	if(thiz->r.host_header == NULL)
 	{
-		STAT_START = 0,
-		STAT_SCHEMA,
-		STAT_SCHEMA_SLASH,
-		STAT_HOST,
-		STAT_PORT,
-		STAT_PATH,
-		STAT_QUERY_STRING,
-		/*STAT_FRAGMENT_ID,*/
-		STAT_DONE,
-	}state = STAT_START;
+		thiz->r.response.status = HTTP_STATUS_BAD_REQUEST;
 
-	char* p = url->data;
-	char* url_end = url->data + url->len;
-	for(; p<url_end && *p!='\0'; p++)
-	{
-		switch(state)
-		{
-			case STAT_START:
-			{
-				if(isspace(*p)) break;
-				
-				if(is_character(*p))
-				{
-					schema_start = p;
-					state = STAT_SCHEMA;
-					break;
-				}
-				else if(*p == '/')
-				{
-					path_start = p + 1;
-					state = STAT_PATH;
-					break;
-				}
-				else 
-				{
-					return HTTP_PARSE_FAIL;
-				}
-			}
-			case STAT_SCHEMA:
-			{
-				if(is_character(*p)) break;
-
-				if(*p == ':') 
-				{
-					schema_end = p;
-					state = STAT_SCHEMA_SLASH;
-					break;
-				}
-				else
-				{
-					return HTTP_PARSE_FAIL;
-				}
-			}
-			case STAT_SCHEMA_SLASH:
-			{
-				if(*p == '/') break;
-				else if(is_character(*p)) 
-				{
-					host_start = p;
-					state = STAT_HOST;
-					break;
-				}
-				else 
-				{
-					return HTTP_PARSE_FAIL;
-				}
-			}
-			case STAT_HOST:
-			{
-				if(is_character(*p)) break;
-				if(isdigit(*p) || *p == '.' || *p == '-')break;
-
-				if(*p == ':') 
-				{
-					host_end = p;
-					port_start = p + 1;
-					state = STAT_PORT;
-					break;
-				}
-				else if(*p == '/')
-				{
-					host_end = p;
-					path_start = p + 1;
-					state = STAT_PATH;
-					break;
-				}
-				else
-				{
-					return HTTP_PARSE_FAIL;
-				}
-			}
-			case STAT_PORT:
-			{
-				if(isdigit(*p)) break;
-				if(*p == '/') 
-				{
-					port_end = p;
-					path_start = p + 1;		
-					state = STAT_PATH;
-					break;
-				}
-				else if(isspace(*p))
-				{
-					port_end = p;
-					state = STAT_DONE;
-					break;
-				}
-				else
-				{
-					return HTTP_PARSE_FAIL;
-				}
-			}
-			case STAT_PATH:
-			{
-				if(*p == '?') 
-				{
-					path_end = p;
-					query_start = p + 1;
-					state = STAT_QUERY_STRING;
-					break;
-				}
-				else if(*p == '#')
-				{
-					//ignore the fragement id.
-					path_end = p;
-					state = STAT_DONE;
-					break;
-				}
-				else if(isspace(*p))
-				{
-					path_end = p;
-					state = STAT_DONE;
-					break;
-				}
-				else 
-				{
-					break;
-				}
-			}
-			case STAT_QUERY_STRING:
-			{
-				if(*p == '#' || isspace(*p))
-				{
-					query_end = p;
-					state = STAT_DONE;
-					break;
-				}
-				else
-				{
-					break;
-				}
-			}
-			/*case STAT_FRAGMENT_ID:*/
-			default:
-			{
-				assert(0);
-			}
-		}
-		if(state == STAT_DONE) break;
+		return 0;
 	}
 
-	if(schema_start)
+	thiz->r.content_len = http_header_int(h, HTTP_HEADER_CONTENT_LEN);
+	//TODO check the transfer encoding header.
+	if(thiz->r.content_len < 0) thiz->r.content_len = 0;
+
+	const str_t* keep_alive = http_header_str(h, HTTP_HEADER_KEEPALIVE);
+	if(keep_alive == NULL)
 	{
-		if(!schema_end) return HTTP_PARSE_FAIL;
-		*schema_end = '\0';
-
-		thiz->r.url.schema.data = schema_start;//pool_strndup(pool, schema_start, schema_end-schema_start);
-		thiz->r.url.schema.len = schema_end - schema_start;
+		if(thiz->r.version == HTTP_VERSION_11)
+			thiz->r.keep_alive = 1;
+		else 
+			thiz->r.keep_alive = 0;
 	}
-	if(host_start)
+	else
 	{
-		if(!host_end) return HTTP_PARSE_FAIL;
-		*host_end = '\0';
-
-		thiz->r.url.host.data = host_start;//pool_strndup(pool, host_start, host_end-host_start);
-		thiz->r.url.host.len = host_end - host_start;
+		if(strncasecmp(keep_alive->data, "CLOSE", keep_alive->len) == 0)
+			thiz->r.keep_alive = 0;
+		else 
+			thiz->r.keep_alive = 1;
 	}
-	if(port_start)
-	{
-		if(!port_end) return HTTP_PARSE_FAIL;
-		thiz->r.url.port = strtod(port_start, &port_end);
-	}
-	if(path_start)
-	{
-		if(!path_end) path_end = url_end;
-		*path_end = '\0';
-		
-		thiz->r.url.path.data = path_start;
-		thiz->r.url.path.len = path_end - path_start;
-	}
-	if(query_start)
-	{
-		if(!query_end) query_end = url_end;
-		query_end = '\0';
+	//TODO add transfer coding chunk support.
 
-		thiz->r.url.query_string.data = query_start;//pool_strndup(pool, query_start, query_end-query_start);
-		thiz->r.url.query_string.len = query_end - query_start;
-	}
-
-	return HTTP_PARSE_DONE;
-}
-
-static int connection_parse_request_line(connection_t* thiz)
-{
-	str_t method = {0};
-	str_t url = {0};
-	str_t version = {0};
-	char* pos = thiz->r.header_buf.pos;
-	char* last = thiz->r.header_buf.last;
-	char* eol = NULL;
-
-	//skip empty line first.
-	while(isspace(*pos) && pos<last && *pos!='\0') pos++;
-	thiz->r.header_buf.pos = pos;
-
-	eol = find_next_eol(pos);
-	if(eol == NULL)
-	{
-		return HTTP_PARSE_AGAIN;
-	}
-	
-	get_token(&method, &pos, isspace, NULL);
-	get_token(&url, &pos, isspace, NULL);
-	get_token(&version, &pos, isspace, NULL);
-	thiz->r.header_buf.pos = eol + 1;
-
-	if(method.data==NULL || url.data==NULL || version.data==NULL) return HTTP_PARSE_FAIL;
-
-	thiz->r.version_str = version;
-	version.data = strstr(version.data, "HTTP/");
-	if(version.data == NULL) return HTTP_PARSE_FAIL;
-	version.data += 5; //strlen("HTTP/")
-	version.len = 3;
-
-	if(strcmp(version.data, "1.0") == 0) thiz->r.version = HTTP_VERSION_10;
-	else if(strcmp(version.data, "1.1") == 0) thiz->r.version = HTTP_VERSION_11;
-	else return HTTP_PARSE_FAIL; //dont support 0.9
-
-	if(strncasecmp(method.data, "GET", method.len) == 0) thiz->r.method = HTTP_METHOD_GET;
-	else if(strncasecmp(method.data, "POST", method.len) == 0) thiz->r.method = HTTP_METHOD_POST;
-	else if(strncasecmp(method.data, "HEAD", method.len) == 0) thiz->r.method = HTTP_METHOD_HEAD;
-	else return HTTP_PARSE_FAIL; 
-
-	return connection_parse_url(thiz, &url);
-}
-
-//FIXME  in one header may be multilines
-static int connection_parse_header_line(connection_t* thiz)
-{
-	int ret = HTTP_PARSE_AGAIN;
-	char* pos = thiz->r.header_buf.pos;
-	char* last = thiz->r.header_buf.last;
-	char* eol = NULL;
-	str_t name = {0};
-	str_t value = {0};
-
-	while(pos<last)	
-	{
-		eol = find_next_eol(pos);
-
-		//partial line.
-		if(eol == NULL) break; 
-
-		//empty line.
-		if(eol == pos || (eol==pos+1 && *pos=='\r' && *eol=='\n' ))
-		{
-			pos = eol + 1;
-			ret = HTTP_PARSE_DONE;
-			break;
-		}
-
-		//full line
-		//FIXME should trim space.
-		get_token(&name, &pos, NULL, ":");
-		get_token(&value, &pos, isspace, NULL);
-		if(name.data == NULL) 
-		{
-			ret = HTTP_PARSE_FAIL;
-			break;
-		}
-
-		if(!http_header_set(&(thiz->r.headers), &name, &value))
-		{
-			ret = HTTP_PARSE_FAIL;
-			break;
-		}
-
-		pos = eol + 1;
-	}
-
-	thiz->r.header_buf.pos = pos;
-	if(ret == HTTP_PARSE_DONE)
-	{
-		//TODO we should check some crucial headers like host.
-		array_t* h = &(thiz->r.headers);
-
-		thiz->r.host = http_header_str(h, HTTP_HEADER_HOST);
-		if(thiz->r.host == NULL)
-		{
-			return HTTP_PARSE_FAIL;
-		}
-
-		thiz->r.content_len = http_header_int(h, HTTP_HEADER_CONTENT_LEN);
-		if(thiz->r.content_len < 0) thiz->r.content_len = 0;
-
-		const str_t* keep_alive = http_header_str(h, HTTP_HEADER_KEEPALIVE);
-		if(keep_alive == NULL)
-		{
-			if(thiz->r.version == HTTP_VERSION_11)
-				thiz->r.keep_alive = 1;
-			else 
-				thiz->r.keep_alive = 0;
-		}
-		else
-		{
-			if(strncasecmp(keep_alive->data, "CLOSE", keep_alive->len) == 0)
-				thiz->r.keep_alive = 0;
-			else 
-				thiz->r.keep_alive = 1;
-		}
-	}
-
-	return ret;
-}
-
-static int connection_alloc_large_header_buf(connection_t* thiz)
-{
-	buf_create(&(thiz->r.header_buf), thiz->r.pool, thiz->conf->large_client_header_size);
-
-	if(thiz->r.header_buf.start == NULL) return 0;
-	else return 1;
+	return 1;
 }
 
 static void connection_gen_request(connection_t* thiz)
@@ -393,15 +87,18 @@ static void connection_gen_request(connection_t* thiz)
 
 	int parse_ret = HTTP_PARSE_AGAIN;
 
+	//TODO check the return value.
 	array_init(&(thiz->r.headers), thiz->r.pool, 24);
 	array_init(&(thiz->r.response.headers), thiz->r.pool, 24);
 
-	buf_create(&(thiz->r.header_buf), thiz->r.pool, thiz->conf->client_header_size);
+	buf_create(&(thiz->r.header_buf), thiz->r.pool, thiz->conf->client_header_size + 1);
 	if(thiz->r.header_buf.start == NULL) 
 	{
 		thiz->r.response.status = HTTP_STATUS_INTERNAL_SERVER_ERROR;
 		return; 
 	}
+	*(thiz->r.header_buf.end - 1) = '\0'; 
+	thiz->r.header_buf.end -= 1; 
 
 	buf_t* buf = &(thiz->r.header_buf);
 	int count = 0;
@@ -409,18 +106,17 @@ static void connection_gen_request(connection_t* thiz)
 	for(;;)
 	{
 		//meet buffer end but still parse incomplete.
-		//the last character of buffer should always be zero.
-		if(buf->last == buf->end-1) 
+		if(buf->last == buf->end) 
 		{
 			assert(parse_state <= STAT_PARSE_HEADER_LINE);
-			if(!connection_alloc_large_header_buf(thiz))
+			if(!connection_alloc_large_header_buf(thiz, &thiz->r.header_buf))
 			{
 				thiz->r.response.status = HTTP_STATUS_INTERNAL_SERVER_ERROR;
 				return;	
 			}
 		}
 
-		count = recv(thiz->fd, buf->last, buf->end-1-buf->last, 0);
+		count = recv(thiz->fd, buf->last, buf->end-buf->last, 0);
 		if(count <= 0) 
 		{
 			thiz->r.response.status = HTTP_STATUS_CLOSE;
@@ -432,21 +128,31 @@ PARSE:
 		switch(parse_state)
 		{
 			case STAT_PARSE_REQUEST_LINE:
-				parse_ret = connection_parse_request_line(thiz);
+				parse_ret = http_parse_request_line(&thiz->r, buf);
 				if(parse_ret == HTTP_PARSE_DONE) parse_state = STAT_PARSE_HEADER_LINE;
 				break;
 			case STAT_PARSE_HEADER_LINE:
-				parse_ret = connection_parse_header_line(thiz);
+				parse_ret = http_parse_header_line(&thiz->r, buf, &thiz->r.headers);
 				if(parse_ret == HTTP_PARSE_DONE) 
 				{
-					parse_state = STAT_PARSE_BODY;
+					if(!connection_sync_request_headers(thiz)) return;
+
+					if(thiz->r.content_len <= 0)
+					{
+						parse_state = STAT_PARSE_DONE;
+						thiz->r.content_len = 0;
+					}
+					else
+					{
+						parse_state = STAT_PARSE_BODY;
+					}
 
 					if(thiz->r.content_len > thiz->conf->max_content_len)
 					{
 						thiz->r.response.status = HTTP_STATUS_BAD_REQUEST;
 						return;	
 					}
-					else if(thiz->r.content_len > buf->end-1 - buf->pos)
+					else if(thiz->r.content_len > buf->end-buf->pos)
 					{
 						size_t rest = buf->last - buf->pos;
 						buf_create(&(thiz->r.body_buf), thiz->r.pool, thiz->r.content_len + 1);
@@ -463,10 +169,11 @@ PARSE:
 						buf = &(thiz->r.body_buf);
 					}
 				}
-				
 				break;
 			case STAT_PARSE_BODY:
-				if(buf->last - buf->pos >= thiz->r.content_len)
+				//TODO chunked.
+				parse_ret = http_parse_content_body(&thiz->r, buf, 0, thiz->r.content_len);
+				if(parse_ret == HTTP_PARSE_DONE)
 				{
 					parse_state = STAT_PARSE_DONE;
 				}
@@ -604,10 +311,10 @@ static void connection_process_request(connection_t* thiz)
 	size_t i = 0;
 	for(; i<vhost_nr; i++)
 	{
-		//TODO host or url host?
-		if(strncasecmp(thiz->r.host->data, 
+		//TODO host header or url host?
+		if(strncasecmp(thiz->r.host_header->data, 
 					   vhosts[i]->name.data, 
-					   thiz->r.url.host.len) == 0)
+					   vhosts[i]->name.len) == 0)
 		{
 			break;
 		}
@@ -713,7 +420,7 @@ static int connection_reusable(connection_t* thiz, int reusable)
 	if(thiz->fd >= 0)
 	{
 		close(thiz->fd);
-		while(thiz->running) sleep(1);
+		while(thiz->running) usleep(3000);
 		thiz->fd = -1;
 	}
 
@@ -721,7 +428,7 @@ static int connection_reusable(connection_t* thiz, int reusable)
 	if(thiz->r.upstream != NULL) 
 	{
 		upstream_abort(thiz->r.upstream);
-		while(thiz->running) sleep(1);
+		while(thiz->running) usleep(3000);
 		thiz->r.upstream = NULL;
 	}
 
@@ -764,15 +471,15 @@ connection_t* connection_create(pool_t* pool, conf_t* conf)
 
 int connection_run(connection_t* thiz, int fd)
 {
-	assert(thiz!=NULL && fd >= 0);
-	int ret = 1;
-
+	assert(thiz!=NULL && fd>=0);
 	if(thiz->running) return 0;
-	assert(thiz->r.pool == NULL && thiz->fd == -1);
+	assert(thiz->r.pool==NULL && thiz->fd<0);
+
 	thiz->r.pool = pool_create(thiz->conf->request_pool_size);
 	if(thiz->r.pool == NULL) return 0;
 	thiz->start_time = time(NULL);
 	thiz->fd = fd;
+	int ret = 1;
 	
 	thiz->running = 1;
 	while(!thiz->timedout && thiz->running)
@@ -789,7 +496,6 @@ int connection_run(connection_t* thiz, int fd)
 		if(thiz->timedout) break;
 		connection_process_request(thiz);
 		if(thiz->timedout) break;
-
 DONE:
 		if(thiz->r.response.status == HTTP_STATUS_CLOSE) 
 		{
@@ -836,13 +542,13 @@ int connection_check_timeout(connection_t* thiz)
 				//add this can speed up the return of connection_run thread.
 				shutdown(thiz->fd, SHUT_RDWR);
 				close(thiz->fd);
-				while(thiz->running) sleep(1);
+				while(thiz->running) usleep(3000);
 				thiz->fd = -1;
 			}
 			if(thiz->r.upstream != NULL) 
 			{
 				upstream_abort(thiz->r.upstream);
-				while(thiz->running) sleep(1);
+				while(thiz->running) usleep(3000);
 				thiz->r.upstream = NULL;
 			}
 		}
@@ -851,6 +557,5 @@ int connection_check_timeout(connection_t* thiz)
 
 	return 1;
 }
-
 
 

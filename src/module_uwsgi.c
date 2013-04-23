@@ -5,7 +5,8 @@
 #include <sys/stat.h>
 #include <errno.h>
 #include "typedef.h"
-#include "http_parse.h"
+#include "utils.h"
+#include "http.h"
 #include "module.h"
 #include "upstream.h"
 
@@ -53,7 +54,7 @@ typedef struct module_uwsgi_priv_s
 typedef struct upstream_uwsgi_priv_s
 {
 	int fd;
-	pthread_mutex_t mutex;
+	int running;
 }upstream_uwsgi_priv_t;
 
 static upstream_t* upstream_uwsgi_create(pool_t* pool, module_t* module)
@@ -96,14 +97,6 @@ static int upstream_uwsgi_add_param(char* buf, str_t* name, str_t* value)
 	return pos;
 }
 
-static void uint16_little_endian(char* buf, uint16_t data)
-{
-	buf[0] = (uint8_t) (datasize & 0x0f);
-	buf[1] = (uint8_t) ((datasize >> 8) & 0x0f);
-
-	return;
-}
-
 static uint16_t upstream_uwsgi_calc_packet_len(upstream_t* thiz, http_request_t* request)
 {
 	uint16_t datasize = 0;
@@ -144,6 +137,32 @@ static uint16_t upstream_uwsgi_calc_packet_len(upstream_t* thiz, http_request_t*
 	return datasize;
 }
 
+static int upstream_uwsgi_alloc_large_header_buf(upstream_t* thiz, buf_t* buf)
+{
+	conf_t* root_conf = ((vhost_loc_conf_t*) thiz->module->parent)->parent->parent;
+
+	int rest_len = buf->last - buf->pos;
+	int old_pos = buf->pos;
+
+	if(root_conf->large_header_size <= rest_len)
+	{
+		return 0;
+	}
+	buf_create(buf, thiz->r.pool, thiz->conf->large_client_header_size + 1);
+
+	if(buf->start == NULL) return 0;
+
+	*(buf->end - 1) = '\0'; 
+	buf->end -= 1;
+	if(rest_len > 0)
+	{
+		memcpy(buf->start, old_pos, rest_len);
+		buf->last += rest_len;
+	}
+
+	return 1;
+}
+
 static void upstream_uwsgi_process(upstream_t* thiz, http_request_t* request)
 {
 	conf_t* root_conf = ((vhost_loc_conf_t*) thiz->module->parent)->parent->parent;
@@ -151,6 +170,7 @@ static void upstream_uwsgi_process(upstream_t* thiz, http_request_t* request)
 
 	DECL_PRIV(thiz->module, module_priv, module_uwsgi_priv_t*);
 	DECL_PRIV(thiz, upstream_priv, upstream_uwsgi_priv_t*);
+	upstream_priv->running = 1;
 
 	uint16_t datasize = upstream_uwsgi_calc_packet_len(thiz, request);
 	char* buf = (char* )pool_calloc(pool, datasize + 4); //4 means the length of packet header.
@@ -168,8 +188,6 @@ static void upstream_uwsgi_process(upstream_t* thiz, http_request_t* request)
 	pos += upstream_uwsgi_add_param(buf+pos, &CGI_CONTENT_TYPE, request->content_type_header);
 	pos += upstream_uwsgi_add_param(buf+pos, &CGI_CONTENT_LENGTH, request->content_len_header);
 	pos += upstream_uwsgi_add_param(buf+pos, &CGI_REQUEST_URI, &request->url.unparsed_url);
-
-	//FIXME url path may be null.
 	pos += upstream_uwsgi_add_param(buf+pos, &CGI_DOCUMENT_URI, &request->url.path);
 	pos += upstream_uwsgi_add_param(buf+pos, &CGI_DOCUMENT_ROOT, &loc_conf->root);
 	pos += upstream_uwsgi_add_param(buf+pos, &CGI_SERVER_PROTOCOL, &request->version_str);
@@ -186,6 +204,7 @@ static void upstream_uwsgi_process(upstream_t* thiz, http_request_t* request)
 	str_t port = {str, count};
 	pos += upstream_uwsgi_add_param(buf+pos, &CGI_SERVER_PORT, &port);
 	pos += upstream_uwsgi_add_param(buf+pos, &CGI_SERVER_NAME, &loc_conf->parent->name);
+	//TODO params from config.
 
 	str_t** headers = request->headers.elts;
 	int header_count = request->headers.count;
@@ -224,7 +243,7 @@ static void upstream_uwsgi_process(upstream_t* thiz, http_request_t* request)
 	{
 		request->response->status = HTTP_STATUS_BAD_GATEWAY;
 
-		return;
+		goto DONE;
 	}
 
 	if(request->content_len > 0)
@@ -233,38 +252,121 @@ static void upstream_uwsgi_process(upstream_t* thiz, http_request_t* request)
 		{
 			request->response->status = HTTP_STATUS_BAD_GATEWAY;
 
-			return;
+			goto DONE;
 		}
 	}
 
-	//accept the response from app server.
-	//and parse it to response.
+	enum 
+	{
+		STAT_PARSE_STATUS_LINE = 0,
+		STAT_PARSE_HEADER_LINE,
+		STAT_PARSE_BODY,
+		STAT_PARSE_DONE,
+	}state = STAT_PARSE_STATUS_LINE;
 
-	/*http_parse_response_line();
-	http_parse_header_line();
-	http_parse_content_body();*/
+	int parse_ret = HTTP_PARSE_AGAIN;
+	buf_t* buf = &upstream_priv->header_buf;
+	for(;;)
+	{
+		if(buf->last == buf->end)
+		{
+			assert(state <= STAT_PARSE_HEADER_LINE);
+			if(!upstream_uwsgi_alloc_large_header_buf(thiz, &thiz->r.header_buf))
+			{
+				request->response.status = HTTP_STATUS_INTERNAL_SERVER_ERROR;
+				goto DONE;
+			}
 
-	return HTTP_UPSTREAM_DONE;
+		}
+
+		recv(upstream_priv->fd, buf->last, buf->end-buf->last, 0);
+		if(count <= 0)
+		{
+			request->response.status = HTTP_STATUS_BAD_GATEWAY;
+			break;
+		}
+		buf->last += count;
+PARSE:
+		switch(state)
+		{
+			case STAT_PARSE_STATUS_LINE:
+				parse_ret = http_parse_status_line(request, buf, &request->response.status);
+				if(parse_ret == HTTP_PARSE_DONE)
+				{
+					state = STAT_PARSE_HEADER_LINE;
+				}
+				break;
+
+			case STAT_PARSE_HEADER_LINE:
+				parse_ret = http_parse_header_line(request, buf, request->response.headers);
+				if(parse_ret == HTTP_PARSE_DONE)
+				{
+					request->response.content_len = http_header_int(request->response.headers, HTTP_HEADER_CONTENT_LEN);
+					if(request->response.content_len <= 0)
+					{
+						state = STAT_PARSE_DONE;
+						request->response.content_len = 0;
+					}
+					else
+					{
+						state = STAT_PARSE_BODY;
+					}
+				}
+				break;
+
+			case STAT_PARSE_BODY:
+				parse_ret = http_parse_content_body(request, buf, 0, content_len);
+				break;
+			case STAT_PARSE_DONE:
+			default:
+				assert(0);
+				break;
+		}
+
+		if(state!=STAT_PARSE_DONE && 
+				parse_ret==HTTP_PARSE_DONE)
+		{
+			goto PARSE;
+		}
+		else if(parse_ret==HTTP_PARSE_FAIL)
+		{
+			thiz->r.response.status = HTTP_STATUS_BAD_REQUEST;
+			goto DONE;
+		}
+		if(state == STAT_PARSE_DONE)
+		{
+			thiz->r.response.status = HTTP_STATUS_OK;
+			goto DONE;
+		}
+	}
+DONE:
+	thiz->running = 0;
+	return;
 }
 
 static int upstream_uwsgi_abort(upstream_t* thiz)
 {
 	DECL_PRIV(thiz, priv, upstream_uwsgi_priv_t*);
 
-	pthread_mutex_lock(&priv->mutex);
-	if(priv->fd > 0)
+	if(priv->fd > 0 && priv->running)
 	{
-		//TODO maybe there will be a mutex problem.
 		shutdown(priv->fd);
-		while(priv->running) sleep(1);
+		while(priv->running) usleep(3000);
 	}
-	pthread_mutex_unlock(&priv->mutex);
 
 	return 1;
 }
 
 static void upstream_uwsgi_destroy(void* data)
 {
+	//TODO cleanup
+	upstream_t* thiz = (upstream_t* data);
+	assert(thiz != NULL);
+
+	DECL_PRIV(thiz, priv, upstream_uwsgi_priv_t*);
+
+	close(priv->fd);
+
 	return;
 }
 
@@ -299,11 +401,12 @@ module_t* module_uwsgi_create(void* parent, array_t* params, pool_t* pool)
 			priv->ip.data = pool_strdup(pool, values[0]->data);
 			priv->ip.len = name->len;
 		}
+		/*
 		else if(strncmp(name->data, "param") == 0)
 		{
-			int k = 0;	
+			int k = 0;
 			for(; k<)
-		}
+		}*/
 	}
 
 	return thiz;

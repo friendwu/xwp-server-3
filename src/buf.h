@@ -1,6 +1,6 @@
 #ifndef BUF_H
 #define BUF_H
-typedef struct pool_s pool_t;
+#include "pool.h"
 typedef struct buf_s
 {
 	char* start;
