@@ -48,11 +48,11 @@ static void* server_listen_proc(void* ctx)
 		thiz->free_connections = c->next;
 		pthread_mutex_unlock(&thiz->mutex);
 
-		assert(c!=NULL && c->running == 0);
+		assert(c!=NULL && c->state == CONNECTION_REUSEABLE);
 
 		connection_run(c, fd);
 		
-		assert(c->running == 0);
+		assert(c->state == CONNECTION_REUSEABLE);
 
 		pthread_mutex_lock(&thiz->mutex);
 		c->next = thiz->free_connections;

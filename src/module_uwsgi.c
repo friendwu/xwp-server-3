@@ -256,89 +256,15 @@ static void upstream_uwsgi_process(upstream_t* thiz, http_request_t* request)
 		}
 	}
 
-	enum 
-	{
-		STAT_PARSE_STATUS_LINE = 0,
-		STAT_PARSE_HEADER_LINE,
-		STAT_PARSE_BODY,
-		STAT_PARSE_DONE,
-	}state = STAT_PARSE_STATUS_LINE;
+	int ret = 0;
+	ret = http_process_status_line(request, upstream_priv->fd);
+	if(ret == 0) goto DONE;
+	
+	ret = http_process_header_line(request, upstream_priv->fd, HTTP_PROCESS_PHASE_RESPONSE);
+	if(ret == 0) goto DONE;
 
-	int parse_ret = HTTP_PARSE_AGAIN;
-	buf_t* buf = &upstream_priv->header_buf;
-	for(;;)
-	{
-		if(buf->last == buf->end)
-		{
-			assert(state <= STAT_PARSE_HEADER_LINE);
-			if(!upstream_uwsgi_alloc_large_header_buf(thiz, &thiz->r.header_buf))
-			{
-				request->response.status = HTTP_STATUS_INTERNAL_SERVER_ERROR;
-				goto DONE;
-			}
+	http_process_content_body(request, upstream_priv->fd, &request->body_out, request->headers_out.content_len);
 
-		}
-
-		recv(upstream_priv->fd, buf->last, buf->end-buf->last, 0);
-		if(count <= 0)
-		{
-			request->response.status = HTTP_STATUS_BAD_GATEWAY;
-			break;
-		}
-		buf->last += count;
-PARSE:
-		switch(state)
-		{
-			case STAT_PARSE_STATUS_LINE:
-				parse_ret = http_parse_status_line(request, buf, &request->response.status);
-				if(parse_ret == HTTP_PARSE_DONE)
-				{
-					state = STAT_PARSE_HEADER_LINE;
-				}
-				break;
-
-			case STAT_PARSE_HEADER_LINE:
-				parse_ret = http_parse_header_line(request, buf, request->response.headers);
-				if(parse_ret == HTTP_PARSE_DONE)
-				{
-					request->response.content_len = http_header_int(request->response.headers, HTTP_HEADER_CONTENT_LEN);
-					if(request->response.content_len <= 0)
-					{
-						state = STAT_PARSE_DONE;
-						request->response.content_len = 0;
-					}
-					else
-					{
-						state = STAT_PARSE_BODY;
-					}
-				}
-				break;
-
-			case STAT_PARSE_BODY:
-				parse_ret = http_parse_content_body(request, buf, 0, content_len);
-				break;
-			case STAT_PARSE_DONE:
-			default:
-				assert(0);
-				break;
-		}
-
-		if(state!=STAT_PARSE_DONE && 
-				parse_ret==HTTP_PARSE_DONE)
-		{
-			goto PARSE;
-		}
-		else if(parse_ret==HTTP_PARSE_FAIL)
-		{
-			thiz->r.response.status = HTTP_STATUS_BAD_REQUEST;
-			goto DONE;
-		}
-		if(state == STAT_PARSE_DONE)
-		{
-			thiz->r.response.status = HTTP_STATUS_OK;
-			goto DONE;
-		}
-	}
 DONE:
 	thiz->running = 0;
 	return;

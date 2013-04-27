@@ -1,4 +1,5 @@
 #include "http.h"
+#include "conf.h"
 #include <string.h>
 #define CRLF "\r\n"
 

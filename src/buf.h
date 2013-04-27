@@ -9,12 +9,14 @@ typedef struct buf_s
 	char* last;
 }buf_t;
 
+/*
 typedef struct chain_s
 {
 	buf_t buf;
 	struct chain_s* next;
 }chain_t;
+*/
 
-int buf_create(buf_t* thiz, pool_t* pool, int size);
+buf_t* buf_create(pool_t* pool, int size);
 
 #endif

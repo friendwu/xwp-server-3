@@ -2,18 +2,20 @@
 #include "typedef.h"
 #include "array.h"
 
-int array_init(array_t* thiz, pool_t* pool, int nalloc)
+array_t* array_create(pool_t* pool, int nalloc)
 {
-	assert(thiz!=NULL && pool!=NULL && nalloc > 0);
+	assert(pool != NULL && nalloc > 0);
 
-	thiz->elts = (void** ) pool_alloc(pool, nalloc * sizeof(void*));
-	if(thiz->elts == NULL) return 0;
+	array_t* thiz = pool_calloc(pool, sizeof(array_t) + nalloc * sizeof(void*));
+	if(thiz == NULL) return NULL;
+
+	thiz->elts = (void** )((char* )thiz + sizeof(array_t)); 
 
 	thiz->count = 0;
 	thiz->nalloc = nalloc;
 	thiz->pool = pool;
 
-	return 1;
+	return thiz;
 }
 
 //TODO put the data alloc operation in it.
@@ -38,3 +40,14 @@ int array_push(array_t* thiz, void* data)
 
 	return 1;
 }
+
+/*
+int array_reset(array_t* thiz)
+{
+	assert(thiz != NULL);
+
+	thiz->count = 0;
+
+	return 1;
+}
+*/

@@ -1,12 +1,12 @@
 #include <dlfcn.h>
 #include <assert.h>
-#include "typedef.h"
 #include "conf.h"
 #include "module.h"
 #define DEFAULT_PORT 80
 #define DEFAULT_MAX_THREADS 50
 #define DEFAULT_CONNECTION_TIMEOUT 30
 #define DEFAULT_ROOT "."
+
 /*
    static void config_parse_loadmodule(conf_t* thiz, XmlNode* root)
    {
@@ -224,8 +224,8 @@ conf_t* conf_parse(const char* config_file, pool_t* pool)
 	to_string(thiz->root, ".");
 	to_string(thiz->default_page, "index.html");
 
-	array_init(&thiz->module_sos, pool, 10);
-	array_init(&thiz->vhosts, pool, 10);
+	thiz->module_sos = array_create(pool, 10);
+	thiz->vhosts = array_create(pool, 10);
 
 	//loadmodule
 	void* handler = NULL;
@@ -243,13 +243,13 @@ conf_t* conf_parse(const char* config_file, pool_t* pool)
 	so->parent = thiz;
 
 	module_get_info(so, pool);
-	array_push(&thiz->module_sos, so);
+	array_push(thiz->module_sos, so);
 
 	//vhost
 	vhost_conf_t* vhost = pool_calloc(pool, sizeof(vhost_conf_t));
 	vhost->parent = thiz;
-	array_push(&thiz->vhosts, vhost);
-	array_init(&vhost->locs, pool, 10);
+	array_push(thiz->vhosts, vhost);
+	vhost->locs = array_create(pool, 10);
 	to_string(vhost->name, "localhost");
 	to_string(vhost->root, ".");
 	to_string(vhost->root, ".");
@@ -263,7 +263,7 @@ conf_t* conf_parse(const char* config_file, pool_t* pool)
 	regcomp(&loc->pattern_regex, loc->pattern_str.data, 0);
 	to_string(loc->handler_name, "default");
 	loc->handler = so->module_create(loc, NULL, pool);
-	array_push(&vhost->locs, loc);
+	array_push(vhost->locs, loc);
 
 	return thiz;
 }

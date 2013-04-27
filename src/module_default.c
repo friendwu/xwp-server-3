@@ -5,6 +5,7 @@
 #include <errno.h>
 #include "typedef.h"
 #include "module.h"
+#include "http.h"
 
 typedef struct module_default_priv_s 
 {
@@ -14,11 +15,10 @@ typedef struct module_default_priv_s
 static int module_default_handle_request(module_t* thiz, http_request_t* request)
 {
 	assert(thiz!=NULL && request!=NULL);
-	http_response_t* response = &request->response;
 
 	if(request->method != HTTP_METHOD_GET)
 	{
-		response->status = HTTP_STATUS_BAD_REQUEST;
+		request->status = HTTP_STATUS_BAD_REQUEST;
 		return HTTP_MODULE_PROCESS_DONE;
 	}
 	
@@ -45,7 +45,7 @@ static int module_default_handle_request(module_t* thiz, http_request_t* request
 	struct stat st = {0};
 	if(stat(path, &st) != 0)
 	{
-		response->status = HTTP_STATUS_NOT_FOUND;
+		request->status = HTTP_STATUS_NOT_FOUND;
 		printf("stat %s failed: %s\n", path, strerror(errno));
 
 		return HTTP_MODULE_PROCESS_DONE;
@@ -55,7 +55,7 @@ static int module_default_handle_request(module_t* thiz, http_request_t* request
 	if(S_ISDIR(st.st_mode) || 
 		!(S_ISREG(st.st_mode) && (S_IRUSR & st.st_mode)))
 	{
-		response->status = HTTP_STATUS_FORBIDDEN;
+		request->status = HTTP_STATUS_FORBIDDEN;
 
 		return HTTP_MODULE_PROCESS_DONE;
 	}
@@ -63,19 +63,19 @@ static int module_default_handle_request(module_t* thiz, http_request_t* request
 	int fd = open(path, O_RDONLY);
 	if(fd < 0) 
 	{
-		response->status = HTTP_STATUS_NOT_FOUND;
+		request->status = HTTP_STATUS_NOT_FOUND;
 
 		return HTTP_MODULE_PROCESS_DONE;
 	}
 	
-	response->content_fd = fd;
-	response->content_len = st.st_size;
+	request->body_out.content_fd = fd;
+	request->body_out.content_len = st.st_size;
 
 	char* extension = strrchr(request->url.path.data, '.');
 	if(extension != NULL) extension += 1;
 	
-	http_header_set(&response->headers, HTTP_HEADER_CONTENT_TYPE, http_content_type(extension));
-	response->status = HTTP_STATUS_OK;
+	http_header_set(request->headers_out.headers, HTTP_HEADER_CONTENT_TYPE, http_content_type(extension));
+	request->status = HTTP_STATUS_OK;
 	
 	return HTTP_MODULE_PROCESS_DONE;
 }

@@ -4,6 +4,7 @@
 #include <sys/types.h>
 #include "pool.h"
 #include "array.h"
+#include "typedef.h"
 typedef struct module_s module_t;
 typedef struct vhost_conf_s vhost_conf_t;
 typedef struct conf_s conf_t;
@@ -18,7 +19,7 @@ typedef enum
 typedef struct module_param_s
 {
 	str_t name;
-	array_t values; //str_t*
+	array_t* values; //str_t*
 }module_param_t;
 
 typedef struct vhost_loc_conf_s 
@@ -28,7 +29,7 @@ typedef struct vhost_loc_conf_s
 	str_t pattern_str;
 	regex_t pattern_regex;
 	
-	array_t handler_params; // module_param_t*
+	array_t* handler_params; // module_param_t*
 	str_t handler_name;
 	module_t* handler;
 }vhost_loc_conf_t;
@@ -40,7 +41,7 @@ typedef struct vhost_conf_s
 	str_t root;
 	//array_t default_pages;
 
-	array_t locs; //vhost_loc_conf_t*
+	array_t* locs; //vhost_loc_conf_t*
 	//TODO
 	vhost_loc_conf_t* default_loc;
 }vhost_conf_t;
@@ -73,8 +74,8 @@ typedef struct conf_s
 	//array_t default_pages; //str_t
 
 	str_t module_path;
-	array_t module_sos;    //module_so_conf_t*
-	array_t vhosts;        //vhost_conf_t*
+	array_t* module_sos;    //module_so_conf_t*
+	array_t* vhosts;        //vhost_conf_t*
 }conf_t;
 
 conf_t* conf_parse(const char* config_file, pool_t* pool);

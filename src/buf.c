@@ -2,17 +2,18 @@
 #include "buf.h"
 #include "pool.h"
 
-int buf_create(buf_t* thiz, pool_t* pool, int size)
+buf_t* buf_create(pool_t* pool, int size)
 {
-	assert(thiz!=NULL && pool!=NULL && size>0);
+	assert(pool!=NULL && size>=0);
 
-	thiz->start = pool_alloc(pool, size);
-	if(thiz->start == NULL) return 0;
+	buf_t* thiz = pool_calloc(pool, sizeof(buf_t) + size);
+	if(thiz == NULL) return NULL;
 
-	thiz->end = thiz->start + size;
+	thiz->start = (char*) thiz + sizeof(buf_t);
 	thiz->pos = thiz->start;
 	thiz->last = thiz->start;
+	thiz->end = thiz->start + size;
 
-	return 1;
+	return thiz;
 }
 

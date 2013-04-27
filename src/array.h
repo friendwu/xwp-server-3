@@ -10,7 +10,8 @@ typedef struct array_s
 	int nalloc;
 }array_t;
 
-int array_init(array_t* array, pool_t* pool, int nalloc);
-int array_push(array_t* array, void* data);
+array_t* array_create(pool_t* pool, int nalloc);
+int array_push(array_t* thiz, void* data);
+/*int array_reset(array_t* thiz);*/
 
 #endif 

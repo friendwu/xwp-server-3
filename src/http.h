@@ -3,7 +3,7 @@
 #include "typedef.h"
 #include "array.h"
 #include "buf.h"
-
+typedef struct conf_s conf_t;
 typedef struct upstream_s upstream_t;
 
 typedef struct http_header_s 
@@ -36,37 +36,63 @@ typedef enum
 	HTTP_VERSION_11,
 }http_version_e;
 
-typedef struct http_response_s
+typedef enum 
 {
-	int status;
-	array_t headers; //http_header_t* 
+	HTTP_PROCESS_STAT_NONE = 0,
+	HTTP_PROCESS_STAT_REQUEST_LINE,
+	HTTP_PROCESS_STAT_HEADER_LINE,
+	HTTP_PROCESS_STAT_CONTENT_BODY,
+	HTTP_PROCESS_STAT_STATUS_LINE,
+}http_process_state_e;
+
+typedef struct http_headers_in_s
+{
+	array_t* headers; //http_header_t* 
+
+	const str_t* host;
 	int content_len;
-	char* content_body;
+}http_headers_in_t;
+
+typedef struct http_headers_out_s
+{
+	array_t* headers;
+
+	//TODO read nginx code here.
+	int content_len;
+}http_headers_out_t;
+
+typedef struct http_content_body_s
+{
+	int content_len;
+	char* content;	
 	int content_fd;
-}http_response_t;
+}http_content_body_t;
 
 typedef struct http_request_s
 {
 	pool_t* pool;
-	http_method_e method;
+	const conf_t* conf;
+
+	http_process_state_e state;
 	str_t method_str;
+	http_method_e method;
 	url_t url;
 	str_t version_str;
 	http_version_e version;
-	array_t headers; //http_header_t* 
-	buf_t header_buf;
-	buf_t body_buf;
+	int status; //response status.
 	int keep_alive;
 
-	const str_t* usragent_header;
-	const str_t* host_header;
-	
-	int content_len;
-	upstream_t* upstream;
+	buf_t* header_buf;
+	http_headers_in_t headers_in;
+	http_headers_out_t headers_out;
 
-	http_response_t response;
+	http_content_body_t body_in;
+	http_content_body_t body_out;
+
+	upstream_t* upstream;
 }http_request_t;
 
+#define HTTP_STATUS_START                     100
 #define HTTP_STATUS_OK                        200
 #define HTTP_STATUS_CREATED                   201
 #define HTTP_STATUS_ACCEPTED                  202
@@ -127,6 +153,7 @@ typedef struct http_request_s
 #define HTTP_STATUS_SERVICE_UNAVAILABLE       503
 #define HTTP_STATUS_GATEWAY_TIME_OUT          504
 #define HTTP_STATUS_INSUFFICIENT_STORAGE      507
+#define HTTP_STATUS_END                       599 
 
 extern const str_t* HTTP_HEADER_CONNECTION;
 extern const str_t* HTTP_HEADER_DATE;
@@ -147,13 +174,12 @@ const str_t* http_header_str(array_t* headers, const str_t* name);
 int http_header_int(array_t* headers, const str_t* name);
 str_t* http_error_page(int status, pool_t* pool);
 
-
-#define HTTP_PARSE_DONE 1
-#define HTTP_PARSE_FAIL 0
-#define HTTP_PARSE_AGAIN -1
-int http_parse_request_line(http_request_t* request, buf_t* buf);
-int http_parse_header_line(http_request_t* request, buf_t* buf, array_t* headers);
-int http_parse_content_body(http_request_t* request, buf_t* buf, int chunked, int content_len);
-int http_parse_status_line(http_request_t* request, buf_t* buf, int* status);
+#define HTTP_PROCESS_PHASE_REQUEST  0
+#define HTTP_PROCESS_PHASE_RESPONSE 1 
+http_request_t* http_request_create(pool_t* pool, const conf_t* conf);
+int http_process_request_line(http_request_t* request, int fd);
+int http_process_header_line(http_request_t* request, int fd, int process_phase);
+int http_process_status_line(http_request_t* request, int fd);
+int http_process_content_body(http_request_t* request, int fd, http_content_body_t* content_body, int content_len);
 
 #endif
