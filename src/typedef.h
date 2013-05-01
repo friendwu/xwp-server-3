@@ -5,7 +5,7 @@
 #include <stdlib.h>
 
 
-#define DECL_PRIV(thiz, priv, type) (type) (priv) = (thiz) != NULL ? (type)(thiz)->(priv) : NULL
+#define DECL_PRIV(thiz, val, type) type val = thiz != NULL ? (type)thiz->priv : NULL
 
 #define DESTROY_MEM(func, p) if(!(p)) \
 	{func(p);} \

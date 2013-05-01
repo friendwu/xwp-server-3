@@ -50,7 +50,7 @@ static void* server_listen_proc(void* ctx)
 
 		assert(c!=NULL && c->state == CONNECTION_REUSEABLE);
 
-		connection_run(c, fd);
+		connection_run(c, fd, &peer_addr);
 		
 		assert(c->state == CONNECTION_REUSEABLE);
 

@@ -3,8 +3,10 @@
 #include "typedef.h"
 #include "array.h"
 #include "buf.h"
+#include <stdint.h>
 typedef struct conf_s conf_t;
 typedef struct upstream_s upstream_t;
+struct sockaddr_in;
 
 typedef struct http_header_s 
 {
@@ -14,7 +16,7 @@ typedef struct http_header_s
 
 typedef struct url_s
 {
-	//str_t unparsed_url;
+	str_t unparsed_url;
 	str_t schema;
 	str_t host;
 	int port;
@@ -49,7 +51,10 @@ typedef struct http_headers_in_s
 {
 	array_t* headers; //http_header_t* 
 
-	const str_t* host;
+	const str_t* header_host;
+	const str_t* header_content_type;
+	const str_t* header_content_len;
+
 	int content_len;
 }http_headers_in_t;
 
@@ -73,6 +78,9 @@ typedef struct http_request_s
 	pool_t* pool;
 	const conf_t* conf;
 
+	struct sockaddr_in* peer_addr;
+	str_t remote_ip;
+	uint16_t remote_port;
 	http_process_state_e state;
 	str_t method_str;
 	http_method_e method;
@@ -176,7 +184,7 @@ str_t* http_error_page(int status, pool_t* pool);
 
 #define HTTP_PROCESS_PHASE_REQUEST  0
 #define HTTP_PROCESS_PHASE_RESPONSE 1 
-http_request_t* http_request_create(pool_t* pool, const conf_t* conf);
+http_request_t* http_request_create(pool_t* pool, const conf_t* conf, struct sockaddr_in* peer_addr);
 int http_process_request_line(http_request_t* request, int fd);
 int http_process_header_line(http_request_t* request, int fd, int process_phase);
 int http_process_status_line(http_request_t* request, int fd);

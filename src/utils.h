@@ -5,6 +5,7 @@
 
 typedef int (*IS_DELIM_FUNC)(int c);
 
+int connect_remote(char* ip, int port);
 int open_listen_fd(char* ip, int port);
 int get_token(str_t* str, char** buf, IS_DELIM_FUNC delim_func, const char* delim);
 int nwrite(int fd, char* buf, size_t len);

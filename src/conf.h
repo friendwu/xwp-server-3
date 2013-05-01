@@ -8,7 +8,10 @@
 typedef struct module_s module_t;
 typedef struct vhost_conf_s vhost_conf_t;
 typedef struct conf_s conf_t;
-typedef module_t* (*MODULE_CREATE_FUNC)(void* parent, array_t* params, pool_t* pool);//must hook the destroy handler on the pool cleanup. 
+typedef struct _XmlNode XmlNode;
+
+//FIXME multiple redefinition.
+typedef module_t* (*MODULE_CREATE_FUNC)(void* ctx, XmlNode* xml_conf_node, pool_t* pool);//must hook the destroy handler on the pool cleanup. 
 
 typedef enum
 {
@@ -29,7 +32,7 @@ typedef struct vhost_loc_conf_s
 	str_t pattern_str;
 	regex_t pattern_regex;
 	
-	array_t* handler_params; // module_param_t*
+	//array_t* handler_params; // module_param_t*
 	str_t handler_name;
 	module_t* handler;
 }vhost_loc_conf_t;
@@ -56,6 +59,7 @@ typedef struct module_so_conf_s
 	module_type_e module_type; /*0 handler, 1 filter.*/
 
 	MODULE_CREATE_FUNC module_create;
+	//MODULE_CONF_PARSE_FUNC module_conf_parse;
 }module_so_conf_t;
 
 typedef struct conf_s

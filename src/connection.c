@@ -1,3 +1,4 @@
+#include <arpa/inet.h>
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <stdlib.h>
@@ -139,7 +140,7 @@ static void connection_process_request(connection_t* thiz)
 	{
 		//TODO host header or url host, 
 		//in 1.0 version, is the host header indispensable?
-		if(strncasecmp(thiz->r->headers_in.host->data, 
+		if(strncasecmp(thiz->r->headers_in.header_host->data, 
 					   vhosts[i]->name.data, 
 					   vhosts[i]->name.len) == 0)
 		{
@@ -147,9 +148,9 @@ static void connection_process_request(connection_t* thiz)
 		}
 	}
 
-	//cannot find matched vhost.
 	if(i == vhost_nr) 
 	{
+		printf("cannot find the vhost: %s\n", thiz->r->headers_in.header_host->data);
 		thiz->r->status = HTTP_STATUS_BAD_REQUEST;
 		return;
 	}
@@ -165,9 +166,9 @@ static void connection_process_request(connection_t* thiz)
 	}
 
 	//TODO there should be a default handler.
-	//cannot find matched location.
 	if(k == loc_nr) 
 	{
+		printf("cannot find the location: %s\n", thiz->r->url.path.data);
 		thiz->r->status = HTTP_STATUS_BAD_REQUEST;
 		return;
 	}
@@ -181,7 +182,7 @@ static void connection_process_request(connection_t* thiz)
 	}
 	else if(ret == HTTP_MODULE_PROCESS_UPSTREAM)
 	{
-		upstream_process(thiz->r->upstream, thiz->r);
+		upstream_process(thiz->r->upstream);
 	}
 	else
 	{
@@ -212,7 +213,7 @@ static int connection_finalize_request(connection_t* thiz)
 	thiz->request_pool = pool_create(thiz->conf->request_pool_size);
 	if(thiz->request_pool == NULL) return 0;
 
-	thiz->r = http_request_create(thiz->request_pool, thiz->conf);
+	thiz->r = http_request_create(thiz->request_pool, thiz->conf, thiz->peer_addr);
 	if(thiz->r == NULL) 
 	{
 		pool_destroy(thiz->request_pool);
@@ -310,15 +311,16 @@ connection_t* connection_create(pool_t* pool, const conf_t* conf)
 	return thiz;
 }
 
-int connection_run(connection_t* thiz, int fd)
+int connection_run(connection_t* thiz, int fd, struct sockaddr_in* peer_addr)
 {
 	assert(thiz!=NULL && fd>=0);
 	assert(thiz->state == CONNECTION_REUSEABLE);
 
+	thiz->peer_addr = peer_addr;
 	thiz->request_pool = pool_create(thiz->conf->request_pool_size);
 	if(thiz->request_pool == NULL) return 0;
 
-	thiz->r = http_request_create(thiz->request_pool, thiz->conf);
+	thiz->r = http_request_create(thiz->request_pool, thiz->conf, peer_addr);
 	if(thiz->r == NULL)
 	{
 		pool_destroy(thiz->request_pool);

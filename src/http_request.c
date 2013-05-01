@@ -1,3 +1,4 @@
+#include <arpa/inet.h>
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <ctype.h>
@@ -37,6 +38,9 @@ static int http_parse_url(http_request_t* request, url_t* url, str_t* url_str)
 	char* port_start = NULL;
 	char* port_end = NULL;
 	pool_t* pool = request->pool;
+
+	url->unparsed_url.data = pool_strndup(pool, url_str->data, url_str->len);
+	url->unparsed_url.len = url_str->len;
 
 	enum 
 	{
@@ -319,7 +323,33 @@ static int http_parse_header_line(http_request_t* request, buf_t* buf, array_t* 
 		//full line
 		//FIXME should trim space.
 		get_token(&name, &pos, NULL, ":");
-		get_token(&value, &pos, isspace, NULL);
+
+		//skip empty line first.
+		while(isspace(*pos) && pos<last && *pos!='\0') pos++;
+
+		//get_token(&value, &pos, , NULL);
+
+		if(pos == eol) 
+		{
+			value.data = NULL;
+			value.len = NULL;
+		}
+		else
+		{
+			if(*(eol-1) == '\r')
+			{
+				*(eol-1) = '\0';
+				value.data = pos;
+				value.len = eol - 1 - pos;
+			}
+			else
+			{
+				*eol = '\0';
+				value.data = pos;
+				value.len = eol - pos;
+			}
+		}
+
 		if(name.data == NULL) 
 		{
 			ret = HTTP_PARSE_FAIL;
@@ -416,7 +446,7 @@ static int http_alloc_large_client_header_buf(http_request_t* request)
 	return 1;
 }
 
-http_request_t* http_request_create(pool_t* pool, const conf_t* conf)
+http_request_t* http_request_create(pool_t* pool, const conf_t* conf, struct sockaddr_in* peer_addr)
 {
 	assert(pool != NULL && conf != NULL);
 
@@ -439,6 +469,11 @@ http_request_t* http_request_create(pool_t* pool, const conf_t* conf)
 
 	request->body_out.content = NULL;
 	request->body_out.content_fd = -1;
+
+	request->peer_addr = peer_addr;
+	request->remote_ip.data = inet_ntoa(peer_addr->sin_addr); 
+	request->remote_ip.len = strlen(request->remote_ip.data); 
+	request->remote_port = (uint16_t)peer_addr->sin_port; 
 
 	return request;
 }
@@ -552,12 +587,14 @@ int http_process_header_line(http_request_t* request, int fd, int process_phase)
 	if(process_phase == HTTP_PROCESS_PHASE_REQUEST)
 	{
 		http_headers_in_t* headers_in = &request->headers_in;
-		headers_in->host = http_header_str(headers, HTTP_HEADER_HOST);
-		if(headers_in->host == NULL)
+		headers_in->header_host = http_header_str(headers, HTTP_HEADER_HOST);
+		if(headers_in->header_host == NULL)
 		{
 			request->status = HTTP_STATUS_BAD_REQUEST;
 			return 0;
 		}
+		headers_in->header_content_type = http_header_str(headers, HTTP_HEADER_CONTENT_TYPE);
+		headers_in->header_content_len = http_header_str(headers, HTTP_HEADER_CONTENT_LEN);
 
 		headers_in->content_len = http_header_int(headers, HTTP_HEADER_CONTENT_LEN);
 		if(headers_in->content_len < 0) headers_in->content_len = 0;
@@ -591,7 +628,7 @@ int http_process_header_line(http_request_t* request, int fd, int process_phase)
 
 int http_process_status_line(http_request_t* request, int fd)
 {
-	assert(request!=NULL && fd>=0 && request->status==HTTP_PROCESS_STAT_CONTENT_BODY);
+	assert(request!=NULL && fd>=0 && request->state==HTTP_PROCESS_STAT_CONTENT_BODY);
 	int parse = HTTP_PARSE_AGAIN;
 
 	if(!http_alloc_client_header_buf(request))

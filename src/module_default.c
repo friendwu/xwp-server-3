@@ -6,10 +6,12 @@
 #include "typedef.h"
 #include "module.h"
 #include "http.h"
+//TODO
+typedef struct _XmlNode XmlNode;
 
 typedef struct module_default_priv_s 
 {
-	char priv[1];
+	const vhost_loc_conf_t* loc_conf;
 }module_default_priv_t;
 
 static int module_default_handle_request(module_t* thiz, http_request_t* request)
@@ -21,11 +23,13 @@ static int module_default_handle_request(module_t* thiz, http_request_t* request
 		request->status = HTTP_STATUS_BAD_REQUEST;
 		return HTTP_MODULE_PROCESS_DONE;
 	}
+
+	DECL_PRIV(thiz, priv, module_default_priv_t*);
 	
-	conf_t* root_conf = ((vhost_loc_conf_t*)thiz->parent)->parent->parent;
+	conf_t* root_conf = priv->loc_conf->parent->parent;
+
 	//TODO check there is no '..' contains in the path.
 	pool_t* pool = request->pool;
-	vhost_loc_conf_t* loc = (vhost_loc_conf_t* )thiz->parent;
 	str_t request_path = {0};
 
 	if(request->url.path.len==1 && request->url.path.data[0]=='/')
@@ -38,9 +42,9 @@ static int module_default_handle_request(module_t* thiz, http_request_t* request
 		request_path = request->url.path;
 	}
 	
-	char* path = (char* )pool_calloc(pool, loc->root.len + request_path.len + 2);
+	char* path = (char* )pool_calloc(pool, priv->loc_conf->root.len + request_path.len + 2);
 
-	sprintf(path, "%s/%s", loc->root.data, request_path.data);
+	sprintf(path, "%s/%s", priv->loc_conf->root.data, request_path.data);
 	
 	struct stat st = {0};
 	if(stat(path, &st) != 0)
@@ -86,12 +90,15 @@ static void module_default_destroy(void* data)
 	return;
 }
 
-module_t* module_default_create(void* parent, array_t* params, pool_t* pool)
+//TODO module_conf
+module_t* module_default_create(void* ctx, XmlNode* conf_node, pool_t* pool)
 {
 	module_t* thiz = pool_calloc(pool, sizeof(module_t) + sizeof(module_default_priv_t));
 	if(thiz == NULL) return NULL;
 
-	thiz->parent = parent;
+	DECL_PRIV(thiz, priv, module_default_priv_t*);
+
+	priv->loc_conf = (vhost_loc_conf_t* )ctx;
 	thiz->process = module_default_handle_request;
 	pool_add_cleanup(pool, module_default_destroy, thiz);
 
