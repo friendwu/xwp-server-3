@@ -8,6 +8,8 @@
 #include "typedef.h"
 #include "utils.h"
 //#include "http.h"
+#include <sys/types.h>        
+#include <sys/socket.h>
 #include "module.h"
 //TODO
 typedef struct _XmlNode XmlNode;
@@ -214,7 +216,7 @@ static void upstream_uwsgi_process(upstream_t* thiz)
 		if(strncasecmp(name->data, HTTP_HEADER_CONTENT_LEN->data, HTTP_HEADER_CONTENT_TYPE->len) == 0)
 			continue;
 
-		uint16_little_endian(buf+pos, (uint16_t)name->len);
+		uint16_little_endian(buf+pos, (uint16_t)(name->len + sizeof("HTTP_") - 1));
 		pos += 2;
 		int count = sprintf(buf+pos, "HTTP_%s", name->data);
 
@@ -294,7 +296,7 @@ static int upstream_uwsgi_abort(upstream_t* thiz)
 	pthread_mutex_lock(&upstream_priv->mutex);
 	if(upstream_priv->fd >= 0 && upstream_priv->running)
 	{
-		shutdown(upstream_priv->fd);
+		shutdown(upstream_priv->fd, SHUT_RDWR);
 		close(upstream_priv->fd);
 		upstream_priv->fd = -1;
 		while(upstream_priv->running) usleep(1000);

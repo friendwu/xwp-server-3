@@ -174,7 +174,7 @@ extern const str_t* HTTP_HEADER_CLOSE;
 extern const str_t* HTTP_HEADER_XWP_VER;
 
 //TODO char* to str_t* 
-const str_t* http_content_type(const char* extension);
+int http_content_type(const char* extension, str_t* content_type);
 const str_t* http_status_line(int status);
 int http_header_set(array_t* headers, const str_t* name, const str_t* value);
 int http_header_equal(array_t* headers, const str_t* name, const str_t* value);

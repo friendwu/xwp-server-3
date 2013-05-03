@@ -236,15 +236,16 @@ conf_t* conf_parse(const char* config_file, pool_t* pool)
 	if(thiz == NULL) return NULL;
 	thiz->pool = pool;
 
-	thiz->max_threads = 50;
+	thiz->max_threads = 100;
 	thiz->request_pool_size = 1024 * 8;
 	thiz->connection_timeout = 30;
 	thiz->client_header_size = 1024 * 2;
 	thiz->large_client_header_size = 1024 * 4;
+	thiz->content_body_buf_size = 3 * 1024;
 	thiz->max_content_len = 16 * 1024;
 	to_string(thiz->ip, "127.0.0.1");
-	thiz->port = 80;
-	to_string(thiz->root, "/home/wpeng/uone/mycode/refactor_server/");
+	thiz->port = 9001;
+	to_string(thiz->root, "/home/wpeng/uone/mycode/refactor_server");
 	to_string(thiz->default_page, "index.html");
 
 	thiz->module_sos = array_create(pool, 10);
@@ -268,7 +269,8 @@ conf_t* conf_parse(const char* config_file, pool_t* pool)
 	vhost_loc_conf_t* loc = pool_calloc(pool, sizeof(vhost_loc_conf_t));
 	assert(loc != NULL);
 	loc->parent = vhost;
-	loc->root = thiz->root;
+
+	to_string(loc->root, "/home/wpeng/uone/mycode/xwp2");
 	to_string(loc->pattern_str, "/static/.*");
 	//TODO regfree in destroy hook.
 	if(regcomp(&loc->pattern_regex, loc->pattern_str.data, 0) != 0)
@@ -279,7 +281,6 @@ conf_t* conf_parse(const char* config_file, pool_t* pool)
 	to_string(loc->handler_name, "default");
 	loc->handler = so1->module_create(loc, NULL, pool);
 	array_push(vhost->locs, loc);
-
 
 	//uwsgi location
 	loc = pool_calloc(pool, sizeof(vhost_loc_conf_t));

@@ -82,6 +82,11 @@ static int connection_send_response(connection_t* thiz)
 		str_t clen_str = {clen, count};
 		http_header_set(headers, HTTP_HEADER_CONTENT_LEN, &clen_str);
 	}
+	else
+	{
+		str_t clen_str = server_string("0");
+		http_header_set(headers, HTTP_HEADER_CONTENT_LEN, &clen_str);
+	}
 
 	int num = 0;
 	int headers_len = connection_response_headers_len(thiz);
@@ -110,8 +115,7 @@ static int connection_send_response(connection_t* thiz)
 
 	if(!nwrite(thiz->fd, buf, num)) return 0;
 
-	assert((body_out->content_fd>=0 && body_out->content==NULL)
-			|| (body_out->content_fd<0 && body_out->content!=NULL));
+	assert(!(body_out->content_fd>=0 && body_out->content!=NULL));
 
 	if(body_out->content_fd >= 0)
 	{
@@ -213,6 +217,7 @@ static int connection_finalize_request(connection_t* thiz)
 	thiz->request_pool = pool_create(thiz->conf->request_pool_size);
 	if(thiz->request_pool == NULL) return 0;
 
+	//TODO? dont support pipeline request now.
 	thiz->r = http_request_create(thiz->request_pool, thiz->conf, thiz->peer_addr);
 	if(thiz->r == NULL) 
 	{
@@ -227,11 +232,15 @@ static int connection_finalize_request(connection_t* thiz)
 static void connection_special_response(connection_t* thiz)
 {
 	//TODO maybe need to process by filter.
-	str_t* error_page = http_error_page(thiz->r->status, thiz->request_pool);
 	http_content_body_t* body_out = &thiz->r->body_out;
-	
-	assert(body_out->content_len == 0 && body_out->content == NULL);
+	if(body_out->content_len > 0)
+	{
+		return;
+	}
 
+	str_t* error_page = http_error_page(thiz->r->status, thiz->request_pool);
+	
+	//assert(body_out->content_len == 0 && body_out->content == NULL);
 	if(error_page != NULL)
 	{
 		body_out->content_len = error_page->len;

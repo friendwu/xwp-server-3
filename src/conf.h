@@ -69,6 +69,7 @@ typedef struct conf_s
 	int connection_timeout;
 	int client_header_size;
 	int large_client_header_size;
+	int content_body_buf_size;
 	int max_content_len;
 	str_t ip;
 	int port;

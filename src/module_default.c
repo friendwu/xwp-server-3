@@ -78,7 +78,10 @@ static int module_default_handle_request(module_t* thiz, http_request_t* request
 	char* extension = strrchr(request->url.path.data, '.');
 	if(extension != NULL) extension += 1;
 	
-	http_header_set(request->headers_out.headers, HTTP_HEADER_CONTENT_TYPE, http_content_type(extension));
+	str_t content_type = {0};
+	http_content_type(extension, &content_type);
+
+	http_header_set(request->headers_out.headers, HTTP_HEADER_CONTENT_TYPE, &content_type);
 	request->status = HTTP_STATUS_OK;
 	
 	return HTTP_MODULE_PROCESS_DONE;

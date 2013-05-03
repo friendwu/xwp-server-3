@@ -332,7 +332,7 @@ static int http_parse_header_line(http_request_t* request, buf_t* buf, array_t* 
 		if(pos == eol) 
 		{
 			value.data = NULL;
-			value.len = NULL;
+			value.len = 0;
 		}
 		else
 		{
@@ -620,7 +620,7 @@ int http_process_header_line(http_request_t* request, int fd, int process_phase)
 		http_headers_out_t* headers_out = &request->headers_out;
 
 		headers_out->content_len = http_header_int(headers, HTTP_HEADER_CONTENT_LEN);
-		if(headers_out->content_len < 0) headers_out->content_len = 0;
+		//if(headers_out->content_len < 0) headers_out->content_len = 0;
 	}
 	
 	return 1;
@@ -680,7 +680,6 @@ int http_process_content_body(http_request_t* request, int fd, http_content_body
 {
 	assert(request!=NULL && fd>=0 
 			&& content_body!=NULL 
-			&& content_len>=0 
 			&& request->state == HTTP_PROCESS_STAT_HEADER_LINE);
 
 	//note: dont support chunked body now, and may never in the future.
@@ -688,7 +687,62 @@ int http_process_content_body(http_request_t* request, int fd, http_content_body
 	buf_t* body_buf = NULL;
 	request->state = HTTP_PROCESS_STAT_CONTENT_BODY;
 
-	if(content_len == 0)
+	if(content_len < 0)
+	{
+		//the content body length identified when the connection closed.
+		buf_t* cur_buf = header_buf;
+		buf_t* new_buf = NULL;
+		for(;;)
+		{
+			if(cur_buf->last == cur_buf->end)
+			{
+				int cur_buf_len = cur_buf->last - cur_buf->pos;
+				if(cur_buf_len > request->conf->max_content_len)
+				{
+					request->status = HTTP_STATUS_BAD_REQUEST;
+
+					return 0;
+				}
+
+				int alloc_buf_len;
+				if(cur_buf_len < request->conf->content_body_buf_size)
+				{
+					alloc_buf_len = request->conf->content_body_buf_size;
+				}
+				else
+				{
+					alloc_buf_len = cur_buf_len + (cur_buf_len >> 1);
+				}
+				new_buf = buf_create(request->pool, alloc_buf_len);
+
+				if(new_buf == NULL)
+				{
+					request->status = HTTP_STATUS_INTERNAL_SERVER_ERROR;
+					return 0;
+				}
+
+				memcpy(new_buf->last, cur_buf->pos, cur_buf_len);
+				new_buf->last += cur_buf_len;
+				cur_buf = new_buf;
+			}
+
+			int count = recv(fd, cur_buf->last, cur_buf->end-cur_buf->last, 0);
+			if(count < 0) 
+			{
+				request->status = HTTP_STATUS_CLOSE;
+				return 0;
+			}
+			else if(count == 0)
+			{
+				content_body->content = cur_buf->pos;
+				return 1;
+			}
+
+			cur_buf->last += count;
+			content_body->content_len += count;
+		}
+	}
+	else if(content_len == 0)
 	{
 		return 1;
 	}

@@ -22,7 +22,8 @@
 
 #define MAX_ATTR_NR 64
 #define server_string(s) {(char* )(s), sizeof(s)-1}
-#define to_string(p, s) (p).data = (s); (p).len = sizeof((s)) -1;
+#define to_string(p, s) (p).data = (s); (p).len = sizeof((s)) -1
+#define to_string2(p, s) (p)->data = (s); (p)->len = sizeof((s)) -1
 #define XWP_SERVER_VER "xwp server 0.1"
 
 typedef struct str_s

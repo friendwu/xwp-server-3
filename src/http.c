@@ -410,53 +410,52 @@ const str_t* http_status_line(int status)
 	return NULL;
 }
 
-static const str_t HCT = server_string("text/html");
-const str_t* http_content_type(const char* extension)
+//TODO to be optimized.
+int http_content_type(const char* extension, str_t* content_type)
 {
-	return &HCT;
-/*
-	if(extension == NULL) return "text/html";
-	else if(strcmp(extension, "") == 0) return "application/octet-stream";
-	else if(strcmp(extension, "exe") == 0) return "application/octet-stream";
-	else if(strcmp(extension, "js") == 0) return "text/html";
-	else if(strcmp(extension, "gif") == 0) return "image/gif";
-	else if(strcmp(extension, "bmp") == 0) return "image/x-xbitmap";
-	else if(strcmp(extension, "jpg") == 0) return "image/jpeg";
-	else if(strcmp(extension, "png") == 0) return "image/png";
-	else if(strcmp(extension, "ico") == 0) return "image/x-icon";
-	else if(strcmp(extension, "htm") == 0) return "text/html";
-	else if(strcmp(extension, "asp") == 0) return "text/html";
-	else if(strcmp(extension, "php") == 0) return "text/html";
-	else if(strcmp(extension, "html") == 0) return "text/html";
-	else if(strcmp(extension, "mht") == 0) return "text/html";
-	else if(strcmp(extension, "xml") == 0) return "text/xml";
-	else if(strcmp(extension, "txt") == 0) return "text/plain";
-	else if(strcmp(extension, "c") == 0) return "text/plain";
-	else if(strcmp(extension, "cpp") == 0) return "text/plain";
-	else if(strcmp(extension, "hpp") == 0) return "text/plain";
-	else if(strcmp(extension, "h") == 0) return "text/plain";
-	else if(strcmp(extension, "lrc") == 0) return "text/plain";
-	else if(strcmp(extension, "pdf") == 0) return "application/pdf";
-	else if(strcmp(extension, "avi") == 0) return "video/avi";
-	else if(strcmp(extension, "css") == 0) return "text/css";
-	else if(strcmp(extension, "swf") == 0) return "application/x-shockwave-flash";
-	else if(strcmp(extension, "flv") == 0) return "application/x-shockwave-flash";
-	else if(strcmp(extension, "xls") == 0) return "application/vnd.ms-excel";
-	else if(strcmp(extension, "doc") == 0) return "application/vnd.ms-word";
-	else if(strcmp(extension, "mid") == 0) return "audio/midi";
-	else if(strcmp(extension, "mp3") == 0) return "audio/mpeg";
-	else if(strcmp(extension, "ogg") == 0) return "audio/ogg";
-	else if(strcmp(extension, "rm") == 0) return "application/vnd.rn-realmedia";
-	else if(strcmp(extension, "rmvb") == 0) return "application/vnd.rn-realmedia";
-	else if(strcmp(extension, "wav") == 0) return "audio/wav";
-	else if(strcmp(extension, "wmv") == 0) return "video/x-ms-wmv";
-	else if(strcmp(extension, "zip") == 0) return "application/x-tar";
-	else if(strcmp(extension, "rar") == 0) return "application/x-tar";
-	else if(strcmp(extension, "7z") == 0) return "application/x-tar";
-	else if(strcmp(extension, "tar") == 0) return "application/x-tar";
-	else if(strcmp(extension, "gz") == 0) return "application/x-tar";
-	else return "text/html";
-	*/
+	if(extension == NULL) { to_string2(content_type, "text/html"); }
+	else if(strcmp(extension, "") == 0) { to_string2(content_type, "application/octet-stream"); }
+	else if(strcmp(extension, "exe") == 0) { to_string2(content_type, "application/octet-stream"); }
+	else if(strcmp(extension, "js") == 0) { to_string2(content_type, "text/html"); }
+	else if(strcmp(extension, "gif") == 0) { to_string2(content_type, "image/gif"); }
+	else if(strcmp(extension, "bmp") == 0) { to_string2(content_type, "image/x-xbitmap"); }
+	else if(strcmp(extension, "jpg") == 0) { to_string2(content_type, "image/jpeg"); }
+	else if(strcmp(extension, "png") == 0) { to_string2(content_type, "image/png"); }
+	else if(strcmp(extension, "ico") == 0) { to_string2(content_type, "image/x-icon"); }
+	else if(strcmp(extension, "htm") == 0) { to_string2(content_type, "text/html"); }
+	else if(strcmp(extension, "asp") == 0) { to_string2(content_type, "text/html"); }
+	else if(strcmp(extension, "php") == 0) { to_string2(content_type, "text/html"); }
+	else if(strcmp(extension, "html") == 0) { to_string2(content_type, "text/html"); }
+	else if(strcmp(extension, "mht") == 0) { to_string2(content_type, "text/html"); }
+	else if(strcmp(extension, "xml") == 0) { to_string2(content_type, "text/xml"); }
+	else if(strcmp(extension, "txt") == 0) { to_string2(content_type, "text/plain"); }
+	else if(strcmp(extension, "c") == 0) { to_string2(content_type, "text/plain"); }
+	else if(strcmp(extension, "cpp") == 0) { to_string2(content_type, "text/plain"); }
+	else if(strcmp(extension, "hpp") == 0) { to_string2(content_type, "text/plain"); }
+	else if(strcmp(extension, "h") == 0) { to_string2(content_type, "text/plain"); }
+	else if(strcmp(extension, "lrc") == 0) { to_string2(content_type, "text/plain"); }
+	else if(strcmp(extension, "pdf") == 0) { to_string2(content_type, "application/pdf"); }
+	else if(strcmp(extension, "avi") == 0) { to_string2(content_type, "video/avi"); }
+	else if(strcmp(extension, "css") == 0) { to_string2(content_type, "text/css"); }
+	else if(strcmp(extension, "swf") == 0) { to_string2(content_type, "application/x-shockwave-flash"); }
+	else if(strcmp(extension, "flv") == 0) { to_string2(content_type, "application/x-shockwave-flash"); }
+	else if(strcmp(extension, "xls") == 0) { to_string2(content_type, "application/vnd.ms-excel"); }
+	else if(strcmp(extension, "doc") == 0) { to_string2(content_type, "application/vnd.ms-word"); }
+	else if(strcmp(extension, "mid") == 0) { to_string2(content_type, "audio/midi"); }
+	else if(strcmp(extension, "mp3") == 0) { to_string2(content_type, "audio/mpeg"); }
+	else if(strcmp(extension, "ogg") == 0) { to_string2(content_type, "audio/ogg"); }
+	else if(strcmp(extension, "rm") == 0) { to_string2(content_type, "application/vnd.rn-realmedia"); }
+	else if(strcmp(extension, "rmvb") == 0) { to_string2(content_type, "application/vnd.rn-realmedia"); }
+	else if(strcmp(extension, "wav") == 0) { to_string2(content_type, "audio/wav"); }
+	else if(strcmp(extension, "wmv") == 0) { to_string2(content_type, "video/x-ms-wmv"); }
+	else if(strcmp(extension, "zip") == 0) { to_string2(content_type, "application/x-tar"); }
+	else if(strcmp(extension, "rar") == 0) { to_string2(content_type, "application/x-tar"); }
+	else if(strcmp(extension, "7z") == 0) { to_string2(content_type, "application/x-tar"); }
+	else if(strcmp(extension, "tar") == 0) { to_string2(content_type, "application/x-tar"); }
+	else if(strcmp(extension, "gz") == 0) { to_string2(content_type, "application/x-tar"); }
+	else { to_string2(content_type, "text/html"); }//TODO add log here.
+
+	return 1;
 }
 
 int http_header_set(array_t* headers, const str_t* name, const str_t* value)
