@@ -266,7 +266,6 @@ static int connection_reusable(connection_t* thiz, int reusable)
 	if(thiz->fd >= 0)
 	{
 		close(thiz->fd);
-
 		thiz->fd = -1;
 	}
 

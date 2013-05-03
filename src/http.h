@@ -84,7 +84,6 @@ typedef struct http_request_s
 	http_process_state_e state;
 	str_t method_str;
 	http_method_e method;
-	str_t method_str;
 	url_t url;
 	str_t version_str;
 	http_version_e version;

@@ -164,7 +164,6 @@ static void upstream_uwsgi_process(upstream_t* thiz)
 	http_request_t* request = thiz->request;
 	DECL_PRIV(thiz->module, module_priv, module_uwsgi_priv_t*);
 	DECL_PRIV(thiz, upstream_priv, upstream_uwsgi_priv_t*);
-	upstream_priv->running = 1;
 
 	const conf_t* root_conf = module_priv->loc_conf->parent->parent;
 	const vhost_loc_conf_t* loc_conf = module_priv->loc_conf; 
