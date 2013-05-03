@@ -147,13 +147,8 @@ int nwrite(int fd, char* buf, size_t len)
 
 void uint16_little_endian(char* buf, uint16_t data)
 {
-<<<<<<< HEAD
-	buf[0] = (uint8_t) (data & 0x0f);
-	buf[1] = (uint8_t) ((data >> 8) & 0x0f);
-=======
 	buf[0] = (uint8_t) (data & 0xff);
 	buf[1] = (uint8_t) ((data >> 8) & 0xff);
->>>>>>> refactor_request
 
 	return;
 }

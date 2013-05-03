@@ -7,13 +7,9 @@
 #include "upstream.h"
 #include "typedef.h"
 #include "utils.h"
-<<<<<<< HEAD
-#include "http.h"
-=======
 //#include "http.h"
 #include <sys/types.h>        
 #include <sys/socket.h>
->>>>>>> refactor_request
 #include "module.h"
 //TODO
 typedef struct _XmlNode XmlNode;
@@ -69,10 +65,7 @@ typedef struct upstream_uwsgi_priv_s
 {
 	int fd;
 	int running;
-<<<<<<< HEAD
-=======
 	pthread_mutex_t mutex;
->>>>>>> refactor_request
 }upstream_uwsgi_priv_t;
 
 static int upstream_uwsgi_add_param(char* buf, const str_t* name, const str_t* value)
@@ -166,37 +159,7 @@ static uint16_t upstream_uwsgi_calc_packet_len(upstream_t* thiz, http_request_t*
 	return datasize;
 }
 
-<<<<<<< HEAD
-static int upstream_uwsgi_alloc_large_header_buf(upstream_t* thiz, buf_t* buf)
-{
-	conf_t* root_conf = ((vhost_loc_conf_t*) thiz->module->parent)->parent->parent;
-
-	int rest_len = buf->last - buf->pos;
-	int old_pos = buf->pos;
-
-	if(root_conf->large_header_size <= rest_len)
-	{
-		return 0;
-	}
-	buf_create(buf, thiz->r.pool, thiz->conf->large_client_header_size + 1);
-
-	if(buf->start == NULL) return 0;
-
-	*(buf->end - 1) = '\0'; 
-	buf->end -= 1;
-	if(rest_len > 0)
-	{
-		memcpy(buf->start, old_pos, rest_len);
-		buf->last += rest_len;
-	}
-
-	return 1;
-}
-
-static void upstream_uwsgi_process(upstream_t* thiz, http_request_t* request)
-=======
 static void upstream_uwsgi_process(upstream_t* thiz)
->>>>>>> refactor_request
 {
 	http_request_t* request = thiz->request;
 	DECL_PRIV(thiz->module, module_priv, module_uwsgi_priv_t*);
@@ -220,17 +183,10 @@ static void upstream_uwsgi_process(upstream_t* thiz)
 
 	pos += upstream_uwsgi_add_param(buf+pos, &CGI_QUERY_STRING, &request->url.query_string);
 	pos += upstream_uwsgi_add_param(buf+pos, &CGI_REQUEST_METHOD, &request->method_str);
-<<<<<<< HEAD
-	pos += upstream_uwsgi_add_param(buf+pos, &CGI_CONTENT_TYPE, request->content_type_header);
-	pos += upstream_uwsgi_add_param(buf+pos, &CGI_CONTENT_LENGTH, request->content_len_header);
-	pos += upstream_uwsgi_add_param(buf+pos, &CGI_REQUEST_URI, &request->url.unparsed_url);
-	pos += upstream_uwsgi_add_param(buf+pos, &CGI_DOCUMENT_URI, &request->url.path);
-=======
 	pos += upstream_uwsgi_add_param(buf+pos, &CGI_CONTENT_TYPE, request->headers_in.header_content_type);
 	pos += upstream_uwsgi_add_param(buf+pos, &CGI_CONTENT_LENGTH, request->headers_in.header_content_len);
 	pos += upstream_uwsgi_add_param(buf+pos, &CGI_REQUEST_URI, &request->url.path);
 	pos += upstream_uwsgi_add_param(buf+pos, &CGI_PATH_INFO, &request->url.unparsed_url);
->>>>>>> refactor_request
 	pos += upstream_uwsgi_add_param(buf+pos, &CGI_DOCUMENT_ROOT, &loc_conf->root);
 	pos += upstream_uwsgi_add_param(buf+pos, &CGI_SERVER_PROTOCOL, &request->version_str);
 	//pos += upstream_uwsgi_add_param(buf+pos, &CGI_GATEWAY_INTERFACE, "CGI/1.1") - 1);
@@ -245,11 +201,7 @@ static void upstream_uwsgi_process(upstream_t* thiz)
 	str_t port = {str, count};
 	pos += upstream_uwsgi_add_param(buf+pos, &CGI_SERVER_PORT, &port);
 	pos += upstream_uwsgi_add_param(buf+pos, &CGI_SERVER_NAME, &loc_conf->parent->name);
-<<<<<<< HEAD
-	//TODO params from config.
-=======
 	//TODO params from module_uwsgi_conf_t.
->>>>>>> refactor_request
 
 	http_header_t** header_elts = (http_header_t** )request->headers_in.headers->elts;
 	int header_count = request->headers_in.headers->count;
@@ -311,93 +263,6 @@ static void upstream_uwsgi_process(upstream_t* thiz)
 		}
 	}
 
-<<<<<<< HEAD
-	enum 
-	{
-		STAT_PARSE_STATUS_LINE = 0,
-		STAT_PARSE_HEADER_LINE,
-		STAT_PARSE_BODY,
-		STAT_PARSE_DONE,
-	}state = STAT_PARSE_STATUS_LINE;
-
-	int parse_ret = HTTP_PARSE_AGAIN;
-	buf_t* buf = &upstream_priv->header_buf;
-	for(;;)
-	{
-		if(buf->last == buf->end)
-		{
-			assert(state <= STAT_PARSE_HEADER_LINE);
-			if(!upstream_uwsgi_alloc_large_header_buf(thiz, &thiz->r.header_buf))
-			{
-				request->response.status = HTTP_STATUS_INTERNAL_SERVER_ERROR;
-				goto DONE;
-			}
-
-		}
-
-		recv(upstream_priv->fd, buf->last, buf->end-buf->last, 0);
-		if(count <= 0)
-		{
-			request->response.status = HTTP_STATUS_BAD_GATEWAY;
-			break;
-		}
-		buf->last += count;
-PARSE:
-		switch(state)
-		{
-			case STAT_PARSE_STATUS_LINE:
-				parse_ret = http_parse_status_line(request, buf, &request->response.status);
-				if(parse_ret == HTTP_PARSE_DONE)
-				{
-					state = STAT_PARSE_HEADER_LINE;
-				}
-				break;
-
-			case STAT_PARSE_HEADER_LINE:
-				parse_ret = http_parse_header_line(request, buf, request->response.headers);
-				if(parse_ret == HTTP_PARSE_DONE)
-				{
-					request->response.content_len = http_header_int(request->response.headers, HTTP_HEADER_CONTENT_LEN);
-					if(request->response.content_len <= 0)
-					{
-						state = STAT_PARSE_DONE;
-						request->response.content_len = 0;
-					}
-					else
-					{
-						state = STAT_PARSE_BODY;
-					}
-				}
-				break;
-
-			case STAT_PARSE_BODY:
-				parse_ret = http_parse_content_body(request, buf, 0, content_len);
-				break;
-			case STAT_PARSE_DONE:
-			default:
-				assert(0);
-				break;
-		}
-
-		if(state!=STAT_PARSE_DONE && 
-				parse_ret==HTTP_PARSE_DONE)
-		{
-			goto PARSE;
-		}
-		else if(parse_ret==HTTP_PARSE_FAIL)
-		{
-			thiz->r.response.status = HTTP_STATUS_BAD_REQUEST;
-			goto DONE;
-		}
-		if(state == STAT_PARSE_DONE)
-		{
-			thiz->r.response.status = HTTP_STATUS_OK;
-			goto DONE;
-		}
-	}
-DONE:
-	thiz->running = 0;
-=======
 	//start read and parsing response from backend.
 	int ret = 0;
 	ret = http_process_status_line(request, upstream_priv->fd);
@@ -422,7 +287,6 @@ DONE:
 	}
 	pthread_mutex_lock(&upstream_priv->mutex);
 
->>>>>>> refactor_request
 	return;
 }
 
@@ -430,13 +294,6 @@ static int upstream_uwsgi_abort(upstream_t* thiz)
 {
 	DECL_PRIV(thiz, upstream_priv, upstream_uwsgi_priv_t*);
 
-<<<<<<< HEAD
-	if(priv->fd > 0 && priv->running)
-	{
-		shutdown(priv->fd);
-		while(priv->running) usleep(3000);
-	}
-=======
 	pthread_mutex_lock(&upstream_priv->mutex);
 	if(upstream_priv->fd >= 0 && upstream_priv->running)
 	{
@@ -446,25 +303,12 @@ static int upstream_uwsgi_abort(upstream_t* thiz)
 		while(upstream_priv->running) usleep(1000);
 	}
 	pthread_mutex_unlock(&upstream_priv->mutex);
->>>>>>> refactor_request
 
 	return 1;
 }
 
 static void upstream_uwsgi_destroy(void* data)
 {
-<<<<<<< HEAD
-	//TODO cleanup
-	upstream_t* thiz = (upstream_t* data);
-	assert(thiz != NULL);
-
-	DECL_PRIV(thiz, priv, upstream_uwsgi_priv_t*);
-
-	close(priv->fd);
-
-	return;
-}
-=======
 	assert(data != NULL);
 	upstream_t* thiz = (upstream_t* )data;
 
@@ -472,7 +316,6 @@ static void upstream_uwsgi_destroy(void* data)
 
 	DECL_PRIV(thiz, upstream_priv, upstream_uwsgi_priv_t*);
 	pthread_mutex_destroy(&upstream_priv->mutex);
->>>>>>> refactor_request
 
 	return;
 }
@@ -504,26 +347,9 @@ static upstream_t* upstream_uwsgi_create(http_request_t* request, module_t* modu
 
 	if(upstream_priv->fd < 0)
 	{
-<<<<<<< HEAD
-		str_t* name = &(p[i]->name);
-		str_t** values = (str_t** )p[i]->values.elts;
-		if(strncmp(name->data, "ip") == 0)
-		{
-			assert(p[i]->values.count == 1);
-			priv->ip.data = pool_strdup(pool, values[0]->data);
-			priv->ip.len = name->len;
-		}
-		/*
-		else if(strncmp(name->data, "param") == 0)
-		{
-			int k = 0;
-			for(; k<)
-		}*/
-=======
 		request->status = HTTP_STATUS_BAD_GATEWAY;
 
 		return NULL;
->>>>>>> refactor_request
 	}
 
 	return thiz;

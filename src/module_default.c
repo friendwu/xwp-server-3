@@ -93,12 +93,8 @@ static void module_default_destroy(void* data)
 	return;
 }
 
-<<<<<<< HEAD
-module_t* module_default_create(void* parent, array_t* params, pool_t* pool)
-=======
 //TODO module_conf
 module_t* module_default_create(void* ctx, XmlNode* conf_node, pool_t* pool)
->>>>>>> refactor_request
 {
 	module_t* thiz = pool_calloc(pool, sizeof(module_t) + sizeof(module_default_priv_t));
 	if(thiz == NULL) return NULL;

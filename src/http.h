@@ -3,12 +3,8 @@
 #include "typedef.h"
 #include "array.h"
 #include "buf.h"
-<<<<<<< HEAD
-
-=======
 #include <stdint.h>
 typedef struct conf_s conf_t;
->>>>>>> refactor_request
 typedef struct upstream_s upstream_t;
 struct sockaddr_in;
 
@@ -94,15 +90,6 @@ typedef struct http_request_s
 	http_version_e version;
 	int status; //response status.
 	int keep_alive;
-<<<<<<< HEAD
-
-	const str_t* usragent_header;
-	const str_t* host_header;
-	
-	int content_len;
-	upstream_t* upstream;
-=======
->>>>>>> refactor_request
 
 	buf_t* header_buf;
 	http_headers_in_t headers_in;
@@ -196,16 +183,6 @@ const str_t* http_header_str(array_t* headers, const str_t* name);
 int http_header_int(array_t* headers, const str_t* name);
 str_t* http_error_page(int status, pool_t* pool);
 
-<<<<<<< HEAD
-
-#define HTTP_PARSE_DONE 1
-#define HTTP_PARSE_FAIL 0
-#define HTTP_PARSE_AGAIN -1
-int http_parse_request_line(http_request_t* request, buf_t* buf);
-int http_parse_header_line(http_request_t* request, buf_t* buf, array_t* headers);
-int http_parse_content_body(http_request_t* request, buf_t* buf, int chunked, int content_len);
-int http_parse_status_line(http_request_t* request, buf_t* buf, int* status);
-=======
 #define HTTP_PROCESS_PHASE_REQUEST  0
 #define HTTP_PROCESS_PHASE_RESPONSE 1 
 http_request_t* http_request_create(pool_t* pool, const conf_t* conf, struct sockaddr_in* peer_addr);
@@ -213,6 +190,5 @@ int http_process_request_line(http_request_t* request, int fd);
 int http_process_header_line(http_request_t* request, int fd, int process_phase);
 int http_process_status_line(http_request_t* request, int fd);
 int http_process_content_body(http_request_t* request, int fd, http_content_body_t* content_body, int content_len);
->>>>>>> refactor_request
 
 #endif
