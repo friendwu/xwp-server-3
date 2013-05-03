@@ -1,12 +1,12 @@
 #include <dlfcn.h>
 #include <assert.h>
-#include "typedef.h"
 #include "conf.h"
 #include "module.h"
 #define DEFAULT_PORT 80
 #define DEFAULT_MAX_THREADS 50
 #define DEFAULT_CONNECTION_TIMEOUT 30
 #define DEFAULT_ROOT "."
+
 /*
    static void config_parse_loadmodule(conf_t* thiz, XmlNode* root)
    {
@@ -91,6 +91,7 @@ for(;m<thiz->module_sos.count; m++)
 	module_so_conf_t* so = (module_so_conf_t* )(thiz->module_sos.elts[m]);
 	if(strcmp(loc->handler_name, so->name) == 0)
 	{
+		//find the conf node parse it.
 		loc->handler = so->module_create(&loc->handle_params);
 	}
 }
@@ -206,34 +207,14 @@ DONE:
 	return thiz;
 }
 */
-
-conf_t* conf_parse(const char* config_file, pool_t* pool)
+static module_so_conf_t* load_module(conf_t* thiz, char* so_file)
 {
-	//TODO hook the destroy handler to the pool.
-	conf_t* thiz = pool_calloc(pool, sizeof(conf_t));
-
-	thiz->max_threads = 50;
-	thiz->request_pool_size = 1024 * 8;
-	thiz->connection_timeout = 30;
-	thiz->client_header_size = 1024 * 2;
-	thiz->large_client_header_size = 1024 * 4;
-	thiz->max_content_len = 16 * 1024;
-	thiz->ip.data = NULL;
-	thiz->ip.len = 0;
-	thiz->port = 9001;
-	to_string(thiz->root, ".");
-	to_string(thiz->default_page, "index.html");
-
-	array_init(&thiz->module_sos, pool, 10);
-	array_init(&thiz->vhosts, pool, 10);
-
-	//loadmodule
 	void* handler = NULL;
 	MODULE_GET_INFO_FUNC module_get_info = NULL;
-	to_string(thiz->module_path, "./modules");
-	char* so_file = "./modules/libmodule_default.so";
+	pool_t* pool = thiz->pool;
 
 	handler = dlopen(so_file, RTLD_NOW);
+	if(handler == NULL) printf("%s\n", dlerror());
 	assert(handler != NULL);
 
 	module_get_info = (MODULE_GET_INFO_FUNC)dlsym(handler, "module_get_info");
@@ -243,27 +224,80 @@ conf_t* conf_parse(const char* config_file, pool_t* pool)
 	so->parent = thiz;
 
 	module_get_info(so, pool);
-	array_push(&thiz->module_sos, so);
+	array_push(thiz->module_sos, so);
+
+	return so;
+}
+
+conf_t* conf_parse(const char* config_file, pool_t* pool)
+{
+	//TODO hook the destroy handler to the pool.
+	conf_t* thiz = pool_calloc(pool, sizeof(conf_t));
+	if(thiz == NULL) return NULL;
+	thiz->pool = pool;
+
+	thiz->max_threads = 100;
+	thiz->request_pool_size = 1024 * 8;
+	thiz->connection_timeout = 30;
+	thiz->client_header_size = 1024 * 2;
+	thiz->large_client_header_size = 1024 * 4;
+	thiz->content_body_buf_size = 3 * 1024;
+	thiz->max_content_len = 16 * 1024;
+	to_string(thiz->ip, "127.0.0.1");
+	thiz->port = 9001;
+	to_string(thiz->root, "/home/wpeng/uone/mycode/refactor_server");
+	to_string(thiz->default_page, "index.html");
+
+	thiz->module_sos = array_create(pool, 10);
+	thiz->vhosts = array_create(pool, 10);
+	to_string(thiz->module_path, "./modules");
+
+
+	//loadmodule
+	module_so_conf_t* so1 = load_module(thiz, "./modules/libmodule_default.so");
+	module_so_conf_t* so2 = load_module(thiz, "./modules/libmodule_uwsgi.so");
 
 	//vhost
 	vhost_conf_t* vhost = pool_calloc(pool, sizeof(vhost_conf_t));
 	vhost->parent = thiz;
-	array_push(&thiz->vhosts, vhost);
-	array_init(&vhost->locs, pool, 10);
+	array_push(thiz->vhosts, vhost);
+	vhost->locs = array_create(pool, 10);
 	to_string(vhost->name, "localhost");
-	to_string(vhost->root, ".");
-	to_string(vhost->root, ".");
+	vhost->root = thiz->root;
 
+	//static location
 	vhost_loc_conf_t* loc = pool_calloc(pool, sizeof(vhost_loc_conf_t));
 	assert(loc != NULL);
 	loc->parent = vhost;
-	to_string(loc->root, "./static");
-	to_string(loc->pattern_str, ".*");
+
+	to_string(loc->root, "/home/wpeng/uone/mycode/xwp2");
+	to_string(loc->pattern_str, "/static/.*");
 	//TODO regfree in destroy hook.
-	regcomp(&loc->pattern_regex, loc->pattern_str.data, 0);
+	if(regcomp(&loc->pattern_regex, loc->pattern_str.data, 0) != 0)
+	{
+		printf("regex compile failed.\n");
+		exit(-1);
+	}
 	to_string(loc->handler_name, "default");
-	loc->handler = so->module_create(loc, NULL, pool);
-	array_push(&vhost->locs, loc);
+	loc->handler = so1->module_create(loc, NULL, pool);
+	array_push(vhost->locs, loc);
+
+	//uwsgi location
+	loc = pool_calloc(pool, sizeof(vhost_loc_conf_t));
+	assert(loc != NULL);
+	loc->parent = vhost;
+	loc->root = thiz->root;
+	to_string(loc->pattern_str, "/.*");
+	//TODO regfree in destroy hook.
+	if(regcomp(&loc->pattern_regex, loc->pattern_str.data, 0) != 0)
+	{
+		printf("regex compile failed.\n");
+		exit(-1);
+	}
+
+	to_string(loc->handler_name, "uwsgi");
+	loc->handler = so2->module_create(loc, NULL, pool);
+	array_push(vhost->locs, loc);
 
 	return thiz;
 }

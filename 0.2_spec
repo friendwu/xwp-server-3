@@ -14,8 +14,8 @@
     2. 记录实现方案和中间思考。
 
 具体需求（优先级递减）：
-1. 完成uwsgi模块，目前看来需要对http相关的基础数据/逻辑进行一些重构，有重复代码。
-2. 对chunked content body的支持。
+[x] 1. 完成uwsgi模块，目前看来需要对http相关的基础数据/逻辑进行一些重构，有重复代码。
+[x] 2. 对chunked content body的支持。
 3. 基本清扫：
     A.清理掉代码中的TODO/FIXME.
     B. array_t重新设计，现在太难用了。

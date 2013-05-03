@@ -1,6 +1,6 @@
 Import('env')
 
-commonSrc = ['buf.c', 'array.c', 'pool.c', 'http.c', 'conf.c']
+commonSrc = ['buf.c', 'array.c', 'pool.c', 'http.c', 'conf.c', 'http.c']
 
 ## server
 serverEnv = env.Clone(LIBS=['dl', 'pthread'])

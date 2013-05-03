@@ -1,7 +1,12 @@
 #ifndef UPSTREAM_H
 #define UPSTREAM_H
-typedef void (*UPSTREAM_PROCESS_FUNC)(upstream_t* thiz, http_request_t* request);
-typedef void (*UPSTREAM_ABORT_FUNC)(upstream_t* thiz);
+#include <assert.h>
+#include <stdio.h>
+#include "http.h"
+typedef struct module_s module_t;
+
+typedef void (*UPSTREAM_PROCESS_FUNC)(upstream_t* thiz);
+typedef int (*UPSTREAM_ABORT_FUNC)(upstream_t* thiz);
 
 typedef struct upstream_s
 {
@@ -9,18 +14,24 @@ typedef struct upstream_s
 	UPSTREAM_ABORT_FUNC abort;
 
 	module_t* module;
+	http_request_t* request;
 
 	char priv[0];
 }upstream_t;
 
-static inline void upstream_process(upstream_t* thiz, http_request_t* request)
+static inline void upstream_process(upstream_t* thiz)
 {
-	assert(thiz!=NULL && request!=NULL);
+	assert(thiz!=NULL);
 
 	if(thiz->process != NULL)
-		thiz->process(thiz, request);
-	
-	request->response.status = HTTP_STATUS_BAD_GATEWAY;
+	{
+		thiz->process(thiz);
+	}
+	else
+	{
+		thiz->request->status = HTTP_STATUS_BAD_GATEWAY;
+	}
+
 	return;
 }
 

@@ -11,6 +11,33 @@
 
 #define IS_DELIM(delim_func, s, c) ((delim_func!=NULL && delim_func(c)) || (s!=NULL && strchr(s, c)!=NULL))
 
+int connect_remote(char* ip, int port)
+{
+	int fd = -1;
+	struct sockaddr_in addr = {0};
+
+	fd = socket(AF_INET, SOCK_STREAM, 0);
+	if(fd < 0) return -1;
+
+	addr.sin_family = AF_INET;
+	
+	if(ip != NULL)
+		addr.sin_addr.s_addr = inet_addr(ip);
+	else
+		addr.sin_addr.s_addr = htonl(INADDR_ANY);
+	addr.sin_port = htons((unsigned short) port);
+	
+	if(connect(fd, (const struct sockaddr*) &addr, sizeof(struct sockaddr_in)) < 0)
+	{
+		perror(strerror(errno));
+		close(fd);
+
+		return -1;
+	}
+
+	return fd;
+}
+
 int open_listen_fd(char* ip, int port)
 {
 	int listen_fd = -1;
@@ -34,10 +61,17 @@ int open_listen_fd(char* ip, int port)
 	addr.sin_port = htons((unsigned short) port);
 
 	if(bind(listen_fd, (struct sockaddr* )&addr, sizeof(struct sockaddr_in)) < 0)
+	{
+		perror(strerror(errno));
+		close(listen_fd);
 		return -1;
+	}
 
 	if(listen(listen_fd, 20) < 0)
+	{
+		close(listen_fd);
 		return -1;
+	}
 	
 	return listen_fd;
 }
@@ -113,8 +147,13 @@ int nwrite(int fd, char* buf, size_t len)
 
 void uint16_little_endian(char* buf, uint16_t data)
 {
+<<<<<<< HEAD
 	buf[0] = (uint8_t) (data & 0x0f);
 	buf[1] = (uint8_t) ((data >> 8) & 0x0f);
+=======
+	buf[0] = (uint8_t) (data & 0xff);
+	buf[1] = (uint8_t) ((data >> 8) & 0xff);
+>>>>>>> refactor_request
 
 	return;
 }

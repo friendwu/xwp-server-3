@@ -37,21 +37,21 @@
 			<pattern>/.*</pattern>
 			<handler>
 				<name>uwsgi</name>
-				<param>
-					<name>uwsgi_pass</name>
-					<value>9000</value>
-				</param>
+				<uwsgi_conf>
+					<uwsgi_pass>
+						<ip>127.0.0.1</ip>
+						<port>9000</port>
+					</uwsgi_pass>
 
-				<param>
-					<name>uwsgi_param</name>
-					<value>UWSGI_CHDIR</value>
-					<value>/home/wpeng/uone/mycode/xwp2</value>
-				</param>
-				<param>
-					<name>uwsgi_param</name>
-					<value>UWSGI_SCRIPT</value>
-					<value>uwsgi_main</value>
-				</param>
+					<uwsgi_param>
+						<name>UWSGI_CHDIR</name>
+						<value>/home/wpeng/uone/mycode/xwp2</value>
+					</uwsgi_param>
+					<uwsgi_param>
+						<name>UWSGI_SCRIPT</name>
+						<value>uwsgi_main</value>
+					</uwsgi_param>
+				</uwsgi_conf>
 			</handler>
 		</location>
 	</vhost>
