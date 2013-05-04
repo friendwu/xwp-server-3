@@ -6,6 +6,12 @@ You can contact me by wp.4163196 AT gmail.com, and desperately welcome joining i
 
 2013.4.27
 Refactored the ugly code, now it seems more comfortable. thanks for the advices from qin-kiss.
-The next task is to complete the basic function of uwsgi module, which is hoped to support dynamic backend such as blog engine.
-With this refactor, especially the reuse of functions in http_request.c, the development of uwsgi module is more easy now.
+The next task is to complete the basic function of uwsgi module, which is hoped to support dynamic 
+backend such as blog engine. With this refactor, especially the reuse of functions in http_request.c, 
+the development of uwsgi module is more easy now.
 
+2013.5.2
+The basic uwsgi module function has now been completed, so we can converse with the uwsgi backend now! 
+I just use it talk with a python written blog engine, and works well.
+But after a long time developing with few tests, the code seems quite buggy, so I will stop adding new 
+features in the next procedure, and focus on fully tests as well as add enough log to help ease debugging.
