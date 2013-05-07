@@ -128,7 +128,7 @@ static int connection_send_response(connection_t* thiz)
 	}
 	else if(body_out->content != NULL)
 	{
-		if(!nwrite(thiz->fd, body_out->content, body_out->content_len)) 
+		if(!nwrite(thiz->fd, body_out->content->pos, body_out->content_len)) 
 			return 0;
 	}
 
@@ -243,8 +243,17 @@ static void connection_special_response(connection_t* thiz)
 	//assert(body_out->content_len == 0 && body_out->content == NULL);
 	if(error_page != NULL)
 	{
+		body_out->content = pool_alloc(thiz->r->pool, sizeof(buf_t));
+		if(body_out->content == NULL)
+		{
+			return;
+		}
+
 		body_out->content_len = error_page->len;
-		body_out->content = error_page->data;
+		body_out->content->start = error_page->data;
+		body_out->content->pos = body_out->content->start;
+		body_out->content->end = body_out->content->start + body_out->content_len;
+		body_out->content->last = body_out->content->end;
 	}
 
 	if(thiz->r->status >= HTTP_STATUS_BAD_REQUEST)
@@ -340,6 +349,7 @@ int connection_run(connection_t* thiz, int fd, struct sockaddr_in* peer_addr)
 	thiz->start_time = time(NULL);
 	thiz->fd = fd;
 	thiz->state = CONNECTION_RUNNING;
+	printf("accept connection from  %s\n", thiz->r->remote_ip.data);
 
 	while(!thiz->timedout)
 	{

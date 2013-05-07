@@ -1,9 +1,12 @@
 #include <string.h>
+#include <unistd.h>
+#include <ctype.h>
 #include <stdint.h>
 #include <sys/types.h>
 #include <fcntl.h>
 #include <sys/stat.h>
 #include <errno.h>
+#include <pthread.h>
 #include "upstream.h"
 #include "typedef.h"
 #include "utils.h"
@@ -71,20 +74,25 @@ typedef struct upstream_uwsgi_priv_s
 static int upstream_uwsgi_add_param(char* buf, const str_t* name, const str_t* value)
 {
 	assert(name != NULL && name->data != NULL && name->len > 0);
-	int count = 0;
+	assert(name->data[name->len] == '\0' 
+			&& name->data[name->len - 1] != '\0');
 	int pos = 0;
 	
 	uint16_little_endian(buf+pos, (uint16_t)name->len);
 	pos += 2;
-	count = sprintf(buf+pos, "%s", name->data);
-	pos += count;
+	sprintf(buf+pos, "%s", name->data);
+	pos += name->len;
 
 	if(value!=NULL && value->len>0)
 	{
+		//strlen(value->data) == value->len
+		assert(value->data[value->len] == '\0' 
+				&& value->data[value->len - 1] != '\0');
+
 		uint16_little_endian(buf+pos, (uint16_t)value->len);
 		pos += 2;
-		count = sprintf(buf+pos, "%s", value->data);
-		pos += count;
+		sprintf(buf+pos, "%s", value->data);
+		pos += value->len;
 	}
 	else
 	{
@@ -243,6 +251,7 @@ static void upstream_uwsgi_process(upstream_t* thiz)
 		}
 	}
 
+	//printf("pos %d datasize %d iplen %d\n", pos, datasize + 4, request->remote_ip.len);
 	assert(pos == datasize + 4); //4 means packet header length.
 
 	if(!nwrite(upstream_priv->fd, buf, datasize + 4))
@@ -254,7 +263,7 @@ static void upstream_uwsgi_process(upstream_t* thiz)
 
 	if(request->body_in.content_len > 0)
 	{
-		if(!nwrite(upstream_priv->fd, request->body_in.content, request->body_in.content_len))
+		if(!nwrite(upstream_priv->fd, request->body_in.content->pos, request->body_in.content_len))
 		{
 			request->status = HTTP_STATUS_BAD_GATEWAY;
 
@@ -284,7 +293,7 @@ DONE:
 		close(upstream_priv->fd);
 		upstream_priv->fd = -1;
 	}
-	pthread_mutex_lock(&upstream_priv->mutex);
+	pthread_mutex_unlock(&upstream_priv->mutex);
 
 	return;
 }
@@ -340,7 +349,7 @@ static upstream_t* upstream_uwsgi_create(http_request_t* request, module_t* modu
 	DECL_PRIV(module, module_priv, module_uwsgi_priv_t*);
 	DECL_PRIV(thiz, upstream_priv, upstream_uwsgi_priv_t*);
 
-	pthread_mutex_init(&upstream_priv->mutex);
+	pthread_mutex_init(&upstream_priv->mutex, NULL);
 
 	upstream_priv->fd = connect_remote(module_priv->conf.ip.data, module_priv->conf.port);
 

@@ -69,7 +69,7 @@ typedef struct http_headers_out_s
 typedef struct http_content_body_s
 {
 	int content_len;
-	char* content;	
+	buf_t* content;	
 	int content_fd;
 }http_content_body_t;
 

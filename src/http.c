@@ -72,7 +72,7 @@ static char http_error_full_tail[] =
 "</html>" CRLF
 ;
 
-
+/*
 static char http_error_tail[] =
 "<hr><center>nginx</center>" CRLF
 "</body>" CRLF
@@ -96,7 +96,7 @@ static char http_msie_refresh_head[] =
 
 static char http_msie_refresh_tail[] =
 "\"></head><body></body></html>" CRLF;
-
+*/
 
 static char http_error_301_page[] =
 "<html>" CRLF

@@ -13,7 +13,6 @@ int main(int argc, char** argv)
 
 	for(;;) 
 	{
-		//sleep(1);
 		fgets(buf, 512, stdin);
 		if(strncmp(buf, "quit", strlen("quit")) == 0) break;
 

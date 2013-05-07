@@ -44,7 +44,7 @@ static int module_default_handle_request(module_t* thiz, http_request_t* request
 	
 	char* path = (char* )pool_calloc(pool, priv->loc_conf->root.len + request_path.len + 2);
 
-	sprintf(path, "%s/%s", priv->loc_conf->root.data, request_path.data);
+	sprintf(path, "%s%s", priv->loc_conf->root.data, request_path.data);
 	
 	struct stat st = {0};
 	if(stat(path, &st) != 0)

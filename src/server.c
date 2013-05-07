@@ -39,7 +39,6 @@ static void* server_listen_proc(void* ctx)
 	while(thiz->running)
 	{
 		fd = accept(thiz->listen_fd, (struct sockaddr* )&peer_addr, &sock_len);
-		printf("fd %d %u\n ", fd, (unsigned) pthread_self());
 		if(fd < 0) continue;
 
 		pthread_mutex_lock(&thiz->mutex);

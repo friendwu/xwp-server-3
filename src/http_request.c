@@ -3,6 +3,7 @@
 #include <sys/socket.h>
 #include <ctype.h>
 #include <string.h>
+#include <errno.h>
 #include "conf.h"
 #include "http.h"
 #include "utils.h"
@@ -305,7 +306,7 @@ static int http_parse_header_line(http_request_t* request, buf_t* buf, array_t* 
 	char* pos = buf->pos;
 	char* last = buf->last;
 
-	while(pos < last)	
+	while(pos < last)
 	{
 		eol = find_next_eol(pos);
 
@@ -320,16 +321,43 @@ static int http_parse_header_line(http_request_t* request, buf_t* buf, array_t* 
 			break;
 		}
 
-		//full line
-		//FIXME should trim space.
-		get_token(&name, &pos, NULL, ":");
+		while(isspace(*pos) && *pos!='\0' && pos < eol) pos++;//trim space before name.
+		if(*pos == '\0')
+		{
+			//there cannot have '\0' in the char sequence.
+			ret = HTTP_PARSE_FAIL;
+			break;
+		}
+		else if(pos == eol)
+		{
+			//line with spaces, ignore.
+			pos = eol + 1;
+			continue;
+		}
+		 
+		if(!get_token(&name, &pos, NULL, ":"))
+		{
+			ret = HTTP_PARSE_FAIL;
+			break;
+		}
 
-		//skip empty line first.
-		while(isspace(*pos) && pos<last && *pos!='\0') pos++;
+		//trim space after name string.
+		int i;
+		for(i=name.len-1; i>=0; i--)
+		{
+			if(!isspace(name.data[i])) break;
+		}
+		name.data[i + 1] = '\0';
+		name.len = i + 1;
 
-		//get_token(&value, &pos, , NULL);
+		while(isspace(*pos) && *pos!='\0' && pos < eol) pos++;//trim space before value.
 
-		if(pos == eol) 
+		if(*pos == '\0') 
+		{
+			ret = HTTP_PARSE_FAIL;
+			break;
+		}
+		else if(pos == eol)
 		{
 			value.data = NULL;
 			value.len = 0;
@@ -388,9 +416,11 @@ static int http_parse_status_line(http_request_t* request, buf_t* buf, int* stat
 		return HTTP_PARSE_AGAIN;
 	}
 	
-	//TODO check the return value.
-	get_token(&ignore, &pos, isspace, NULL);
-	get_token(&status_str, &pos, isspace, NULL);
+	int t1, t2;
+	t1 = get_token(&ignore, &pos, isspace, NULL);
+	t2 = get_token(&status_str, &pos, isspace, NULL);
+	if(t1==0 || t2==0) return HTTP_PARSE_FAIL;
+
 	//ignore the short message.
 	buf->pos = eol + 1;
 
@@ -424,6 +454,7 @@ static int http_alloc_large_client_header_buf(http_request_t* request)
 	{
 		return 0;
 	}
+
 	int rest_len = header_buf->last - header_buf->pos;
 	char* old_pos = header_buf->pos;
 
@@ -471,7 +502,11 @@ http_request_t* http_request_create(pool_t* pool, const conf_t* conf, struct soc
 	request->body_out.content_fd = -1;
 
 	request->peer_addr = peer_addr;
-	request->remote_ip.data = inet_ntoa(peer_addr->sin_addr); 
+	request->remote_ip.data = pool_calloc(request->pool, INET_ADDRSTRLEN + 1);
+	if(request->remote_ip.data == NULL) return NULL;
+
+	inet_ntop(AF_INET, &peer_addr->sin_addr, request->remote_ip.data, INET_ADDRSTRLEN); 
+
 	request->remote_ip.len = strlen(request->remote_ip.data); 
 	request->remote_port = (uint16_t)peer_addr->sin_port; 
 
@@ -501,14 +536,14 @@ int http_process_request_line(http_request_t* request, int fd)
 			{
 				if(!http_alloc_large_client_header_buf(request))
 				{
-					//TODO maybe the status can be set in http_alloc_large_client_header_buf
 					request->status = HTTP_STATUS_INTERNAL_SERVER_ERROR;
 					return 0;
 				}
 			}
 
-			//TODO should we consider the situation of EINTR?
-			int count = recv(fd, buf->last, buf->end-buf->last, 0);
+			int count;
+			while((count=recv(fd, buf->last, buf->end-buf->last, 0))<=0 && errno==EINTR){;;}
+
 			if(count <= 0) 
 			{
 				request->status = HTTP_STATUS_CLOSE;
@@ -564,7 +599,9 @@ int http_process_header_line(http_request_t* request, int fd, int process_phase)
 				}
 			}
 
-			int count = recv(fd, buf->last, buf->end-buf->last, 0);
+			int count;
+			while((count=recv(fd, buf->last, buf->end-buf->last, 0))<=0 && errno==EINTR){;;}
+
 			if(count <= 0) 
 			{
 				request->status = HTTP_STATUS_CLOSE;
@@ -654,7 +691,9 @@ int http_process_status_line(http_request_t* request, int fd)
 				}
 			}
 
-			int count = recv(fd, buf->last, buf->end-buf->last, 0);
+			int count;
+			while((count=recv(fd, buf->last, buf->end-buf->last, 0))<=0 && errno==EINTR){;;}
+
 			if(count <= 0) 
 			{
 				request->status = HTTP_STATUS_CLOSE;
@@ -692,6 +731,8 @@ int http_process_content_body(http_request_t* request, int fd, http_content_body
 		//the content body length identified when the connection closed.
 		buf_t* cur_buf = header_buf;
 		buf_t* new_buf = NULL;
+		request->body_out.content_len = header_buf->last - header_buf->pos;
+
 		for(;;)
 		{
 			if(cur_buf->last == cur_buf->end)
@@ -699,6 +740,8 @@ int http_process_content_body(http_request_t* request, int fd, http_content_body
 				int cur_buf_len = cur_buf->last - cur_buf->pos;
 				if(cur_buf_len > request->conf->max_content_len)
 				{
+					printf("the content body size %d exceeds the limit of %d\n", 
+							cur_buf_len, request->conf->max_content_len);
 					request->status = HTTP_STATUS_BAD_REQUEST;
 
 					return 0;
@@ -726,7 +769,9 @@ int http_process_content_body(http_request_t* request, int fd, http_content_body
 				cur_buf = new_buf;
 			}
 
-			int count = recv(fd, cur_buf->last, cur_buf->end-cur_buf->last, 0);
+			int count;
+			while((count=recv(fd, cur_buf->last, cur_buf->end-cur_buf->last, 0))<=0 && errno==EINTR){;;}
+
 			if(count < 0) 
 			{
 				request->status = HTTP_STATUS_CLOSE;
@@ -734,7 +779,7 @@ int http_process_content_body(http_request_t* request, int fd, http_content_body
 			}
 			else if(count == 0)
 			{
-				content_body->content = cur_buf->pos;
+				content_body->content = cur_buf;
 				return 1;
 			}
 
@@ -751,15 +796,18 @@ int http_process_content_body(http_request_t* request, int fd, http_content_body
 		request->status = HTTP_STATUS_BAD_REQUEST;
 		return 0;
 	}
-	else if(content_len > header_buf->end-header_buf->pos)
+
+	//content body in normal size.
+	if(content_len > header_buf->end-header_buf->pos)
 	{
-		size_t rest = header_buf->last - header_buf->pos;
 		body_buf = buf_create(request->pool, content_len);
-		if(body_buf==NULL) 
+		if(body_buf == NULL) 
 		{
 			request->status = HTTP_STATUS_INTERNAL_SERVER_ERROR;
 			return 0;
 		}
+
+		size_t rest = header_buf->last - header_buf->pos;
 		if(rest > 0)
 		{
 			memcpy(body_buf->start, header_buf->pos, 
@@ -769,7 +817,6 @@ int http_process_content_body(http_request_t* request, int fd, http_content_body
 	}
 	else
 	{
-		//the whole body is present.
 		body_buf = (buf_t*) pool_alloc(request->pool, sizeof(buf_t));
 		if(body_buf == NULL) 
 		{
@@ -779,9 +826,7 @@ int http_process_content_body(http_request_t* request, int fd, http_content_body
 		body_buf->start = header_buf->pos;
 		body_buf->pos = header_buf->pos;
 		body_buf->last = header_buf->last;
-		body_buf->end = header_buf->last;
-
-		return 1; 
+		body_buf->end = header_buf->end;
 	}
 
 	int recv_body_len = body_buf->last - body_buf->pos;
@@ -789,13 +834,16 @@ int http_process_content_body(http_request_t* request, int fd, http_content_body
 	{
 		if(recv_body_len >= content_len)
 		{
-			content_body->content = body_buf->pos;
+			content_body->content = body_buf;
 			content_body->content_len = content_len;
 			assert(content_body->content_fd < 0);
+
 			return 1;
 		}
 
-		int count = recv(fd, body_buf->last, body_buf->end-body_buf->last, 0);
+		int count;
+		while((count=recv(fd, body_buf->last, body_buf->end-body_buf->last, 0))<=0 && errno==EINTR){;;}
+
 		if(count <= 0) 
 		{
 			request->status = HTTP_STATUS_CLOSE;
@@ -803,9 +851,7 @@ int http_process_content_body(http_request_t* request, int fd, http_content_body
 		}
 		
 		body_buf->last += count;
-
 		recv_body_len += count;
-
 		assert(!(recv_body_len<content_len && body_buf->end==body_buf->last));
 	}
 

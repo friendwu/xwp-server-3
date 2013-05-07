@@ -241,8 +241,9 @@ conf_t* conf_parse(const char* config_file, pool_t* pool)
 	thiz->connection_timeout = 30;
 	thiz->client_header_size = 1024 * 2;
 	thiz->large_client_header_size = 1024 * 4;
-	thiz->content_body_buf_size = 3 * 1024;
-	thiz->max_content_len = 16 * 1024;
+	thiz->content_body_buf_size = 4 * 1024;
+	//TODO maybe this field should apply just to the client body.
+	thiz->max_content_len = 1024 * 1024;
 	to_string(thiz->ip, "127.0.0.1");
 	thiz->port = 9001;
 	to_string(thiz->root, "/home/wpeng/uone/mycode/refactor_server");
