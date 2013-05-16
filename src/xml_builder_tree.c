@@ -63,7 +63,7 @@ static void xml_builder_tree_on_text(XmlBuilder* thiz, const char* text, size_t 
 	XmlNode* new_node = NULL;
 	PrivInfo* priv = (PrivInfo*)thiz->priv;
 	
-	new_node = xml_node_create_text(text);
+	new_node = xml_node_create_text(text, length);
 	xml_node_append_child(priv->current, new_node);
 
 	return;
@@ -74,7 +74,7 @@ static void xml_builder_tree_on_comment(XmlBuilder* thiz, const char* text, size
 	XmlNode* new_node = NULL;
 	PrivInfo* priv = (PrivInfo*)thiz->priv;
 	
-	new_node = xml_node_create_comment(text);
+	new_node = xml_node_create_comment(text, length);
 	xml_node_append_child(priv->current, new_node);
 
 	return;
@@ -113,7 +113,7 @@ static void xml_builder_tree_destroy(XmlBuilder* thiz)
 
 XmlBuilder* xml_builder_tree_create(void)
 {
-	XmlBuilder* thiz = (XmlBuilder*)calloc(1, sizeof(XmlBuilder));
+	XmlBuilder* thiz = (XmlBuilder*)calloc(1, sizeof(XmlBuilder) + sizeof(PrivInfo));
 
 	if(thiz != NULL)
 	{

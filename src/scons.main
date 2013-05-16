@@ -1,16 +1,32 @@
 Import('env')
 
-commonSrc = ['buf.c', 'array.c', 'pool.c', 'http.c', 'conf.c', 'http.c']
+commonSrc = ['buf.c', 'array.c', 'pool.c', 'http_request.c', 'http.c', 'conf.c', 'utils.c']
+serverSrc = ['main.c', 'connection.c', 'server.c']
+xmlSrc = ['xml_tree.c', 'xml_parser.c', 'xml_builder_tree.c']
 
 ## server
-serverEnv = env.Clone(LIBS=['dl', 'pthread'])
-serverSrc = ['utils.c', 'main.c', 'connection.c', 'server.c']
-server = serverEnv.Program('xwp', commonSrc + serverSrc)
+serverEnv = env.Clone(LIBS=['dl', 'pthread', 'zlog'])
+server = serverEnv.Program('xwp', commonSrc + serverSrc + xmlSrc)
+
+## txwp
+serverTestEnv = serverEnv.Clone()
+serverTestEnv.Append(CCFLAGS='-DGUARD_DISABLE')
+server_test = serverTestEnv.Executable('txwp', commonSrc + serverSrc + xmlSrc)
 
 ## module_default
-libEnv = env.Clone(CCPATH='.')
-libSrc = ['module_default.c']
-lib = libEnv.SharedLibrary('module_default', commonSrc + libSrc)
+DefaultlibEnv = serverEnv.Clone(CCPATH='.')
+DefaultlibEnv.Append(LIBS='zlog')
+DefaultlibSrc = ['module_default.c']
+Defaultlib = DefaultlibEnv.SharedLibrary('module_default', commonSrc + DefaultlibSrc + xmlSrc)
 
-env.Default([server, lib])
+## module_uwsgi
+UwsgilibEnv = serverEnv.Clone(CCPATH='.')
+UwsgilibEnv.Append(LIBS='zlog')
+UwsgilibSrc = ['module_uwsgi.c']
+Uwsgilib = UwsgilibEnv.SharedLibrary('module_uwsgi', commonSrc + UwsgilibSrc + xmlSrc)
+
+a = env.Install('../../', server)
+b = env.Install('../../modules/', [Defaultlib, Uwsgilib])
+
+env.Default([server, Defaultlib, Uwsgilib, a, b])
 

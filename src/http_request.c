@@ -7,6 +7,7 @@
 #include "conf.h"
 #include "http.h"
 #include "utils.h"
+#include "log.h"
 
 #define eol(c) ((c) == '\n')
 #define is_character(c) (((c)|0x20) >='a' && ((c)|0x20) <= 'z')
@@ -437,6 +438,7 @@ static int http_alloc_client_header_buf(http_request_t* request)
 
 	if(request->header_buf == NULL)
 	{
+		log_error("out of memory.");
 		return 0;
 	}
 
@@ -452,19 +454,27 @@ static int http_alloc_large_client_header_buf(http_request_t* request)
 
 	if(header_buf->end-header_buf->start >= request->conf->large_client_header_size) 
 	{
+		log_debug("%s failed: the header buf size %d already exceeds large_client_header_size %d", 
+						  __func__, header_buf->end-header_buf->start, 
+						  request->conf->large_client_header_size);
 		return 0;
 	}
 
 	int rest_len = header_buf->last - header_buf->pos;
 	char* old_pos = header_buf->pos;
 
+	/* no need.
 	if(request->conf->large_client_header_size <= rest_len)
 	{
 		return 0;
-	}
+	}*/
 	request->header_buf = buf_create(request->pool, request->conf->large_client_header_size + 1);
 
-	if(header_buf->start == NULL) return 0;
+	if(header_buf->start == NULL) 
+	{
+		log_error("out of memory.");
+		return 0;
+	}
 
 	*(header_buf->end - 1) = '\0'; 
 	header_buf->end -= 1;
@@ -521,6 +531,8 @@ int http_process_request_line(http_request_t* request, int fd)
 	if(!http_alloc_client_header_buf(request))
 	{
 		request->status = HTTP_STATUS_INTERNAL_SERVER_ERROR;
+		log_error("alloc client header buf failed.");
+
 		return 0;
 	}
 
@@ -537,6 +549,8 @@ int http_process_request_line(http_request_t* request, int fd)
 				if(!http_alloc_large_client_header_buf(request))
 				{
 					request->status = HTTP_STATUS_INTERNAL_SERVER_ERROR;
+					log_error("alloc large client header buf failed.");
+
 					return 0;
 				}
 			}
@@ -547,6 +561,8 @@ int http_process_request_line(http_request_t* request, int fd)
 			if(count <= 0) 
 			{
 				request->status = HTTP_STATUS_CLOSE;
+				log_error("recv failed, errno %d.", errno);
+
 				return 0;
 			}
 			
@@ -555,6 +571,8 @@ int http_process_request_line(http_request_t* request, int fd)
 		else if(parse == HTTP_PARSE_FAIL)
 		{
 			request->status = HTTP_STATUS_BAD_REQUEST;
+			log_error("parse failed.");
+
 			return 0;
 		}
 		else
@@ -562,7 +580,11 @@ int http_process_request_line(http_request_t* request, int fd)
 			break;
 		}
 	}
-	
+	//TODO TODO TODO TODO !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+	/*log_info("request method: %s | unparsed url: %s | 
+					  version: %s | schema: %s | host: %s | 
+					  port: %s | path %s | query_string: %s", );*/
+
 	return 1;
 }
 
@@ -595,6 +617,8 @@ int http_process_header_line(http_request_t* request, int fd, int process_phase)
 				if(!http_alloc_large_client_header_buf(request))
 				{
 					request->status = HTTP_STATUS_INTERNAL_SERVER_ERROR;
+					log_error("alloc large client header buf failed.");
+
 					return 0;
 				}
 			}
@@ -605,6 +629,8 @@ int http_process_header_line(http_request_t* request, int fd, int process_phase)
 			if(count <= 0) 
 			{
 				request->status = HTTP_STATUS_CLOSE;
+				log_error("recv() failed.");
+
 				return 0;
 			}
 
@@ -613,6 +639,8 @@ int http_process_header_line(http_request_t* request, int fd, int process_phase)
 		else if(parse == HTTP_PARSE_FAIL)
 		{
 			request->status = HTTP_STATUS_BAD_REQUEST;
+			log_error("parse failed.");
+
 			return 0;
 		}
 		else
@@ -628,6 +656,8 @@ int http_process_header_line(http_request_t* request, int fd, int process_phase)
 		if(headers_in->header_host == NULL)
 		{
 			request->status = HTTP_STATUS_BAD_REQUEST;
+			log_error("host header needed.");
+
 			return 0;
 		}
 		headers_in->header_content_type = http_header_str(headers, HTTP_HEADER_CONTENT_TYPE);
@@ -660,6 +690,14 @@ int http_process_header_line(http_request_t* request, int fd, int process_phase)
 		//if(headers_out->content_len < 0) headers_out->content_len = 0;
 	}
 	
+	log_info("phase %d headers parsed: ", process_phase);
+	http_header_t** header_elts = (http_header_t**) headers->elts;
+	int i;
+	for(i=0; i<headers->count; i++)
+	{
+		log_info("%s: %s", header_elts[i]->name.data, header_elts[i]->value.data);
+	}
+
 	return 1;
 }
 
@@ -671,7 +709,9 @@ int http_process_status_line(http_request_t* request, int fd)
 	if(!http_alloc_client_header_buf(request))
 	{
 		request->status = HTTP_STATUS_INTERNAL_SERVER_ERROR;
-		return 0;
+		log_error("alloc client header buf failed.");
+
+		return 0;	
 	}
 
 	request->state = HTTP_PROCESS_STAT_STATUS_LINE;
@@ -687,6 +727,8 @@ int http_process_status_line(http_request_t* request, int fd)
 				if(!http_alloc_large_client_header_buf(request))
 				{
 					request->status = HTTP_STATUS_INTERNAL_SERVER_ERROR;
+					log_error("alloc large client header buf failed.");
+
 					return 0;
 				}
 			}
@@ -697,6 +739,8 @@ int http_process_status_line(http_request_t* request, int fd)
 			if(count <= 0) 
 			{
 				request->status = HTTP_STATUS_CLOSE;
+				log_error("recv failed, errno: %d.", errno);
+				
 				return 0;
 			}
 			buf->last += count;
@@ -704,6 +748,8 @@ int http_process_status_line(http_request_t* request, int fd)
 		else if(parse == HTTP_PARSE_FAIL)
 		{
 			request->status = HTTP_STATUS_BAD_REQUEST;
+			log_error("parse failed.");
+
 			return 0;
 		}
 		else
@@ -711,6 +757,8 @@ int http_process_status_line(http_request_t* request, int fd)
 			break;	
 		}
 	}
+
+	log_info("parsed response status: %d", request->status);
 	
 	return 1;
 }
@@ -740,9 +788,9 @@ int http_process_content_body(http_request_t* request, int fd, http_content_body
 				int cur_buf_len = cur_buf->last - cur_buf->pos;
 				if(cur_buf_len > request->conf->max_content_len)
 				{
-					printf("the content body size %d exceeds the limit of %d\n", 
-							cur_buf_len, request->conf->max_content_len);
 					request->status = HTTP_STATUS_BAD_REQUEST;
+					log_error("the content body size %d exceeds the limit of %d\n", 
+									   cur_buf_len, request->conf->max_content_len);
 
 					return 0;
 				}
@@ -761,6 +809,8 @@ int http_process_content_body(http_request_t* request, int fd, http_content_body
 				if(new_buf == NULL)
 				{
 					request->status = HTTP_STATUS_INTERNAL_SERVER_ERROR;
+					log_error("out of memory.");
+
 					return 0;
 				}
 
@@ -775,11 +825,15 @@ int http_process_content_body(http_request_t* request, int fd, http_content_body
 			if(count < 0) 
 			{
 				request->status = HTTP_STATUS_CLOSE;
+				log_error("recv failed: errno: %d", errno);
+
 				return 0;
 			}
 			else if(count == 0)
 			{
 				content_body->content = cur_buf;
+				log_info("successfully recvd content of size %d", content_body->content_len);
+
 				return 1;
 			}
 
@@ -789,11 +843,15 @@ int http_process_content_body(http_request_t* request, int fd, http_content_body
 	}
 	else if(content_len == 0)
 	{
+		log_info("content len is zero.");
+
 		return 1;
 	}
 	else if(content_len > request->conf->max_content_len)
 	{
 		request->status = HTTP_STATUS_BAD_REQUEST;
+		log_error("content_len %d too large compared with %d", 
+						   content_len, request->conf->max_content_len);
 		return 0;
 	}
 
@@ -804,6 +862,8 @@ int http_process_content_body(http_request_t* request, int fd, http_content_body
 		if(body_buf == NULL) 
 		{
 			request->status = HTTP_STATUS_INTERNAL_SERVER_ERROR;
+			log_error("out of memory.");
+
 			return 0;
 		}
 
@@ -821,6 +881,8 @@ int http_process_content_body(http_request_t* request, int fd, http_content_body
 		if(body_buf == NULL) 
 		{
 			request->status = HTTP_STATUS_INTERNAL_SERVER_ERROR;
+			log_error("out of memory.");
+
 			return 0;
 		}
 		body_buf->start = header_buf->pos;
@@ -837,6 +899,7 @@ int http_process_content_body(http_request_t* request, int fd, http_content_body
 			content_body->content = body_buf;
 			content_body->content_len = content_len;
 			assert(content_body->content_fd < 0);
+			log_info("successfully recvd content of size %d", content_body->content_len);
 
 			return 1;
 		}
@@ -847,6 +910,8 @@ int http_process_content_body(http_request_t* request, int fd, http_content_body
 		if(count <= 0) 
 		{
 			request->status = HTTP_STATUS_CLOSE;
+			log_error("recv failed, %d size of content len have been recvd, errno:%d.", recv_body_len, errno);
+
 			return 0;
 		}
 		

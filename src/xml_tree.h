@@ -81,8 +81,8 @@ typedef struct _XmlNode
 
 typedef Ret (*XmlNodeVisitFunc)(void* ctx, int level, XmlNode* node);
 
-XmlNode* xml_node_create_text(const char* text);
-XmlNode* xml_node_create_comment(const char* comment);
+XmlNode* xml_node_create_text(const char* text, size_t length);
+XmlNode* xml_node_create_comment(const char* comment, size_t length);
 XmlNode* xml_node_create_pi(const char* name, const char** attrs);
 XmlNode* xml_node_create_normal(const char* name, const char** attrs); 
 XmlNode* xml_node_append_sibling(XmlNode* node, XmlNode* sibling);
@@ -94,16 +94,13 @@ void xml_node_print(XmlNode* node);
 void xml_node_destroy(XmlNode* node);
 
 /*wupeng add*/
-//return count of node's children, or -1 on error.
-int xml_tree_child_count(XmlNode* node);
-Ret xml_tree_dup_str(XmlNode* node, pool_t* pool, char** out);
-Ret xml_tree_str(XmlNode* node, char** out);
-Ret xml_tree_int(XmlNode* node, int* out);
+char* xml_tree_str_first(XmlNode* node, const char* name);
+char* xml_tree_str(XmlNode* node, const char* name, int index);
+int xml_tree_int(XmlNode* node, const char* name, int index, int default_val);
+int xml_tree_int_first(XmlNode* node, const char* name, int default_val);
 
-/*
-Ret xml_tree_attr_read_str(XmlAttr* attr, char* str);
-Ret xml_tree_attr_read_int(XmlAttr* attr, int* out);*/
-
+XmlNode* xml_tree_find(XmlNode* node, const char* name, int index);
+XmlNode* xml_tree_find_first(XmlNode* node, const char* name);
 
 #endif/*XML_TREE_H*/
 

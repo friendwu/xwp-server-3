@@ -14,6 +14,7 @@
 #include "buf.h"
 #include "array.h"
 #include "upstream.h"
+#include "log.h"
 
 static void connection_gen_request(connection_t* thiz)
 {
@@ -63,8 +64,10 @@ static int connection_send_response(connection_t* thiz)
 	array_t* headers = thiz->r->headers_out.headers;
 	http_content_body_t* body_out = &thiz->r->body_out;
 
-	//TODO the ouput header filter should be segregated into a standalone module.
-	//TODO add some crucial headers such as: connection, date, server...
+	/*
+		TODO the ouput header filter should be segregated into a standalone module.
+		TODO add some crucial headers such as: connection, date, server...
+	*/
 	if(thiz->r->keep_alive)
 	{
 		http_header_set(headers, HTTP_HEADER_CONNECTION, HTTP_HEADER_KEEPALIVE);
@@ -139,6 +142,8 @@ static void connection_process_request(connection_t* thiz)
 {
 	vhost_conf_t** vhosts = (vhost_conf_t** )thiz->conf->vhosts->elts;
 	size_t vhost_nr = thiz->conf->vhosts->count;
+	vhost_conf_t* cur_vhost = NULL;
+	vhost_loc_conf_t* cur_loc = NULL;
 	size_t i = 0;
 	for(; i<vhost_nr; i++)
 	{
@@ -148,37 +153,39 @@ static void connection_process_request(connection_t* thiz)
 					   vhosts[i]->name.data, 
 					   vhosts[i]->name.len) == 0)
 		{
+			cur_vhost = vhosts[i];
 			break;
 		}
 	}
 
-	if(i == vhost_nr) 
+	if(cur_vhost == NULL) 
 	{
-		printf("cannot find the vhost: %s\n", thiz->r->headers_in.header_host->data);
-		thiz->r->status = HTTP_STATUS_BAD_REQUEST;
-		return;
+		cur_vhost = thiz->conf->default_vhost;
+		log_info("cannot find the vhost: %s, use default: %s", thiz->r->headers_in.header_host->data, cur_vhost->name.data);
 	}
 		
-	vhost_loc_conf_t** locs = (vhost_loc_conf_t** ) vhosts[i]->locs->elts;
-	size_t loc_nr = vhosts[i]->locs->count;
+	vhost_loc_conf_t** locs = (vhost_loc_conf_t** ) cur_vhost->locs->elts;
+	size_t loc_nr = cur_vhost->locs->count;
 
 	int k = 0;
 	for(; k<loc_nr; k++)
 	{
 		if(regexec(&(locs[k]->pattern_regex), thiz->r->url.path.data, 0, NULL, 0) == 0)
+		{
+			cur_loc = locs[k];
 			break;
+		}
 	}
 
-	//TODO there should be a default handler.
-	if(k == loc_nr) 
+	if(cur_loc == NULL) 
 	{
-		printf("cannot find the location: %s\n", thiz->r->url.path.data);
+		log_error("cannot find the location: %s", thiz->r->url.path.data);
 		thiz->r->status = HTTP_STATUS_BAD_REQUEST;
 		return;
 	}
 	
 	int ret = HTTP_MODULE_PROCESS_DONE;
-	ret = module_process(locs[k]->handler, thiz->r);
+	ret = module_process(cur_loc->handler, thiz->r);
 
 	if(ret == HTTP_MODULE_PROCESS_DONE)
 	{
@@ -349,7 +356,7 @@ int connection_run(connection_t* thiz, int fd, struct sockaddr_in* peer_addr)
 	thiz->start_time = time(NULL);
 	thiz->fd = fd;
 	thiz->state = CONNECTION_RUNNING;
-	printf("accept connection from  %s\n", thiz->r->remote_ip.data);
+	log_info("accept connection from  %s : %d", thiz->r->remote_ip.data, thiz->r->remote_port);
 
 	while(!thiz->timedout)
 	{

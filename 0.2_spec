@@ -22,12 +22,13 @@
 [x]		C. http_request_t中的buf_t字段全部改为指针。
 		D. 健壮性检查（入口参数检查/边界检查）
 		E. 其他不爽的地方，如有些字段应该使用stdint。
-4. 可测试性重构，完成测试用例的编写，以及测试执行。
-5. daemon化，能以service的形式开机在后台运行。
-6. log模块，以及在代码相应的地方中添加一定量的log
-7. 添加master-slave逻辑。master进程负责启动/监控一定量的worker进程，worker异常退出时，能自动重启worker.
-8. url编码，能够处理中文url
-9. 正式使用config.xml进行参数配置。
-10. 其他琐碎的http header支持（如cache等），兼容1.0.
-11. 重构pool，真正发挥memory pool的作用。
+[x] 4. 可测试性重构，完成测试用例的编写，以及测试执行。
+[ ] 5. daemon化，能以service的形式开机在后台运行。 make service.
+[x] 6. log模块，以及在代码相应的地方中添加一定量的log
+[ ] 7. 其他琐碎的http header支持（如cache等），兼容1.0.阅读spec和definitive guide. 
+
+[ ] 8. 添加master-slave逻辑。master进程负责启动/监控一定量的worker进程，worker异常退出时，能自动重启worker.
+[ ] 9. url编码，能够处理中文url
+[ ] 10. 正式使用config.xml进行参数配置。
+[ ] 11. 重构pool，真正发挥memory pool的作用。
 

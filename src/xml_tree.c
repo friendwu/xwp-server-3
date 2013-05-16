@@ -33,7 +33,7 @@
 #include <string.h>
 #include "xml_tree.h"
 
-XmlNode* xml_node_create_text(const char* text)
+XmlNode* xml_node_create_text(const char* text, size_t length)
 {
 	XmlNode* node = NULL;
 	return_val_if_fail(text != NULL, NULL);
@@ -41,13 +41,13 @@ XmlNode* xml_node_create_text(const char* text)
 	if((node = calloc(1, sizeof(XmlNode))) != NULL)
 	{
 		node->type = XML_NODE_TEXT;
-		node->u.text = strdup(text);
+		node->u.text = strndup(text, length);
 	}
 
 	return node;
 }
 
-XmlNode* xml_node_create_comment(const char* comment)
+XmlNode* xml_node_create_comment(const char* comment, size_t length)
 {
 	XmlNode* node = NULL;
 	return_val_if_fail(comment != NULL, NULL);
@@ -55,7 +55,7 @@ XmlNode* xml_node_create_comment(const char* comment)
 	if((node = calloc(1, sizeof(XmlNode))) != NULL)
 	{
 		node->type = XML_NODE_COMMENT;
-		node->u.comment = strdup(comment);
+		node->u.comment = strndup(comment, length);
 	}
 
 	return node;
@@ -316,48 +316,67 @@ void xml_node_destroy(XmlNode* node)
 }
 
 //wupeng add
-Ret xml_tree_read_str(XmlNode* node, char** out)
+XmlNode* xml_tree_find(XmlNode* node, const char* name, int index)
 {
-	return_val_if_fail(node!=NULL && out!=NULL, RET_INVALID_PARAMS);
+	return_val_if_fail(node!=NULL && name!=NULL && index>=0, NULL);
 
-	node = node->children;	
-	if(node!=NULL && node->type==XML_NODE_TEXT)
+	XmlNode* cur_node = node->children;	
+	int i = -1;
+	while(cur_node != NULL)
 	{
-		*out = node->u.text;
+		if(cur_node->type == XML_NODE_NORMAL 
+				&& strcmp(cur_node->u.normal.name, name) == 0)
+		{
+			i++;
+		}
+		if(i == index) 
+		{
+			return cur_node;
+		}
 
-		return RET_OK;
+		cur_node = cur_node->sibling;
 	}
+
+	return NULL;
+}
+
+XmlNode* xml_tree_find_first(XmlNode* node, const char* name)
+{
+	return xml_tree_find(node, name, 0);
+}
+
+char* xml_tree_str(XmlNode* node, const char* name, int index)
+{
+	return_val_if_fail(node!=NULL && name!=NULL && index>=0, NULL);
+
+	XmlNode* cur_node = xml_tree_find(node, name, index);
+	if(cur_node == NULL) return NULL;
+
+
+	cur_node = cur_node->children;
+	if(cur_node!=NULL && cur_node->type==XML_NODE_TEXT)
+		return cur_node->u.text;
 	else
-	{
-		*out = NULL;
-		return RET_FAIL;
-	}
+		return NULL;
 }
 
-Ret xml_tree_read_dup_str(XmlNode* node, char** out)
+char* xml_tree_str_first(XmlNode* node, const char* name)
 {
-	char* tmp = NULL;
-	Ret ret = xml_tree_read_str(node, &tmp);
-
-	if(ret == RET_OK) *out = strdup(tmp);
-	else *out = NULL;
-
-	return ret;
+	return xml_tree_str(node, name, 0);
 }
 
-Ret xml_tree_read_int(XmlNode* node, int* out)
+int xml_tree_int(XmlNode* node, const char* name, int index, int default_val)
 {
-	return_val_if_fail(node!=NULL || out==NULL, RET_INVALID_PARAMS);
+	char* str = xml_tree_str(node, name, index);
 
-	char* tmp = NULL;
-	Ret ret = xml_tree_read_str(node, &tmp);
+	if(str == NULL) return default_val;
 
-	if(ret == RET_OK && tmp != NULL)
-	{
-		*out = atoi(tmp);
-	}
+	return atoi(str);
+}
 
-	return ret;
+int xml_tree_int_first(XmlNode* node, const char* name, int default_val)
+{
+	return xml_tree_int(node, name, 0, default_val);
 }
 
 #ifdef XML_TREE_TEST

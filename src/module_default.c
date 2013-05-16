@@ -6,6 +6,7 @@
 #include "typedef.h"
 #include "module.h"
 #include "http.h"
+#include "log.h"
 //TODO
 typedef struct _XmlNode XmlNode;
 
@@ -50,7 +51,7 @@ static int module_default_handle_request(module_t* thiz, http_request_t* request
 	if(stat(path, &st) != 0)
 	{
 		request->status = HTTP_STATUS_NOT_FOUND;
-		printf("stat %s failed: %s\n", path, strerror(errno));
+		log_error("stat %s failed: %s\n", path, strerror(errno));
 
 		return HTTP_MODULE_PROCESS_DONE;
 	}
@@ -114,7 +115,7 @@ void module_get_info(module_so_conf_t* so_conf, pool_t* pool)
 {
 	assert(so_conf!=NULL && pool!=NULL);
 
-	to_string(so_conf->name, "module_default");
+	to_string(so_conf->name, "default");
 	to_string(so_conf->author, "pengwu<wp.4163196@gmail.com>");
 	to_string(so_conf->description, "default request handler");
 	to_string(so_conf->version, "0.1");

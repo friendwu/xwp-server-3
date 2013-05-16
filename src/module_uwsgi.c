@@ -10,12 +10,12 @@
 #include "upstream.h"
 #include "typedef.h"
 #include "utils.h"
+#include "log.h"
 //#include "http.h"
 #include <sys/types.h>        
 #include <sys/socket.h>
 #include "module.h"
-//TODO
-typedef struct _XmlNode XmlNode;
+#include "xml_tree.h"
 
 const str_t CGI_SCRIPT_FILENAME = server_string("SCRIPT_FILENAME");
 const str_t CGI_QUERY_STRING = server_string("QUERY_STRING");
@@ -178,7 +178,12 @@ static void upstream_uwsgi_process(upstream_t* thiz)
 	upstream_priv->running = 1;
 
 	uint16_t datasize = upstream_uwsgi_calc_packet_len(thiz, request);
-	char* buf = (char* )pool_calloc(request->pool, datasize + 4); //4 means the length of packet header.
+	/*
+		4 means the length of packet header.
+		1 means the trailing \0. as every time the sprintf func will 
+		write a \0 after the string content.
+	*/
+	char* buf = pool_calloc(request->pool, datasize + 4 + 1); 
 	
 	if(buf == NULL) request->status = HTTP_STATUS_BAD_REQUEST;
 
@@ -251,7 +256,7 @@ static void upstream_uwsgi_process(upstream_t* thiz)
 		}
 	}
 
-	//printf("pos %d datasize %d iplen %d\n", pos, datasize + 4, request->remote_ip.len);
+	log_debug("pos %d datasize %d iplen %d\n", pos, datasize + 4, request->remote_ip.len);
 	assert(pos == datasize + 4); //4 means packet header length.
 
 	if(!nwrite(upstream_priv->fd, buf, datasize + 4))
@@ -371,11 +376,30 @@ static void module_uwsgi_destroy(void* data)
 
 static int module_uwsgi_conf_init(module_uwsgi_conf_t* conf, XmlNode* xml_conf_node, pool_t* pool)
 {
-	//TODO parse config here later, now just hard coding.
-	conf->modifier1 = 0;
+	/*conf->modifier1 = 0;
 	conf->modifier2 = 0;
 	to_string(conf->ip, "127.0.0.1");
-	conf->port = 9000;
+	conf->port = 9000;*/
+	conf->modifier1 = xml_tree_int_first(xml_conf_node, "modifier1", 0);
+	conf->modifier1 = xml_tree_int_first(xml_conf_node, "modifier2", 0);
+
+	XmlNode* pass_conf_node = xml_tree_find_first(xml_conf_node, "uwsgi_pass");
+	if(pass_conf_node == NULL)
+	{
+		log_error("uwsgi_pass config needed.");
+
+		return 0;
+	}
+
+	pool_strdup2(pool, &conf->ip, xml_tree_str_first(pass_conf_node, "ip"));
+	if(conf->ip.data == NULL) to_string(conf->ip, "127.0.0.1");
+	conf->port = xml_tree_int_first(pass_conf_node, "port", -1);
+	if(conf->port == -1) 
+	{
+		log_error("uwsgi_pass port needed.");
+
+		return 0;
+	}
 
 	return 1;
 }
@@ -425,7 +449,7 @@ void module_get_info(module_so_conf_t* so_conf, pool_t* pool)
 {
 	assert(so_conf!=NULL && pool!=NULL);
 
-	to_string(so_conf->name, "module_uwsgi");
+	to_string(so_conf->name, "uwsgi");
 	to_string(so_conf->author, "pengwu<wp.4163196@gmail.com>");
 	to_string(so_conf->description, "uwsgi request handler");
 	to_string(so_conf->version, "0.1");

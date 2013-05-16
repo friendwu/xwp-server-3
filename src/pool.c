@@ -49,7 +49,7 @@ void* pool_alloc(pool_t* thiz, int size)
 
 void* pool_calloc(pool_t* thiz, int size)
 {
-	return_val_if_fail(thiz!=NULL && size>0, 0);
+	return_val_if_fail(thiz!=NULL && size>0, NULL);
 	void* p = pool_alloc(thiz, size);
 
 	if(p)
@@ -128,6 +128,17 @@ char* pool_strdup(pool_t* thiz, char* str)
 	p[slen] = '\0';
 
 	return p;
+}
+
+int pool_strdup2(pool_t* thiz, str_t* out, char* str)
+{
+	return_val_if_fail(str!=NULL && thiz!=NULL && out!=NULL, 0);
+	char* s = pool_strdup(thiz, str);
+
+	out->data = s;
+	out->len = out->data ? strlen(out->data) : 0;
+
+	return 1;
 }
 
 char* pool_strndup(pool_t* thiz, char* str, int len)

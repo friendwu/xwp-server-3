@@ -8,6 +8,7 @@
 #include <ctype.h>
 #include <errno.h>
 #include "utils.h"
+#include "log.h"
 
 #define IS_DELIM(delim_func, s, c) ((delim_func!=NULL && delim_func(c)) || (s!=NULL && strchr(s, c)!=NULL))
 
@@ -29,7 +30,7 @@ int connect_remote(char* ip, int port)
 	
 	if(connect(fd, (const struct sockaddr*) &addr, sizeof(struct sockaddr_in)) < 0)
 	{
-		perror(strerror(errno));
+		log_error("%s", strerror(errno));
 		close(fd);
 
 		return -1;
@@ -62,8 +63,9 @@ int open_listen_fd(char* ip, int port)
 
 	if(bind(listen_fd, (struct sockaddr* )&addr, sizeof(struct sockaddr_in)) < 0)
 	{
-		perror(strerror(errno));
+		log_error("%s", strerror(errno));
 		close(listen_fd);
+
 		return -1;
 	}
 
@@ -135,7 +137,7 @@ int nwrite(int fd, char* buf, size_t len)
 
 		if (written <= 0) 
 		{    
-			printf("nwrite failed: written=%d, errno: %d\n", written, errno);
+			log_error("nwrite failed: written=%d, errno: %d", written, errno);
 			return 0;
 		}    
 

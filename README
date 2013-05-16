@@ -15,3 +15,8 @@ The basic uwsgi module function has now been completed, so we can converse with 
 I just use it talk with a python written blog engine, and works well.
 But after a long time developing with few tests, the code seems quite buggy, so I will stop adding new 
 features in the next procedure, and focus on fully tests as well as add enough log to help ease debugging.
+
+2013.5.7
+the tuned uwsgi module is present now, seems that all things well done, but...I'm not quite sure, it need to
+be fully test. the next three tasks is develop log module, add enough log into the code to help me debug
+easier, and add some daemonize code.
