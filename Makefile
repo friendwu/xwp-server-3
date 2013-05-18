@@ -1,8 +1,8 @@
 all:
-	scons -Q
+	cd src && $(MAKE) $@	
 
 clean:
-	scons -Q -c
+	cd src && $(MAKE) $@	
 
 install: 
-	scons -Q install
+	cd src && $(MAKE) $@	

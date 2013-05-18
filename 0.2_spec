@@ -29,6 +29,6 @@
 
 [ ] 8. 添加master-slave逻辑。master进程负责启动/监控一定量的worker进程，worker异常退出时，能自动重启worker.
 [ ] 9. url编码，能够处理中文url
-[ ] 10. 正式使用config.xml进行参数配置。
+[x] 10. 正式使用config.xml进行参数配置。
 [ ] 11. 重构pool，真正发挥memory pool的作用。
 

@@ -22,7 +22,7 @@
 
 	<vhost>
 		<name>pengwu.me</name>
-		<root></root>
+		<root>/usr/local/xwp/static/</root>
 		<location>
 			<pattern>/static/.*</pattern>
 			<handler>
@@ -49,7 +49,7 @@
 						<name>UWSGI_SCRIPT</name>
 						<value>uwsgi_main</value>
 					</uwsgi_param>
-				</uwsgi_conf>
+				</handler_conf>
 			</handler>
 		</location>
 	</vhost>

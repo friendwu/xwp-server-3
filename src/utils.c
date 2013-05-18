@@ -39,8 +39,10 @@ int connect_remote(char* ip, int port)
 	return fd;
 }
 
-int open_listen_fd(char* ip, int port)
+int open_listen_fd(char* ip, int port, int backlog)
 {
+	assert(port >= 0 && backlog > 0);
+
 	int listen_fd = -1;
 	struct sockaddr_in addr;
 	int opt = 1;
@@ -69,7 +71,7 @@ int open_listen_fd(char* ip, int port)
 		return -1;
 	}
 
-	if(listen(listen_fd, 20) < 0)
+	if(listen(listen_fd, backlog) < 0)
 	{
 		close(listen_fd);
 		return -1;

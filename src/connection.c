@@ -275,6 +275,11 @@ static int connection_reusable(connection_t* thiz, int reusable)
 {
 	assert(thiz!=NULL);	
 	assert(thiz->state == CONNECTION_BEFORE_REUSEABLE);
+	
+	if(thiz->r)
+	{
+		log_info("close connection %s : %d", thiz->r->remote_ip.data, thiz->r->remote_port);
+	}
 
 	pthread_mutex_lock(&thiz->mutex);
 	thiz->timedout = 0;
@@ -417,6 +422,7 @@ int connection_check_timeout(connection_t* thiz)
 	{
 		if(now-thiz->start_time >= thiz->conf->connection_timeout)
 		{
+			log_info("connection  %s : %d timedout, close.", thiz->r->remote_ip.data, thiz->r->remote_port);
 			thiz->timedout = 1;
 			if(thiz->fd >= 0) 
 			{

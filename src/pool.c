@@ -3,7 +3,7 @@
 #include "pool.h"
 #include "typedef.h"
 
-//TODO temporarily use this implementation, optimize later.
+//TODO temporarily use this simple fake implementation, refactor later.
 typedef struct pool_node_s
 {
 	struct pool_node_s* next;

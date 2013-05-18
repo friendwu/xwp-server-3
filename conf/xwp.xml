@@ -16,8 +16,8 @@
 	</default_pages>
 	
 	<load_module>
-		<module>modules/libmodule_default.so</module>
-		<module>modules/libmodule_uwsgi.so</module>
+		<module>lib/libmodule_default.so</module>
+		<module>lib/libmodule_uwsgi.so</module>
 	</load_module>
 
 	<vhost>
@@ -48,7 +48,7 @@
 						<name>UWSGI_SCRIPT</name>
 						<value>uwsgi_main</value>
 					</uwsgi_param>
-				</uwsgi_conf>
+				</handler_conf>
 			</handler>
 		</location>
 	</vhost>

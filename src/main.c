@@ -3,7 +3,7 @@
 #include <unistd.h>
 #include <stdio.h>
 #include "server.h"
-#include "zlog.h"
+#include "log.h"
 
 #ifndef LOG_CONF_PATH
 #define LOG_CONF_PATH "conf/zlog.conf"

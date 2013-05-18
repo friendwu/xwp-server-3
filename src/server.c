@@ -103,7 +103,7 @@ server_t* server_create(const char* config_file)
 	}
 	thiz->conf = conf;
 
-	thiz->listen_fd = open_listen_fd(conf->ip.data, conf->port);
+	thiz->listen_fd = open_listen_fd(conf->ip.data, conf->port, conf->max_threads);
 	if(thiz->listen_fd < 0) 
 	{
 		log_error("open listen fd failed.");

@@ -227,6 +227,10 @@ static int http_parse_url(http_request_t* request, url_t* url, str_t* url_str)
 		if(!port_end) return HTTP_PARSE_FAIL;
 		url->port = strtod(port_start, &port_end);
 	}
+	else
+	{
+		url->port = 80;
+	}
 	if(path_start)
 	{
 		if(!path_end) path_end = url_str_end;
@@ -556,7 +560,8 @@ int http_process_request_line(http_request_t* request, int fd)
 			}
 
 			int count;
-			while((count=recv(fd, buf->last, buf->end-buf->last, 0))<=0 && errno==EINTR){;;}
+			while((count=recv(fd, buf->last, buf->end-buf->last, 0))<=0 && errno==EINTR)
+			{;;}
 
 			if(count <= 0) 
 			{
@@ -580,10 +585,13 @@ int http_process_request_line(http_request_t* request, int fd)
 			break;
 		}
 	}
-	//TODO TODO TODO TODO !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-	/*log_info("request method: %s | unparsed url: %s | 
-					  version: %s | schema: %s | host: %s | 
-					  port: %s | path %s | query_string: %s", );*/
+	log_info("request method: %s | unparsed url: %s | "
+			"version: %s | schema: %s | port: %d | "
+			"path %s | query_string: %s", 
+			request->method_str.data, request->url.unparsed_url.data, 
+			request->version_str.data, request->url.schema.data, 
+			request->url.port, request->url.path.data, 
+			request->url.query_string.data);
 
 	return 1;
 }

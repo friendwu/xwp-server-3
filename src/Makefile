@@ -1,16 +1,24 @@
 XWP_PATH=/usr/local/xwp
+
 all:
-	gcc -g -Wall buf.c array.c pool.c http_request.c utils.c http.c conf.c main.c connection.c server.c xml_parser.c xml_builder_tree.c xml_tree.c -ldl -lpthread -lzlog -o ../xwp
-	gcc -g -Wall module_default.c buf.c array.c pool.c http.c -lzlog -shared -fPIC -o ../modules/libmodule_default.so
-	gcc -g -Wall module_uwsgi.c buf.c array.c utils.c pool.c http.c http_request.c xml_tree.c -lpthread -lzlog -shared -fPIC -o ../modules/libmodule_uwsgi.so
+	cd zlog && $(MAKE) $@	
+	sudo cp zlog/src/libzlog.* /usr/local/lib/
+	gcc -g -O2 -Wall buf.c array.c pool.c http_request.c utils.c http.c conf.c main.c connection.c server.c xml_parser.c xml_builder_tree.c xml_tree.c -ldl -lpthread  -lzlog -o ../xwp
+	gcc -g -O2 -Wall module_default.c buf.c array.c pool.c http.c -lzlog -shared -fPIC -o ../lib/libmodule_default.so
+	gcc -g -O2 -Wall module_uwsgi.c buf.c array.c utils.c pool.c http.c http_request.c xml_tree.c -lpthread -lzlog -shared -fPIC -o ../lib/libmodule_uwsgi.so
 
 clean:
-	rm -f ../xwp ../test_xwp ../modules/libmodule_default.so ../modules/libmodule_uwsgi.so
+	rm -f ../xwp ../test_xwp ../lib/*
 install:
 	cp ../xwp $(XWP_PATH)/sbin/
-	cp ../modules $(XWP_PATH) -rf
+	cp ../lib $(XWP_PATH) -rf
 	cp ../conf $(XWP_PATH) -rf
+	mv $(XWP_PATH)/conf/xwp.xml.system $(XWP_PATH)/conf/xwp.xml
+	cp ../lib/libzlog.* /usr/local/lib/
 	cp ../static $(XWP_PATH) -rf
+
+
+#cp ../zlog.h /usr/local/include/
 	
 
 .PHONY: all clean install

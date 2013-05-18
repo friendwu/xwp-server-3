@@ -1,6 +1,6 @@
 #ifndef LOG_H
 #define LOG_H
-#include "zlog.h"
+#include "zlog/src/zlog.h"
 
 #define log_error dzlog_error
 #define log_warn  dzlog_warn

@@ -17,6 +17,15 @@ But after a long time developing with few tests, the code seems quite buggy, so 
 features in the next procedure, and focus on fully tests as well as add enough log to help ease debugging.
 
 2013.5.7
-the tuned uwsgi module is present now, seems that all things well done, but...I'm not quite sure, it need to
+The tuned uwsgi module is present now, seems that all things well done, but...I'm not quite sure, it need to
 be fully test. the next three tasks is develop log module, add enough log into the code to help me debug
 easier, and add some daemonize code.
+
+2013.5.18
+. Use zlog module(https://github.com/HardySimpson/zlog) for logging.
+. Insert some logging code for debugging purpose.
+. Load config through xml configure file.
+It can run quite well(well, maybe), but seems have bugs when concurrency level goes up.
+I will just pause developing for a while because of feeling tired and boring now, time is needed to find the passion again.
+So in next step, I will go on learning some fundamental knowlege of network programming: reading some books, excavate deeply
+into nginx code and etc, and probably return developing at appropriate time.
