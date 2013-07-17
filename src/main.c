@@ -6,11 +6,11 @@
 #include "log.h"
 
 #ifndef LOG_CONF_PATH
-#define LOG_CONF_PATH "conf/zlog.conf"
+#define LOG_CONF_PATH "../conf/zlog.conf"
 #endif
 
 #ifndef XWP_CONF_PATH
-#define XWP_CONF_PATH "conf/xwp.xml"
+#define XWP_CONF_PATH "../conf/xwp.xml"
 #endif
 #define MAX_CONF_LEN 512
 

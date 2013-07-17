@@ -16,8 +16,8 @@
 	</default_pages>
 	
 	<load_module>
-		<module>lib/libmodule_default.so</module>
-		<module>lib/libmodule_uwsgi.so</module>
+		<module>../lib/libmodule_default.so</module>
+		<module>../lib/libmodule_uwsgi.so</module>
 	</load_module>
 
 	<vhost>
