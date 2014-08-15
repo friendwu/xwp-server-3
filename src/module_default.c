@@ -5,12 +5,12 @@
 #include <errno.h>
 #include "typedef.h"
 #include "module.h"
+#include "conf.h"
 #include "http.h"
 #include "log.h"
-//TODO
 typedef struct _XmlNode XmlNode;
 
-typedef struct module_default_priv_s 
+typedef struct module_default_priv_s
 {
 	const vhost_loc_conf_t* loc_conf;
 }module_default_priv_t;
@@ -26,7 +26,7 @@ static int module_default_handle_request(module_t* thiz, http_request_t* request
 	}
 
 	DECL_PRIV(thiz, priv, module_default_priv_t*);
-	
+
 	conf_t* root_conf = priv->loc_conf->parent->parent;
 
 	//TODO check there is no '..' contains in the path.
@@ -42,11 +42,11 @@ static int module_default_handle_request(module_t* thiz, http_request_t* request
 	{
 		request_path = request->url.path;
 	}
-	
+
 	char* path = (char* )pool_calloc(pool, priv->loc_conf->root.len + request_path.len + 2);
 
 	sprintf(path, "%s%s", priv->loc_conf->root.data, request_path.data);
-	
+
 	struct stat st = {0};
 	if(stat(path, &st) != 0)
 	{
@@ -57,7 +57,7 @@ static int module_default_handle_request(module_t* thiz, http_request_t* request
 	}
 
 	//TODO allow list dir.
-	if(S_ISDIR(st.st_mode) || 
+	if(S_ISDIR(st.st_mode) ||
 		!(S_ISREG(st.st_mode) && (S_IRUSR & st.st_mode)))
 	{
 		request->status = HTTP_STATUS_FORBIDDEN;
@@ -66,31 +66,31 @@ static int module_default_handle_request(module_t* thiz, http_request_t* request
 	}
 
 	int fd = open(path, O_RDONLY);
-	if(fd < 0) 
+	if(fd < 0)
 	{
 		request->status = HTTP_STATUS_NOT_FOUND;
 
 		return HTTP_MODULE_PROCESS_DONE;
 	}
-	
+
 	request->body_out.content_fd = fd;
 	request->body_out.content_len = st.st_size;
 
 	char* extension = strrchr(request->url.path.data, '.');
 	if(extension != NULL) extension += 1;
-	
+
 	str_t content_type = {0};
 	http_content_type(extension, &content_type);
 
 	http_header_set(request->headers_out.headers, HTTP_HEADER_CONTENT_TYPE, &content_type);
 	request->status = HTTP_STATUS_OK;
-	
+
 	return HTTP_MODULE_PROCESS_DONE;
 }
 
 static void module_default_destroy(void* data)
 {
-	//TODO cleanup 
+	//TODO cleanup
 	return;
 }
 

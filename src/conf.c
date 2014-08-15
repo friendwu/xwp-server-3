@@ -10,9 +10,10 @@
 #include "xml_builder_tree.h"
 
 #define DEFAULT_PORT 80
+#define DEFAULT_WORKER_NUM 1
 #define DEFAULT_MAX_THREADS 50
 #define DEFAULT_CONNECTION_TIMEOUT 30
-#define DEFAULT_REQUEST_POOL_SIZE 1024 * 8   
+#define DEFAULT_REQUEST_POOL_SIZE 1024 * 8
 #define DEFAULT_CLIENT_HEADER_SIZE 1024 * 2
 #define DEFAULT_LARGE_CLIENT_HEADER_SIZE 1024 * 4
 #define DEFAULT_CONTENT_BODY_BUF_SIZE 4 * 1024
@@ -31,7 +32,7 @@ static void conf_parse_loadmodule(conf_t* thiz, XmlNode* root)
 		if(so_file == NULL) break;
 
 		handler = dlopen(so_file, RTLD_NOW);
-		if(handler == NULL) 
+		if(handler == NULL)
 		{
 			log_error("dlopen failed: %s, so file: %s", dlerror(), so_file);
 			exit(-1);
@@ -45,7 +46,7 @@ static void conf_parse_loadmodule(conf_t* thiz, XmlNode* root)
 		}
 
 		module_so_conf_t* so = pool_calloc(pool, sizeof(module_so_conf_t));
-		if(so == NULL) 
+		if(so == NULL)
 		{
 			log_error("module_so_conf_t memory allocate failed.");
 			exit(-1);
@@ -71,7 +72,7 @@ static void conf_parse_loadmodule(conf_t* thiz, XmlNode* root)
 /*
 static void conf_parse_defaultpages(conf_t* thiz, XmlNode* root, pool_t* pool)
 {
-	char* page = NULL; 
+	char* page = NULL;
 	int i = 0;
 	for(;;)
 	{
@@ -110,7 +111,7 @@ static void conf_parse_location(conf_t* thiz, vhost_conf_t* vhost, XmlNode* root
 		log_error("at least one handler needed.");
 		exit(-1);
 	}
-	XmlNode* handler_conf_node = xml_tree_find_first(handler_node, "handler_conf"); 
+	XmlNode* handler_conf_node = xml_tree_find_first(handler_node, "handler_conf");
 	pool_strdup2(pool, &loc->handler_name, xml_tree_str_first(handler_node, "name"));
 	if(loc->handler_name.data == NULL)
 	{
@@ -182,7 +183,7 @@ static void conf_parse_vhost(conf_t* thiz, XmlNode* root)
 	}
 
 	/*vhost->default_loc = (vhost_loc_conf_t* )(vhost->locs->elts[0]);
-	log_info("vhost %s's default location has set to: %s", 
+	log_info("vhost %s's default location has set to: %s",
 				vhost->name, vhost->default_loc->pattern_str);*/
 
 
@@ -223,7 +224,7 @@ static void dump_conf(conf_t* thiz)
 	{
 		vhost_conf_t* vhost = (vhost_conf_t* )(thiz->vhosts->elts[n]);
 		assert(vhost->parent == thiz);
-		
+
 		log_debug("vhost_conf %d, name==> %s", n, vhost->name.data);
 		log_debug("vhost_conf %d, root==> %s", n, vhost->root.data);
 
@@ -272,9 +273,9 @@ conf_t* conf_parse(const char* conf_file, pool_t* pool)
 	XmlParser* parser = xml_parser_create();
 	char* buffer = read_file(conf_file);
 
-	if(buffer==NULL 
-			|| builder==NULL 
-			|| parser==NULL) 
+	if(buffer==NULL
+			|| builder==NULL
+			|| parser==NULL)
 	{
 		log_error("xml parser init failed.");
 		exit(-1);
@@ -290,7 +291,7 @@ conf_t* conf_parse(const char* conf_file, pool_t* pool)
 	}
 
 	thiz = pool_calloc(pool, sizeof(conf_t));
-	if(thiz == NULL) 
+	if(thiz == NULL)
 	{
 		log_error("conf_t memory allocate faild.");
 		exit(-1);
@@ -302,13 +303,13 @@ conf_t* conf_parse(const char* conf_file, pool_t* pool)
 		log_error("array create failed.");
 		exit(-1);
 	}
-	if((thiz->vhosts = array_create(pool, 10)) == NULL) 
+	if((thiz->vhosts = array_create(pool, 10)) == NULL)
 	{
 		log_error("array create failed.");
 		exit(-1);
 	}
 	/*
-	if((thiz->default_pages = array_create(pool, 10)) == NULL) 
+	if((thiz->default_pages = array_create(pool, 10)) == NULL)
 	{
 		log_error("array create failed.");
 		exit(-1);
@@ -316,6 +317,7 @@ conf_t* conf_parse(const char* conf_file, pool_t* pool)
 
 	XmlNode* root = tree;
 
+	thiz->worker_num = xml_tree_int_first(root, "worker_num", DEFAULT_WORKER_NUM);
 	thiz->max_threads = xml_tree_int_first(root, "max_threads", DEFAULT_MAX_THREADS);
 	thiz->request_pool_size = xml_tree_int_first(root, "request_pool_size", DEFAULT_REQUEST_POOL_SIZE);
 	thiz->connection_timeout = xml_tree_int_first(root, "connection_timeout", DEFAULT_CONNECTION_TIMEOUT);
@@ -335,7 +337,7 @@ conf_t* conf_parse(const char* conf_file, pool_t* pool)
 	to_string(thiz->default_page, "index.html");
 
 	conf_parse_loadmodule(thiz, xml_tree_find_first(root, "load_module"));
-	
+
 	int i = 0;
 	for(;;)
 	{

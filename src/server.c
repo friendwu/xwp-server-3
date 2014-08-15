@@ -14,8 +14,9 @@
 #include "utils.h"
 #include "conf.h"
 #include "log.h"
+extern int s_listen_fd;
 
-typedef struct server_s
+struct server_s
 {
 	pool_t* pool;
 	conf_t* conf;
@@ -27,7 +28,7 @@ typedef struct server_s
 	pthread_t guard_tid;
 	int listen_fd;
 	int running;
-}server_t;
+};
 
 static void* server_listen_proc(void* ctx)
 {
@@ -51,7 +52,7 @@ static void* server_listen_proc(void* ctx)
 		assert(c!=NULL && c->state == CONNECTION_REUSEABLE);
 
 		connection_run(c, fd, &peer_addr);
-		
+
 		assert(c->state == CONNECTION_REUSEABLE);
 
 		pthread_mutex_lock(&thiz->mutex);
@@ -81,42 +82,22 @@ static void* server_guard_proc(void* ctx)
 	return (void* )NULL;
 }
 
-server_t* server_create(const char* config_file)
+server_t* server_create(conf_t* conf)
 {
-	pool_t* pool = pool_create(2 * 1024);
-
+    pool_t* pool = conf->pool;
 	server_t* thiz = pool_calloc(pool, sizeof(server_t));
-	if(thiz == NULL) 
-	{
-		pool_destroy(pool);
-		return NULL;
-	}
+	if(thiz == NULL) return NULL;
+
 	thiz->pool = pool;
-
-	signal(SIGPIPE, SIG_IGN);
-
-	conf_t* conf = conf_parse(config_file, pool);
-	if(conf == NULL)
-	{
-		pool_destroy(pool);
-		return NULL;
-	}
 	thiz->conf = conf;
-
-	thiz->listen_fd = open_listen_fd(conf->ip.data, conf->port, conf->max_threads);
-	if(thiz->listen_fd < 0) 
-	{
-		log_error("open listen fd failed.");
-		pool_destroy(pool);
-		return NULL;
-	}
+	thiz->listen_fd = s_listen_fd;
 
 	thiz->connections = (connection_t** )pool_calloc(pool, conf->max_threads * sizeof(connection_t*));
 	int i = 0;
 	for(; i<conf->max_threads; i++)
 	{
 		thiz->connections[i] = connection_create(pool, conf);
-		if(thiz->connections[i] == NULL) 
+		if(thiz->connections[i] == NULL)
 		{
 			pool_destroy(pool);
 			return NULL;
@@ -133,7 +114,7 @@ server_t* server_create(const char* config_file)
 	pthread_mutex_init(&thiz->mutex, NULL);
 	pthread_attr_t attr;
 	pthread_attr_init(&attr);
-	pthread_attr_setstacksize(&attr, 256*1024); 
+	pthread_attr_setstacksize(&attr, 256*1024);
 	pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
 	thiz->running = 1;
 	thiz->listen_tids = pool_alloc(pool, conf->max_threads * sizeof(pthread_t* ));

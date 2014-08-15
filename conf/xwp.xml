@@ -4,7 +4,7 @@
 	<!-- 1024 * 1024-->
 	<max_content_len>1048576</max_content_len>
 	<port>9001</port>
-	<max_threads>300</max_threads>
+	<max_threads>200</max_threads>
 	<connection_timeout>30</connection_timeout>
 	<root>/home/wpeng/uone/mycode/server</root>
 
@@ -14,7 +14,7 @@
 		<page>index.php</page>
 		<page>default.htm</page>
 	</default_pages>
-	
+
 	<load_module>
 		<module>../lib/libmodule_default.so</module>
 		<module>../lib/libmodule_uwsgi.so</module>

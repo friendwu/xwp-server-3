@@ -4,11 +4,9 @@
 #include "array.h"
 #include "buf.h"
 #include <stdint.h>
-typedef struct conf_s conf_t;
-typedef struct upstream_s upstream_t;
 struct sockaddr_in;
 
-typedef struct http_header_s 
+typedef struct http_header_s
 {
 	str_t name;
 	str_t value;
@@ -25,11 +23,12 @@ typedef struct url_s
 	//str_t fragment_id;
 }url_t;
 
-typedef enum 
+typedef enum
 {
 	HTTP_METHOD_GET = 0,
 	HTTP_METHOD_POST,
 	HTTP_METHOD_HEAD,
+	HTTP_METHOD_PUT,
 }http_method_e;
 
 typedef enum
@@ -38,7 +37,7 @@ typedef enum
 	HTTP_VERSION_11,
 }http_version_e;
 
-typedef enum 
+typedef enum
 {
 	HTTP_PROCESS_STAT_NONE = 0,
 	HTTP_PROCESS_STAT_REQUEST_LINE,
@@ -49,7 +48,7 @@ typedef enum
 
 typedef struct http_headers_in_s
 {
-	array_t* headers; //http_header_t* 
+	array_t* headers; //http_header_t*
 
 	const str_t* header_host;
 	const str_t* header_content_type;
@@ -69,11 +68,11 @@ typedef struct http_headers_out_s
 typedef struct http_content_body_s
 {
 	int content_len;
-	buf_t* content;	
+	buf_t* content;
 	int content_fd;
 }http_content_body_t;
 
-typedef struct http_request_s
+struct http_request_s
 {
 	pool_t* pool;
 	const conf_t* conf;
@@ -98,7 +97,8 @@ typedef struct http_request_s
 	http_content_body_t body_out;
 
 	upstream_t* upstream;
-}http_request_t;
+	const str_t* err_msg;
+};
 
 #define HTTP_STATUS_START                     100
 #define HTTP_STATUS_OK                        200
@@ -161,7 +161,7 @@ typedef struct http_request_s
 #define HTTP_STATUS_SERVICE_UNAVAILABLE       503
 #define HTTP_STATUS_GATEWAY_TIME_OUT          504
 #define HTTP_STATUS_INSUFFICIENT_STORAGE      507
-#define HTTP_STATUS_END                       599 
+#define HTTP_STATUS_END                       599
 
 extern const str_t* HTTP_HEADER_CONNECTION;
 extern const str_t* HTTP_HEADER_DATE;
@@ -172,18 +172,20 @@ extern const str_t* HTTP_HEADER_CONTENT_LEN;
 extern const str_t* HTTP_HEADER_KEEPALIVE;
 extern const str_t* HTTP_HEADER_CLOSE;
 extern const str_t* HTTP_HEADER_XWP_VER;
+extern const str_t* HTTP_HEADER_EXPECT;
 
-//TODO char* to str_t* 
+//TODO char* to str_t*
 int http_content_type(const char* extension, str_t* content_type);
 const str_t* http_status_line(int status);
 int http_header_set(array_t* headers, const str_t* name, const str_t* value);
+int http_header_set2(array_t* headers, const char* name, const char* value);
 int http_header_equal(array_t* headers, const str_t* name, const str_t* value);
 const str_t* http_header_str(array_t* headers, const str_t* name);
 int http_header_int(array_t* headers, const str_t* name);
-str_t* http_error_page(int status, pool_t* pool);
+str_t* http_error_page(int status, const str_t* err_msg, pool_t* pool);
 
 #define HTTP_PROCESS_PHASE_REQUEST  0
-#define HTTP_PROCESS_PHASE_RESPONSE 1 
+#define HTTP_PROCESS_PHASE_RESPONSE 1
 http_request_t* http_request_create(pool_t* pool, const conf_t* conf, struct sockaddr_in* peer_addr);
 int http_process_request_line(http_request_t* request, int fd);
 int http_process_header_line(http_request_t* request, int fd, int process_phase);

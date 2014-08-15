@@ -3,12 +3,12 @@
 #include <assert.h>
 #include <stdio.h>
 #include "http.h"
-typedef struct module_s module_t;
+#include "module.h"
 
 typedef void (*UPSTREAM_PROCESS_FUNC)(upstream_t* thiz);
 typedef int (*UPSTREAM_ABORT_FUNC)(upstream_t* thiz);
 
-typedef struct upstream_s
+struct upstream_s
 {
 	UPSTREAM_PROCESS_FUNC process;
 	UPSTREAM_ABORT_FUNC abort;
@@ -17,7 +17,7 @@ typedef struct upstream_s
 	http_request_t* request;
 
 	char priv[0];
-}upstream_t;
+};
 
 static inline void upstream_process(upstream_t* thiz)
 {
@@ -41,7 +41,7 @@ static inline void upstream_abort(upstream_t* thiz)
 
 	if(thiz->abort != NULL)
 		thiz->abort(thiz);
-	
+
 	return;
 }
 

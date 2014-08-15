@@ -12,8 +12,9 @@
 #include "utils.h"
 #include "log.h"
 //#include "http.h"
-#include <sys/types.h>        
+#include <sys/types.h>
 #include <sys/socket.h>
+#include "conf.h"
 #include "module.h"
 #include "xml_tree.h"
 
@@ -58,7 +59,7 @@ typedef struct module_uwsgi_conf_s
 	array_t* pass_params; //module_param_t*
 }module_uwsgi_conf_t;
 
-typedef struct module_uwsgi_priv_s 
+typedef struct module_uwsgi_priv_s
 {
 	const vhost_loc_conf_t* loc_conf;
 	module_uwsgi_conf_t conf;
@@ -74,10 +75,10 @@ typedef struct upstream_uwsgi_priv_s
 static int upstream_uwsgi_add_param(char* buf, const str_t* name, const str_t* value)
 {
 	assert(name != NULL && name->data != NULL && name->len > 0);
-	assert(name->data[name->len] == '\0' 
+	assert(name->data[name->len] == '\0'
 			&& name->data[name->len - 1] != '\0');
 	int pos = 0;
-	
+
 	uint16_little_endian(buf+pos, (uint16_t)name->len);
 	pos += 2;
 	sprintf(buf+pos, "%s", name->data);
@@ -86,7 +87,7 @@ static int upstream_uwsgi_add_param(char* buf, const str_t* name, const str_t* v
 	if(value!=NULL && value->len>0)
 	{
 		//strlen(value->data) == value->len
-		assert(value->data[value->len] == '\0' 
+		assert(value->data[value->len] == '\0'
 				&& value->data[value->len - 1] != '\0');
 
 		uint16_little_endian(buf+pos, (uint16_t)value->len);
@@ -135,7 +136,7 @@ static uint16_t upstream_uwsgi_calc_packet_len(upstream_t* thiz, http_request_t*
 	}
 
 	datasize += CGI_REQUEST_URI.len + request->url.unparsed_url.len + 4;
-	datasize += CGI_PATH_INFO.len + request->url.path.len + 4; 
+	datasize += CGI_PATH_INFO.len + request->url.path.len + 4;
 	datasize += CGI_DOCUMENT_ROOT.len + loc_conf->root.len + 4;
 	datasize += CGI_SERVER_PROTOCOL.len + request->version_str.len + 4;
 	//datasize += CGI_GATEWAY_INTERFACE.len + sizeof("CGI/1.1") - 1 + 4;
@@ -174,17 +175,18 @@ static void upstream_uwsgi_process(upstream_t* thiz)
 	DECL_PRIV(thiz, upstream_priv, upstream_uwsgi_priv_t*);
 
 	const conf_t* root_conf = module_priv->loc_conf->parent->parent;
-	const vhost_loc_conf_t* loc_conf = module_priv->loc_conf; 
+	const vhost_loc_conf_t* loc_conf = module_priv->loc_conf;
 	upstream_priv->running = 1;
+	int ret = 0;
 
 	uint16_t datasize = upstream_uwsgi_calc_packet_len(thiz, request);
 	/*
 		4 means the length of packet header.
-		1 means the trailing \0. as every time the sprintf func will 
+		1 means the trailing \0. as every time the sprintf func will
 		write a \0 after the string content.
 	*/
-	char* buf = pool_calloc(request->pool, datasize + 4 + 1); 
-	
+	char* buf = pool_calloc(request->pool, datasize + 4 + 1);
+
 	if(buf == NULL) request->status = HTTP_STATUS_BAD_REQUEST;
 
 	int pos = 0;
@@ -202,7 +204,7 @@ static void upstream_uwsgi_process(upstream_t* thiz)
 	pos += upstream_uwsgi_add_param(buf+pos, &CGI_DOCUMENT_ROOT, &loc_conf->root);
 	pos += upstream_uwsgi_add_param(buf+pos, &CGI_SERVER_PROTOCOL, &request->version_str);
 	//pos += upstream_uwsgi_add_param(buf+pos, &CGI_GATEWAY_INTERFACE, "CGI/1.1") - 1);
-	
+
 	str_t xwp_server_ver = server_string(XWP_SERVER_VER);
 	pos += upstream_uwsgi_add_param(buf+pos, &CGI_SERVER_SOFTWARE, &xwp_server_ver);
 	pos += upstream_uwsgi_add_param(buf+pos, &CGI_REMOTE_ADDR, &request->remote_ip);
@@ -234,7 +236,7 @@ static void upstream_uwsgi_process(upstream_t* thiz)
 		int count = sprintf(buf+pos, "HTTP_%s", name->data);
 
 		char* p = buf + pos + sizeof("HTTP_") - 1;
-		for(; *p!='\0'; p++) 
+		for(; *p!='\0'; p++)
 		{
 			if(*p == '-') *p = '_';
 			else if(islower(*p)) *p = toupper(*p);
@@ -256,7 +258,7 @@ static void upstream_uwsgi_process(upstream_t* thiz)
 		}
 	}
 
-	log_debug("pos %d datasize %d iplen %d\n", pos, datasize + 4, request->remote_ip.len);
+	log_debug("pos %d datasize %d iplen %zu\n", pos, datasize + 4, request->remote_ip.len);
 	assert(pos == datasize + 4); //4 means packet header length.
 
 	if(!nwrite(upstream_priv->fd, buf, datasize + 4))
@@ -277,14 +279,13 @@ static void upstream_uwsgi_process(upstream_t* thiz)
 	}
 
 	//start read and parsing response from backend.
-	int ret = 0;
 	ret = http_process_status_line(request, upstream_priv->fd);
 	if(ret == 0) goto DONE;
-	
+
 	ret = http_process_header_line(request, upstream_priv->fd, HTTP_PROCESS_PHASE_RESPONSE);
 	if(ret == 0) goto DONE;
 
-	http_process_content_body(request, upstream_priv->fd, 
+	http_process_content_body(request, upstream_priv->fd,
 							  &request->body_out, request->headers_out.content_len);
 
 DONE:
@@ -337,15 +338,14 @@ static upstream_t* upstream_uwsgi_create(http_request_t* request, module_t* modu
 {
 	upstream_t* thiz = pool_alloc(request->pool, sizeof(upstream_t) + sizeof(upstream_uwsgi_priv_t));
 
-	if(thiz == NULL) 
+	if(thiz == NULL)
 	{
 		request->status = HTTP_STATUS_INTERNAL_SERVER_ERROR;
 		return NULL;
 	}
-	
 
 	pool_add_cleanup(request->pool, upstream_uwsgi_destroy, thiz);
-	
+
 	thiz->request = request;
 	thiz->process = upstream_uwsgi_process;
 	thiz->abort = upstream_uwsgi_abort;
@@ -370,7 +370,7 @@ static upstream_t* upstream_uwsgi_create(http_request_t* request, module_t* modu
 
 static void module_uwsgi_destroy(void* data)
 {
-	//TODO cleanup 
+	//TODO cleanup
 	return;
 }
 
@@ -394,7 +394,7 @@ static int module_uwsgi_conf_init(module_uwsgi_conf_t* conf, XmlNode* xml_conf_n
 	pool_strdup2(pool, &conf->ip, xml_tree_str_first(pass_conf_node, "ip"));
 	if(conf->ip.data == NULL) to_string(conf->ip, "127.0.0.1");
 	conf->port = xml_tree_int_first(pass_conf_node, "port", -1);
-	if(conf->port == -1) 
+	if(conf->port == -1)
 	{
 		log_error("uwsgi_pass port needed.");
 
@@ -407,12 +407,12 @@ static int module_uwsgi_conf_init(module_uwsgi_conf_t* conf, XmlNode* xml_conf_n
 static int module_uwsgi_handle_request(module_t* thiz, http_request_t* request)
 {
 	assert(thiz!=NULL && request != NULL);
-	
+
 	upstream_t* upstream = upstream_uwsgi_create(request, thiz);
 
 	if(upstream == NULL)
 	{
-		//status has been set in upstream_uwsgi_create 
+		//status has been set in upstream_uwsgi_create
 		assert(request->status > HTTP_STATUS_SPECIAL_RESPONSE);
 
 		return HTTP_MODULE_PROCESS_DONE;
@@ -431,7 +431,7 @@ static module_t* module_uwsgi_create(void* ctx, XmlNode* xml_conf_node, pool_t* 
 	if(thiz == NULL) return NULL;
 
 	DECL_PRIV(thiz, module_priv, module_uwsgi_priv_t*);
-		
+
 	if(!module_uwsgi_conf_init(&module_priv->conf, xml_conf_node, pool))
 	{
 		return NULL;

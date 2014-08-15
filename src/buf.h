@@ -1,13 +1,15 @@
 #ifndef BUF_H
 #define BUF_H
 #include "pool.h"
-typedef struct buf_s
+typedef struct buf_s buf_t;
+
+struct buf_s
 {
 	char* start;
 	char* end;
 	char* pos;
 	char* last;
-}buf_t;
+};
 
 /*
 typedef struct chain_s

@@ -1,7 +1,8 @@
 #ifndef POOL_H
 #define POOL_H
-typedef struct str_s str_t;
-typedef struct pool_s pool_t;
+#include "typedef.h"
+
+
 typedef void (*POOL_CLEANUP_FUNC)(void* ctx);
 
 pool_t* pool_create(int size);

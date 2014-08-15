@@ -5,13 +5,7 @@
 #include "pool.h"
 #include "array.h"
 #include "typedef.h"
-typedef struct module_s module_t;
-typedef struct vhost_conf_s vhost_conf_t;
-typedef struct conf_s conf_t;
-typedef struct _XmlNode XmlNode;
-
-//FIXME multiple redefinition.
-typedef module_t* (*MODULE_CREATE_FUNC)(void* ctx, XmlNode* xml_conf_node, pool_t* pool);//must hook the destroy handler on the pool cleanup. 
+#include "module.h"
 
 typedef enum
 {
@@ -19,25 +13,18 @@ typedef enum
 	MODULE_TYPE_FILTER,
 }module_type_e;
 
-/*
-typedef struct module_param_s
-{
-	str_t name;
-	array_t* values; //str_t*
-}module_param_t;*/
-
-typedef struct vhost_loc_conf_s 
+struct vhost_loc_conf_s
 {
 	vhost_conf_t* parent;
 	str_t root;
 	str_t pattern_str;
 	regex_t pattern_regex;
-	
+
 	str_t handler_name;
 	module_t* handler;
-}vhost_loc_conf_t;
+};
 
-typedef struct vhost_conf_s
+struct vhost_conf_s
 {
 	conf_t* parent;
 	str_t name;
@@ -46,9 +33,9 @@ typedef struct vhost_conf_s
 
 	array_t* locs; //vhost_loc_conf_t*
 	//vhost_loc_conf_t* default_loc;
-}vhost_conf_t;
+};
 
-typedef struct module_so_conf_s
+struct module_so_conf_s
 {
 	conf_t* parent;
 	str_t name;
@@ -59,9 +46,9 @@ typedef struct module_so_conf_s
 	void* dl_handler;
 
 	MODULE_CREATE_FUNC module_create;
-}module_so_conf_t;
+};
 
-typedef struct conf_s
+struct conf_s
 {
 	pool_t* pool;
 	int request_pool_size;
@@ -75,12 +62,13 @@ typedef struct conf_s
 	str_t root;
 	str_t default_page;
 	int max_threads;
+	int worker_num;
 	//array_t default_pages; //str_t
 
 	array_t* module_sos;    //module_so_conf_t*
 	array_t* vhosts;        //vhost_conf_t*
 	vhost_conf_t* default_vhost;
-}conf_t;
+};
 
 conf_t* conf_parse(const char* config_file, pool_t* pool);
 

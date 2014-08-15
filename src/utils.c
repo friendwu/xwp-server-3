@@ -21,13 +21,13 @@ int connect_remote(char* ip, int port)
 	if(fd < 0) return -1;
 
 	addr.sin_family = AF_INET;
-	
+
 	if(ip != NULL)
 		addr.sin_addr.s_addr = inet_addr(ip);
 	else
 		addr.sin_addr.s_addr = htonl(INADDR_ANY);
 	addr.sin_port = htons((unsigned short) port);
-	
+
 	if(connect(fd, (const struct sockaddr*) &addr, sizeof(struct sockaddr_in)) < 0)
 	{
 		log_error("%s", strerror(errno));
@@ -50,10 +50,10 @@ int open_listen_fd(char* ip, int port, int backlog)
 	listen_fd = socket(AF_INET, SOCK_STREAM, 0);
 	if(listen_fd < 0) return -1;
 
-	if(setsockopt(listen_fd, SOL_SOCKET, 
+	if(setsockopt(listen_fd, SOL_SOCKET,
 					SO_REUSEADDR, (const void* )&opt, sizeof(int)) < 0)
 		return -1;
-	
+
 	bzero((char* )&addr, sizeof(struct sockaddr_in));
 
 	addr.sin_family = AF_INET;
@@ -76,7 +76,7 @@ int open_listen_fd(char* ip, int port, int backlog)
 		close(listen_fd);
 		return -1;
 	}
-	
+
 	return listen_fd;
 }
 
@@ -90,7 +90,7 @@ int get_token(str_t* str, char** buf, IS_DELIM_FUNC delim_func, const char* deli
 	while(*p!='\0' && IS_DELIM(delim_func, delim, *p)) p++;
 
 	if(*p == '\0') return 0;
-	
+
 	p_start = p;
 	p++;
 	while(*p!='\0' && !IS_DELIM(delim_func, delim, *p)) p++;
@@ -130,21 +130,22 @@ int nwrite(int fd, char* buf, size_t len)
 	int cur = 0;
 	int written = 0;
 
-	while (cur < len) 
+	while (cur < len)
 	{
-		do   
-		{    
-			written = write (fd, buf + cur, len - cur);
+		do
+		{
+			//written = write (fd, buf + cur, len - cur);
+			written = send (fd, buf + cur, len - cur, MSG_DONTWAIT | MSG_NOSIGNAL);
 		} while (written<=0 && (errno==EINTR || errno==EAGAIN));
 
-		if (written <= 0) 
-		{    
+		if (written <= 0)
+		{
 			log_error("nwrite failed: written=%d, errno: %d", written, errno);
 			return 0;
-		}    
+		}
 
 		cur += written;
-	}  
+	}
 
 	return 1;
 }

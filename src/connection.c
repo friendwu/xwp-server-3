@@ -26,7 +26,7 @@ static void connection_gen_request(connection_t* thiz)
 	ret = http_process_header_line(thiz->r, thiz->fd, HTTP_PROCESS_PHASE_REQUEST);
 	if(ret == 0) return;
 
-	http_process_content_body(thiz->r, thiz->fd, &thiz->r->body_in, 
+	http_process_content_body(thiz->r, thiz->fd, &thiz->r->body_in,
 							  thiz->r->headers_in.content_len);
 
 	return;
@@ -37,14 +37,14 @@ static size_t connection_response_headers_len(connection_t* thiz)
 	size_t new_line_len = 2;
 	size_t len = 0;
 	const str_t* status_line = http_status_line(thiz->r->status);
-	
+
 	len += sizeof("HTTP/1.x ") - 1;
 	len += status_line->len;
-	len += new_line_len; 
+	len += new_line_len;
 
 	http_header_t** header_elts = (http_header_t**) thiz->r->headers_out.headers->elts;
 	int header_count = thiz->r->headers_out.headers->count;
-	int i = 0; 
+	int i = 0;
 	for(; i<header_count; i++)
 	{
 		len += header_elts[i]->name.len;
@@ -96,7 +96,7 @@ static int connection_send_response(connection_t* thiz)
 	char* buf = pool_alloc(thiz->request_pool, headers_len);
 	const str_t* status_line = http_status_line(thiz->r->status);
 
-	count = snprintf(buf, headers_len-num, "%s %s\r\n", thiz->r->version_str.data, 
+	count = snprintf(buf, headers_len-num, "%s %s\r\n", thiz->r->version_str.data,
 										  status_line->data);
 	if(count <= 0) return 0;
 	num += count;
@@ -106,7 +106,7 @@ static int connection_send_response(connection_t* thiz)
 	for(; i<header_count; i++)
 	{
 		http_header_t** header_elts = (http_header_t**) thiz->r->headers_out.headers->elts;
-		count = snprintf(buf+num, headers_len-num, "%s: %s\r\n", 
+		count = snprintf(buf+num, headers_len-num, "%s: %s\r\n",
 								  header_elts[i]->name.data, header_elts[i]->value.data);
 		if(count <= 0) return 0;
 		num += count;
@@ -123,7 +123,7 @@ static int connection_send_response(connection_t* thiz)
 	if(body_out->content_fd >= 0)
 	{
 		ssize_t ret = sendfile(thiz->fd, body_out->content_fd, NULL, body_out->content_len);
-	
+
 		close(body_out->content_fd);
 		body_out->content_fd = -1;
 
@@ -131,7 +131,7 @@ static int connection_send_response(connection_t* thiz)
 	}
 	else if(body_out->content != NULL)
 	{
-		if(!nwrite(thiz->fd, body_out->content->pos, body_out->content_len)) 
+		if(!nwrite(thiz->fd, body_out->content->pos, body_out->content_len))
 			return 0;
 	}
 
@@ -144,27 +144,35 @@ static void connection_process_request(connection_t* thiz)
 	size_t vhost_nr = thiz->conf->vhosts->count;
 	vhost_conf_t* cur_vhost = NULL;
 	vhost_loc_conf_t* cur_loc = NULL;
-	size_t i = 0;
-	for(; i<vhost_nr; i++)
-	{
-		//TODO host header or url host, 
-		//in 1.0 version, is the host header indispensable?
-		if(strncasecmp(thiz->r->headers_in.header_host->data, 
-					   vhosts[i]->name.data, 
-					   vhosts[i]->name.len) == 0)
-		{
-			cur_vhost = vhosts[i];
-			break;
-		}
-	}
 
-	if(cur_vhost == NULL) 
+    if(thiz->r->headers_in.header_host != NULL)
+    {
+        size_t i = 0;
+        for(; i<vhost_nr; i++)
+        {
+            //TODO host header or url host,
+            //in 1.0 version, is the host header indispensable?
+            if(strncasecmp(thiz->r->headers_in.header_host->data,
+                        vhosts[i]->name.data,
+                        vhosts[i]->name.len) == 0)
+            {
+                cur_vhost = vhosts[i];
+                break;
+            }
+        }
+    }
+    else
+    {
+        cur_vhost = thiz->conf->default_vhost;
+    }
+
+	if(cur_vhost == NULL)
 	{
 		cur_vhost = thiz->conf->default_vhost;
-		log_info("cannot find the vhost: %s, use default: %s", 
+		log_info("cannot find the vhost: %s, use default: %s",
 				thiz->r->headers_in.header_host->data, cur_vhost->name.data);
 	}
-		
+
 	vhost_loc_conf_t** locs = (vhost_loc_conf_t** ) cur_vhost->locs->elts;
 	size_t loc_nr = cur_vhost->locs->count;
 
@@ -178,13 +186,13 @@ static void connection_process_request(connection_t* thiz)
 		}
 	}
 
-	if(cur_loc == NULL) 
+	if(cur_loc == NULL)
 	{
 		log_error("cannot find the location: %s", thiz->r->url.path.data);
 		thiz->r->status = HTTP_STATUS_BAD_REQUEST;
 		return;
 	}
-	
+
 	int ret = HTTP_MODULE_PROCESS_DONE;
 	ret = module_process(cur_loc->handler, thiz->r);
 
@@ -212,7 +220,7 @@ static int connection_finalize_request(connection_t* thiz)
 	if(!thiz->timedout)
 	{
 		thiz->start_time = time(NULL);
-		if(thiz->r->upstream != NULL) 
+		if(thiz->r->upstream != NULL)
 			upstream_abort(thiz->r->upstream);
 		thiz->r->upstream = NULL;
 	}
@@ -225,9 +233,10 @@ static int connection_finalize_request(connection_t* thiz)
 	thiz->request_pool = pool_create(thiz->conf->request_pool_size);
 	if(thiz->request_pool == NULL) return 0;
 
-	//TODO? dont support pipeline request now.
-	thiz->r = http_request_create(thiz->request_pool, thiz->conf, thiz->peer_addr);
-	if(thiz->r == NULL) 
+	//dont support pipeline request now.
+	thiz->r = http_request_create(thiz->request_pool,
+	        thiz->conf, thiz->peer_addr);
+	if(thiz->r == NULL)
 	{
 		pool_destroy(thiz->request_pool);
 		thiz->request_pool = NULL;
@@ -246,8 +255,9 @@ static void connection_special_response(connection_t* thiz)
 		return;
 	}
 
-	str_t* error_page = http_error_page(thiz->r->status, thiz->request_pool);
-	
+	str_t* error_page = http_error_page(thiz->r->status, thiz->r->err_msg,
+	                                    thiz->request_pool);
+
 	//assert(body_out->content_len == 0 && body_out->content == NULL);
 	if(error_page != NULL)
 	{
@@ -274,12 +284,12 @@ static void connection_special_response(connection_t* thiz)
 
 static int connection_reusable(connection_t* thiz, int reusable)
 {
-	assert(thiz!=NULL);	
+	assert(thiz!=NULL);
 	assert(thiz->state == CONNECTION_BEFORE_REUSEABLE);
-	
+
 	if(thiz->r)
 	{
-		log_info("close connection %s : %d", 
+		log_info("close connection %s : %d",
 				thiz->r->remote_ip.data, thiz->r->remote_port);
 	}
 
@@ -292,7 +302,7 @@ static int connection_reusable(connection_t* thiz, int reusable)
 		thiz->fd = -1;
 	}
 
-	if(thiz->r!=NULL && thiz->r->upstream!=NULL) 
+	if(thiz->r!=NULL && thiz->r->upstream!=NULL)
 	{
 		upstream_abort(thiz->r->upstream);
 		thiz->r->upstream = NULL;
@@ -332,7 +342,7 @@ connection_t* connection_create(pool_t* pool, const conf_t* conf)
 	if(thiz == NULL) return NULL;
 
 	pool_add_cleanup(pool, connection_close, thiz);
-	
+
 	pthread_mutex_init(&thiz->mutex, NULL);
 	thiz->pool = pool;
 	thiz->conf = conf;
@@ -363,13 +373,13 @@ int connection_run(connection_t* thiz, int fd, struct sockaddr_in* peer_addr)
 	thiz->start_time = time(NULL);
 	thiz->fd = fd;
 	thiz->state = CONNECTION_RUNNING;
-	log_info("accept connection from  %s : %d", 
+	log_info("accept connection from  %s : %d",
 			thiz->r->remote_ip.data, thiz->r->remote_port);
 
 	while(!thiz->timedout)
 	{
 		//only this thread are permitted to change it.
-		assert(thiz->state == CONNECTION_RUNNING); 
+		assert(thiz->state == CONNECTION_RUNNING);
 
 		connection_gen_request(thiz);
 		if(thiz->r->status >= HTTP_STATUS_SPECIAL_RESPONSE)
@@ -381,7 +391,7 @@ int connection_run(connection_t* thiz, int fd, struct sockaddr_in* peer_addr)
 		connection_process_request(thiz);
 		if(thiz->timedout) break;
 DONE:
-		if(thiz->r->status == HTTP_STATUS_CLOSE) 
+		if(thiz->r->status == HTTP_STATUS_CLOSE)
 		{
 			break;
 		}
@@ -403,7 +413,7 @@ DONE:
 			break;
 		}
 	}
-	
+
 	thiz->state = CONNECTION_BEFORE_REUSEABLE;
 	connection_reusable(thiz, 1);
 
@@ -411,7 +421,7 @@ DONE:
 }
 
 /*
-	this function just set timedout flag and help blocked connection_run thread exit, 
+	this function just set timedout flag and help blocked connection_run thread exit,
 	no other cleanup operation will be done here.
 */
 int connection_check_timeout(connection_t* thiz)
@@ -425,10 +435,10 @@ int connection_check_timeout(connection_t* thiz)
 	{
 		if(now-thiz->start_time >= thiz->conf->connection_timeout)
 		{
-			log_info("connection  %s : %d timedout, close.", 
+			log_info("connection  %s : %d timedout, close.",
 					thiz->r->remote_ip.data, thiz->r->remote_port);
 			thiz->timedout = 1;
-			if(thiz->fd >= 0) 
+			if(thiz->fd >= 0)
 			{
 				//add this can speed up the return of connection_run thread.
 				shutdown(thiz->fd, SHUT_RDWR);
@@ -436,7 +446,7 @@ int connection_check_timeout(connection_t* thiz)
 				while(thiz->state != CONNECTION_BEFORE_REUSEABLE) usleep(3000);
 				thiz->fd = -1;
 			}
-			if(thiz->r->upstream != NULL) 
+			if(thiz->r->upstream != NULL)
 			{
 				upstream_abort(thiz->r->upstream);
 				while(thiz->state != CONNECTION_BEFORE_REUSEABLE) usleep(3000);

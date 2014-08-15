@@ -3,7 +3,7 @@
 #include <string.h>
 #define CRLF "\r\n"
 
-static const str_t http_header_names[] = 
+static const str_t http_header_names[] =
 {
 	server_string("Connection"),
 	server_string("Date"),
@@ -14,6 +14,7 @@ static const str_t http_header_names[] =
 	server_string("Keep-Alive"),
 	server_string("Close"),
 	server_string(XWP_SERVER_VER),
+	server_string("Expect"),
 };
 
 const str_t* HTTP_HEADER_CONNECTION = &http_header_names[0];
@@ -25,8 +26,9 @@ const str_t* HTTP_HEADER_CONTENT_LEN = &http_header_names[5];
 const str_t* HTTP_HEADER_KEEPALIVE = &http_header_names[6];
 const str_t* HTTP_HEADER_CLOSE = &http_header_names[7];
 const str_t* HTTP_HEADER_XWP_VER = &http_header_names[8];
+const str_t* HTTP_HEADER_EXPECT = &http_header_names[9];
 
-typedef struct http_status_s 
+typedef struct http_status_s
 {
 	int status;
 	str_t line;
@@ -393,18 +395,18 @@ const str_t* http_status_line(int status)
 	while(low <= high)
 	{
 		int mid = (low + high) / 2;
-		if(http_status_infos[mid].status == status) 
+		if(http_status_infos[mid].status == status)
 			return &http_status_infos[mid].line;
-		else if(http_status_infos[mid].status < status) 
+		else if(http_status_infos[mid].status < status)
 		{
 			low = mid + 1;
 		}
-		else if(http_status_infos[mid].status > status) 
+		else if(http_status_infos[mid].status > status)
 		{
 			high = mid - 1;
 		}
 	}
-	
+
 	//TODO
 	assert(0);
 	return NULL;
@@ -461,7 +463,7 @@ int http_content_type(const char* extension, str_t* content_type)
 int http_header_set(array_t* headers, const str_t* name, const str_t* value)
 {
 	assert(headers!=NULL && name!=NULL && value!=NULL);
-	
+
 	http_header_t** harray = (http_header_t** )headers->elts;
 	int i = 0;
 	for(; i<headers->count; i++)
@@ -476,6 +478,33 @@ int http_header_set(array_t* headers, const str_t* name, const str_t* value)
 
 	h->name = *name;
 	h->value = *value;
+
+	array_push(headers, h);
+
+	return 1;
+}
+
+int http_header_set2(array_t* headers, const char* name, const char* value)
+{
+	assert(headers!=NULL && name!=NULL && value!=NULL);
+
+	http_header_t** harray = (http_header_t** )headers->elts;
+	int i = 0;
+	for(; i<headers->count; i++)
+	{
+		if(strcmp(name, harray[i]->name.data) == 0)
+		{
+			harray[i]->value.data = (char* ) value;
+			harray[i]->value.len = strlen(value);
+			return 1;
+		}
+	}
+	http_header_t* h = (http_header_t* )pool_alloc(headers->pool, sizeof(http_header_t));
+
+	h->name.data = (char* ) name;
+	h->name.len = strlen(name);
+	h->value.data = (char* ) value;
+	h->value.len = strlen(value);
 
 	array_push(headers, h);
 
@@ -509,13 +538,13 @@ int http_header_equal(array_t* headers, const str_t* name, const str_t* value)
 {
 	const str_t* header_value = http_header_str(headers, name);
 
-	if(header_value != NULL && strncasecmp(header_value->data, value->data, header_value->len) == 0) 
+	if(header_value != NULL && strncasecmp(header_value->data, value->data, header_value->len) == 0)
 		return 1;
-	else 
+	else
 		return 0;
 }
 
-str_t* http_error_page(int status, pool_t* pool)
+str_t* http_error_page(int status, const str_t* err_msg, pool_t* pool)
 {
 	int low = 0;
 	int high = sizeof(http_error_pages) / sizeof(http_error_page_t);
@@ -524,31 +553,44 @@ str_t* http_error_page(int status, pool_t* pool)
 	while(low <= high)
 	{
 		int mid = (low + high) / 2;
-		if(http_error_pages[mid].status == status) 
+		if(http_error_pages[mid].status == status)
 		{
 			page = &http_error_pages[mid].page;
 			break;
 		}
-		else if(http_error_pages[mid].status < status) 
+		else if(http_error_pages[mid].status < status)
 		{
 			low = mid + 1;
 		}
-		else if(http_error_pages[mid].status > status) 
+		else if(http_error_pages[mid].status > status)
 		{
 			high = mid - 1;
 		}
 	}
 
 	if(page == NULL) return NULL;
-	
+
 	str_t* ret_page = pool_alloc(pool, sizeof(str_t));
 	if(ret_page == NULL) return NULL;
-	ret_page->data = pool_alloc(pool, page->len + sizeof(http_error_full_tail) - 1 + 1);
+
+    int size = page->len + sizeof(http_error_full_tail) - 1 + 1;
+    if(err_msg != NULL && err_msg->len > 0) size += err_msg->len;
+
+	ret_page->data = pool_alloc(pool, size);
 	if(ret_page->data == NULL) return NULL;
 
-	strncpy(ret_page->data, page->data, page->len);
-	strncpy(ret_page->data+page->len, http_error_full_tail, sizeof(http_error_full_tail) - 1);
-	ret_page->len = page->len + sizeof(http_error_full_tail) - 1;
+	int offset = 0;
+	memcpy(ret_page->data, page->data, page->len);
+	offset += page->len;
+
+    if(err_msg != NULL && err_msg->len > 0)
+    {
+        memcpy(ret_page->data + offset, err_msg->data, err_msg->len);
+        offset += err_msg->len;
+    }
+
+	memcpy(ret_page->data + offset, http_error_full_tail, sizeof(http_error_full_tail) - 1);
+	ret_page->len = offset + sizeof(http_error_full_tail) - 1;
 
 	return ret_page;
 }
